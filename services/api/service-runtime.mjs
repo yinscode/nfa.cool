@@ -6,6 +6,7 @@ import {researchConfiguration} from './research-adapter.mjs';
 
 const NEAR_MIN_MARGIN=10n**22n;
 const MAX_DEPOSIT=5n*10n**23n;
+const MIN_JOB_DEPOSIT=10n**21n; // Registry floor; the live OutLayer estimate is normally above it.
 const sha=bytes=>'sha256:'+createHash('sha256').update(bytes).digest('hex');
 const positive=value=>typeof value==='string'&&/^[1-9][0-9]*$/.test(value);
 const validLimits=value=>value&&Number.isSafeInteger(value.max_instructions)&&value.max_instructions>0&&value.max_instructions<=2_000_000_000&&
@@ -63,11 +64,12 @@ export async function listServices({sdk,tokenId,policy}){
   if(policy?.research&&ready){try{await researchConfiguration({sdk,tokenId,project});researchReady=true}catch{}}
   return {items:Object.entries(serviceInfo).filter(([id])=>id!=='research'||policy?.research).map(([id,info])=>{
     const onchain=catalog.find(p=>p.service_id===id),local=effectivePolicy(localPolicy(policy,id),onchain);
-    const available=!!((id!=='research'||researchReady)&&ready&&unblocked&&funded&&validPolicy(local)&&(onchain?onchainPolicyCompatible(onchain,local,id):id==='scout'));
+    // Paid jobs run with the owner's on-chain policy limits; no on-chain policy, no checkout.
+    const available=!!((id!=='research'||researchReady)&&ready&&unblocked&&funded&&validPolicy(local)&&onchainPolicyCompatible(onchain,local,id));
     return {id,...info,version:ready?project.version_key:null,available,
       reason:id==='research'&&!researchReady?'research_release_not_ready':!ready?'project_not_ready':!unblocked?'agent_busy':!funded?'vault_low_runway':
         !validPolicy(local)?'quote_policy_not_configured':
-        !onchain&&id==='compare'?'service_not_enabled':onchain&&!onchainPolicyCompatible(onchain,local,id)?'service_policy_mismatch':null,
+        !onchain?'service_not_enabled':!onchainPolicyCompatible(onchain,local,id)?'service_policy_mismatch':null,
       schemaHash:schemaHashFor(id),schema:serviceSchemas[id],quotePolicy:validPolicy(local)?local:null,
       outputSchema:{outputHash:'sha256',outputUri:'nfa://work/<sha256>'}};
   })};
@@ -82,8 +84,9 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
   if(project?.state!=='READY'||!project.project_uuid||typeof project.version_key!=='string')throw Error('Project not ready');
   const onchain=await sdk.getServicePolicy(tokenId,service);
   local=effectivePolicy(local,onchain);
-  if(service!=='scout'&&!onchainPolicyCompatible(onchain,local,service)||
-    onchain&&!onchainPolicyCompatible(onchain,local,service))throw Error('Service not enabled at quoted policy');
+  if(!onchainPolicyCompatible(onchain,local,service))throw Error('Service not enabled at quoted policy');
+  // The registry requires the job limits to equal the on-chain policy exactly.
+  local={...local,limits:onchain.limits};
   const source=body?.input;
   let research=null,inputData;
   if(service==='research'){
@@ -106,7 +109,8 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
     resource_limits:local.limits,input_len:Buffer.byteLength(inputData)+(research?Buffer.byteLength(JSON.stringify(research))+1200:128)});
   const estimate=BigInt(estimated);
   if(estimate<=0n)throw Error('OutLayer estimate unavailable');
-  const depositCap=(estimate*6n+4n)/5n; // 20% headroom for quote drift.
+  const headroom=(estimate*6n+4n)/5n; // 20% headroom for quote drift.
+  const depositCap=headroom>MIN_JOB_DEPOSIT?headroom:MIN_JOB_DEPOSIT;
   if(depositCap>BigInt(local.maxDepositYocto))throw Error('OutLayer estimate exceeds service cap');
   const [agent,treasury]=await Promise.all([sdk.getAgentState(tokenId),sdk.getTreasury(tokenId)]);
   if(agent?.lifecycle!=='Active'||agent.pending_op!=null||!treasury||BigInt(treasury.available)<depositCap)
@@ -117,12 +121,12 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
   return {service,tokenId,inputData,inputHash,versionKey:project.version_key,
     estimateYocto:estimate.toString(),feeYocto:fee.toString(),replenishYocto:depositCap.toString(),
     depositCapYocto:depositCap.toString(),limits:local.limits,deadlineNs,
-    policyVersion:onchain?.version??0,...(research?{researchConfigHash:research.configuration_hash,
+    policyVersion:onchain.version,...(research?{researchConfigHash:research.configuration_hash,
       modelBudget:{currency:'USD',reservationMicrousd:String(research.settings.max_input_tokens*research.settings.input_microusd_per_token+
         research.settings.max_output_tokens*research.settings.output_microusd_per_token),
         maxCostMicrousd:String(research.settings.max_cost_microusd),basis:'configured token rates, not a provider invoice'}}:{}),
     unsignedAction:sdk.requestReviewedServiceJob(tokenId,service,inputHash,deadlineNs,fee.toString(),
-        depositCap.toString(),depositCap.toString(),local.limits,project.version_key,onchain?.version??0,research?.configuration_hash)};
+        depositCap.toString(),depositCap.toString(),local.limits,project.version_key,onchain.version,research?.configuration_hash)};
 }
 export const quoteScout=args=>quoteService({...args,service:'scout'});
 

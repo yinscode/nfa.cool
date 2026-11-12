@@ -29,11 +29,31 @@ new intent can be authorized. Do not erase an unknown intent to trigger a retry.
 Stale `.lock` files after a process crash also require checking that no writer is
 active before manual recovery. There is no timeout-based sale unlock.
 
+## Stuck or uncertain transfers
+
+- **Signer timeout** (`mpc_signature_unresolved`, recovery `retry_evm_signature`):
+  the owner or reporter calls `retry_evm_signature`. The vault asks for a
+  signature over the identical digest, so any late signature authorizes the same
+  transaction.
+- **Request never began in the vault:** permissionless `recover_evm_operation`
+  fails it from vault status.
+- **Not mined**, for example because the fee is below the base fee: the owner calls
+  `replace_evm_transfer` with fees at least 10% higher, or `cancel: true` for a
+  zero-value self-send. The vault keeps every earlier signed candidate
+  (`evm_candidates(nonce)`). The settler journals each as attempt *k*
+  (`<token>-<id>-r<k>.json`), observes all of them, and marks and reports whichever
+  one is finalized. A landed cancellation consumes the nonce and marks the
+  transfer `Failed`.
+
+The NFT stays locked until a finalized receipt proves the nonce was consumed. If a
+different signature over an identical payload lands, the reporter records its hash
+with `mark_evm_broadcast(..., attempt: null)` before reporting. These paths need
+the upgraded vault (`recovery_interface: 1` in `status`).
+
 The RPC/reporter remains trusted. Reorg and withheld-transaction uncertainty keep
-the NFT locked. The new worker is locally verified; no new live Sepolia sequence
-is claimed. The release gate remains: fund the current NFA address, settle one
-transfer, prove pending-sale rejection, sell, preserve its address, and settle a
-buyer's next transfer while rejecting the former owner's commands.
+the NFT locked. M02 settled two live Sepolia self-transfers across a sale with
+this worker ([evidence](evidence/m02-handover.json)). Replacement and re-sign
+paths are verified natively and in the settler tests, not yet on Sepolia.
 
 `GET /v1/nfas/:tokenId/holdings` labels the observed block and unavailable RPC.
 It reports an observed balance, not finality or automatically spendable value.

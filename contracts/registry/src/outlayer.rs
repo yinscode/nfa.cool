@@ -4,6 +4,12 @@ use super::*;
 const MAX_PROJECT_DEPOSIT: u128 = 500_000_000_000_000_000_000_000;
 const MAX_JOB_DEPOSIT: u128 = 500_000_000_000_000_000_000_000;
 const MIN_MARGIN: u128 = 10_000_000_000_000_000_000_000;
+/// Below any measured OutLayer charge (~0.0012 NEAR); quotes add the live estimate on top.
+const MIN_JOB_DEPOSIT: u128 = 1_000_000_000_000_000_000_000;
+/// After this delay a started job whose vault callback has returned can be released.
+/// It exceeds the OutLayer execution cap plus its yield window, so a result already
+/// on its way to the registry is not pre-empted.
+const RELEASE_DELAY_NS: u64 = 900_000_000_000;
 
 #[near(serializers = [borsh, json])]
 #[derive(Clone)]
@@ -72,9 +78,13 @@ fn update_service_ledger(token_id:&str,id:u64,change:impl FnOnce(&mut PaidLedger
 fn known_service(service_id:&str)->bool{matches!(service_id,"scout"|"compare"|"research")}
 fn valid_limits(l:&SkillLimits)->bool{l.max_instructions>0 && l.max_instructions<=2_000_000_000
     && l.max_memory_mb>0 && l.max_memory_mb<=128 && l.max_execution_seconds>0 && l.max_execution_seconds<=30}
-fn within_limits(request:&SkillLimits,maximum:&SkillLimits)->bool{
-    request.max_instructions<=maximum.max_instructions && request.max_memory_mb<=maximum.max_memory_mb
-        && request.max_execution_seconds<=maximum.max_execution_seconds}
+fn same_limits(request:&SkillLimits,policy:&SkillLimits)->bool{
+    request.max_instructions==policy.max_instructions && request.max_memory_mb==policy.max_memory_mb
+        && request.max_execution_seconds==policy.max_execution_seconds}
+fn releasable(a:&Agent,j:&PaidJob,id:u64)->bool{
+    a.pending_op==Some(id) && (j.status=="UNCERTAIN" || (j.status=="EXECUTING"
+        && j.started_at_ns.is_some_and(|t|env::block_timestamp()>=t.saturating_add(RELEASE_DELAY_NS))))
+}
 fn save_ledger(ledger:&PaidLedger) { ledgers().insert(&0,ledger); }
 fn ol_hash(s: &str) -> bool { s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit()) }
 fn ol_url(s: &str) -> bool { s.starts_with("https://") && s.len() <= 300 && !s.contains('@') && !s.contains('#') && !s.bytes().any(|b|b.is_ascii_whitespace()) }
@@ -186,14 +196,14 @@ impl Registry {
     pub fn request_paid_scout(&mut self, token_id: TokenId, input_hash: String,
         deadline_ns: u64, fee: U128, replenish: U128, deposit_cap: U128,
         limits: SkillLimits) -> u64 {
-        self.request_job(&token_id,"scout",false,input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
+        self.request_job(&token_id,"scout",input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
     }
 
     #[payable]
     pub fn request_service_job(&mut self,token_id:TokenId,service_id:String,input_hash:String,
         deadline_ns:u64,fee:U128,replenish:U128,deposit_cap:U128,limits:SkillLimits)->u64{
         require!(service_id!="research","Reviewed research quote required");
-        self.request_job(&token_id,&service_id,true,input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
+        self.request_job(&token_id,&service_id,input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
     }
     #[payable]
     pub fn request_reviewed_service_job(&mut self,token_id:TokenId,service_id:String,input_hash:String,
@@ -204,17 +214,21 @@ impl Registry {
         require!(project.version_key==expected_version&&policy_version==expected_policy_version,"Quote runtime or policy changed");
         if service_id=="research"{require!(self.research_config(token_id.clone()).is_some_and(|c|
             Some(c.configuration_hash)==expected_research_config),"Quote research configuration changed")}
-        self.request_job(&token_id,&service_id,service_id!="scout"||expected_policy_version!=0,
-            input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
+        self.request_job(&token_id,&service_id,input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
     }
 
-    fn request_job(&mut self,token_id:&TokenId,service_id:&str,require_policy:bool,input_hash:String,
+    // Customers pay for a job but do not choose its resources: limits are the owner's
+    // policy limits exactly, and the execution deposit has a floor. A customer-chosen
+    // 1-instruction or 1-yocto execution would otherwise force an unresolvable result.
+    fn request_job(&mut self,token_id:&TokenId,service_id:&str,input_hash:String,
         deadline_ns:u64,fee:U128,replenish:U128,deposit_cap:U128,limits:SkillLimits)->u64{
         require!(known_service(service_id),"Unknown service");
-        let policy=service_policies().get(&service_key(token_id,service_id));
-        if require_policy{require!(policy.is_some(),"Service not configured")}
-        if let Some(p)=&policy{require!(p.enabled && fee.0>=replenish.0.saturating_add(p.min_margin.0)
-            && deposit_cap.0<=p.max_deposit.0 && within_limits(&limits,&p.limits),"Service policy exceeded")}
+        let p=service_policies().get(&service_key(token_id,service_id)).unwrap_or_else(||env::panic_str("Service not configured"));
+        require!(p.enabled && fee.0>=replenish.0.saturating_add(p.min_margin.0)
+            && deposit_cap.0<=p.max_deposit.0,"Service policy exceeded");
+        require!(same_limits(&limits,&p.limits),"Job limits must equal the service policy");
+        require!(deposit_cap.0>=MIN_JOB_DEPOSIT,"Execution deposit below floor");
+        let policy=Some(p);
         let mut a = self.transferable(&token_id);
         let p = projects().get(token_id).unwrap_or_else(||env::panic_str("No OutLayer project"));
         require!(p.state == "READY" && !p.project_uuid.is_empty(),"Project not ready");
@@ -371,6 +385,50 @@ impl Registry {
         j.reimbursement_pending=true; paid_jobs().insert(&op_key(&token_id,id),&j);
         Promise::new(a.vault_id).transfer(NearToken::from_yoctonear(j.replenish.0))
             .then(ol_callback("on_outlayer_replenished",&token_id,id))
+    }
+
+    /// Permissionless. Ends a started job whose result can no longer arrive: the vault's
+    /// OutLayer callback has returned (or the vault never began), but the registry has
+    /// no definite result. The customer is refunded, the work never enters memory and
+    /// the NFA is usable again. Any late OutLayer storage write stays unreachable because
+    /// recall and prior-work context require FINALIZED jobs.
+    pub fn release_service_job(&mut self,token_id:TokenId,id:u64)->Promise{
+        let a=self.agents.get(&token_id).unwrap_or_else(||env::panic_str("Unknown agent"));
+        let j=paid_jobs().get(&op_key(&token_id,id)).unwrap_or_else(||env::panic_str("Unknown job"));
+        require!(releasable(&a,&j,id),"Job is not releasable");
+        ol_call(a.vault_id,"release_skill",serde_json::json!({"id":id}),15)
+            .then(ol_callback("on_service_job_released",&token_id,id))
+    }
+
+    #[private]
+    pub fn on_service_job_released(&mut self,token_id:TokenId,id:u64)->bool{
+        let mut a=self.agents.get(&token_id).unwrap();
+        let mut j=paid_jobs().get(&op_key(&token_id,id)).unwrap();
+        if !releasable(&a,&j,id){return false}
+        if !matches!(env::promise_result_checked(0,16),Ok(ref b) if b==b"true"){return false}
+        if job_service(&token_id,id)=="research"{self.research_released(&token_id,id)}
+        j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
+        a.pending_op=None; self.agents.insert(&token_id,&a);
+        let mut payout=payouts().get(&j.requester).unwrap_or_default();
+        payout.available.0=payout.available.0.checked_add(j.fee.0).unwrap(); payouts().insert(&j.requester,&payout);
+        let mut ledger=ledgers().get(&0).unwrap_or_default();
+        ledger.customer_escrow.0=ledger.customer_escrow.0.saturating_sub(j.fee.0);
+        ledger.customer_refunds.0=ledger.customer_refunds.0.saturating_add(j.fee.0); save_ledger(&ledger);
+        update_service_ledger(&token_id,id,|s|{
+            s.customer_escrow.0=s.customer_escrow.0.saturating_sub(j.fee.0);
+            s.customer_refunds.0=s.customer_refunds.0.saturating_add(j.fee.0);
+        });
+        event("service_job_released",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":j.fee,"runtime_hash":j.version_key}));
+        true
+    }
+
+    /// Permissionless. Re-sends the vault acknowledgement for a settled job if the
+    /// original `ack_skill` failed, so a stale vault pending cannot block later work.
+    pub fn retry_job_ack(&mut self,token_id:TokenId,id:u64)->Promise{
+        let a=self.agents.get(&token_id).unwrap_or_else(||env::panic_str("Unknown agent"));
+        let j=paid_jobs().get(&op_key(&token_id,id)).unwrap_or_else(||env::panic_str("Unknown job"));
+        require!(a.pending_op!=Some(id) && matches!(j.status.as_str(),"FINALIZED"|"FAILED"),"Job not settled");
+        ol_call(a.vault_id,"ack_skill",serde_json::json!({"id":id}),15)
     }
 
     pub fn paid_scout_job(&self, token_id: TokenId, id: u64) -> Option<PaidJob> { paid_jobs().get(&op_key(&token_id,id)) }

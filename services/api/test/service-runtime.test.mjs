@@ -15,8 +15,10 @@ test('Scout REST quote, checkout, start and status bind the same paid input',asy
   const sdk=new NfaSdk({registryAccountId:'registry.testnet',rpcUrl:'https://rpc.invalid'});
   const project={state:'READY',project_uuid:'project-uuid',version_key:'a'.repeat(64)};
   sdk.getOutlayerProject=async()=>project;
-  sdk.getServiceCatalog=async()=>[];
-  sdk.getServicePolicy=async()=>null;
+  const scoutPolicy={service_id:'scout',version:1,enabled:true,schema_hash:schemaHashFor('scout'),min_margin:policy.marginYocto,
+    max_deposit:policy.maxDepositYocto,limits:policy.limits};
+  sdk.getServiceCatalog=async()=>[scoutPolicy];
+  sdk.getServicePolicy=async(_id,service)=>service==='scout'?scoutPolicy:null;
   sdk.getAgentState=async()=>({lifecycle:'Active',pending_op:null});
   sdk.getTreasury=async()=>({available:'1000000000000000000000000'});
   sdk.view=async(_account,method,args)=>{
@@ -27,7 +29,7 @@ test('Scout REST quote, checkout, start and status bind the same paid input',asy
   };
   let job=null;
   sdk.getPaidJob=async()=>job;
-  sdk.getServiceJob=async()=>job?{job,service_id:'scout',policy_version:0}:null;
+  sdk.getServiceJob=async()=>job?{job,service_id:'scout',policy_version:1}:null;
   const server=createApiServer({sdk,store:{},access:{},servicePolicy:policy});
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base=`http://127.0.0.1:${server.address().port}/v1/nfas/nfa-1/services`;
@@ -47,7 +49,8 @@ test('Scout REST quote, checkout, start and status bind the same paid input',asy
     assert.equal(quote.replenishYocto,'120000000000000000000000');
     assert.equal(quote.unsignedAction.methodName,'request_reviewed_service_job');
     assert.equal(quote.unsignedAction.args.expected_version,project.version_key);
-    assert.equal(quote.unsignedAction.args.expected_policy_version,0);
+    assert.equal(quote.unsignedAction.args.expected_policy_version,1);
+    assert.deepEqual(quote.unsignedAction.args.limits,scoutPolicy.limits);
     assert.equal(quote.unsignedAction.deposit,quote.feeYocto);
     assert.equal(quote.unsignedAction.args.input_hash,quote.inputHash);
     assert.equal(quote.unsignedAction.args.deposit_cap,quote.depositCapYocto);
@@ -114,4 +117,12 @@ test('Compare REST quote uses the one Project and configured on-chain service po
     assert.equal(quote.unsignedAction.args.service_id,'compare');
     assert.equal(quote.inputHash,digest(quote.inputData));
   }finally{await new Promise(resolve=>server.close(resolve))}
+});
+
+test('Scout quotes refuse checkout without an on-chain owner policy',async()=>{
+  const sdk=new NfaSdk({registryAccountId:'registry.testnet',rpcUrl:'https://rpc.invalid'});
+  sdk.getOutlayerProject=async()=>({state:'READY',project_uuid:'u',version_key:'a'.repeat(64)});
+  sdk.getServicePolicy=async()=>null;
+  const {quoteService}=await import('../service-runtime.mjs');
+  await assert.rejects(()=>quoteService({sdk,tokenId:'nfa-1',service:'scout',body:{input:source},policy}),/not enabled/);
 });

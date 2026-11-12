@@ -45,11 +45,15 @@ try{
     const vaultCode=await readFile('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault.wasm');
     vaultUpgrade=await registry.functionCall({contractId:after.vaultAccountId,methodName:'emergency_upgrade',
       args:{code:vaultCode.toString('base64')},gas:100_000_000_000_000n,attachedDeposit:0n});
-    const newStatus=await sdk.view(after.vaultAccountId,'status');
+    // Views read final state, which can trail the executed deployment by a block or two.
+    let newStatus;for(let i=0;i<50;i++){newStatus=await sdk.view(after.vaultAccountId,'status');if(newStatus.research_interface!=null)break;await pause(200)}
     assert.equal(newStatus.research_interface,1);
-    const {research_interface,...preserved}=newStatus;assert.deepEqual(preserved,oldStatus);
+    // Fields added by newer vault code are new views of separate storage, not migrated state.
+    const {research_interface,recovery_interface,last_near,...preserved}=newStatus;assert.deepEqual(preserved,oldStatus);
+    assert.equal(last_near??null,null);
     await call(alice,'verify_research_vault',{token_id:'nfa-1'},1n);
-    assert.equal(await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-1'}),true);
+    let capable=false;for(let i=0;i<50&&!capable;i++){capable=await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-1'});if(!capable)await pause(200)}
+    assert.equal(capable,true);
   }
   await call(alice,'create_agent',{request_id:'new-state',manifest_hash:'sha256:'+'b'.repeat(64),manifest_uri:'nfa://manifest/new-state'},6n*10n**24n);
   let second;for(let i=0;i<50;i++){try{second=await sdk.get('nfa-2');break}catch{await pause(200)}}

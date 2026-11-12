@@ -15,6 +15,7 @@ const VAULT_CODE: &[u8] = include_bytes!(env!("NFA_EMBEDDED_VAULT_WASM"));
 mod outlayer;
 mod studio;
 mod research;
+mod recovery;
 
 #[near(serializers = [borsh, json])]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -381,7 +382,13 @@ impl Registry {
         require!(agent.pending_op == Some(id), "Wrong EVM callback");
         let mut op = self.operations.get(&op_key(&token_id,id)).unwrap();
         require!(op.kind == "EVM_TRANSFER" && op.status == OpStatus::Requested, "Wrong EVM state");
-        let ready = matches!(env::promise_result_checked(0, 32), Ok(ref data) if data == b"true");
+        let result = env::promise_result_checked(0, 32);
+        if matches!(result, Ok(ref data) if data == b"\"rejected\"") {
+            // The vault validated nothing into state and requested no signature.
+            self.fail_unstarted_evm(&token_id, &mut agent, id);
+            return false;
+        }
+        let ready = matches!(result, Ok(ref data) if data == b"true");
         op.status = if ready { OpStatus::Submitted } else { OpStatus::Uncertain };
         if !ready { agent.lifecycle = Lifecycle::Draining; }
         self.agents.insert(&token_id, &agent);
@@ -393,16 +400,18 @@ impl Registry {
 
     // The configured reporter must verify the Sepolia tx/receipt independently.
     // Recording a broadcast never unlocks the NFT.
-    pub fn mark_evm_broadcast(&mut self, token_id: TokenId, id: u64, tx_hash: String) {
+    // Every same-nonce candidate the reporter broadcasts is recorded; whichever is
+    // finalized first consumes the nonce. `attempt` identifies the signed candidate.
+    pub fn mark_evm_broadcast(&mut self, token_id: TokenId, id: u64, tx_hash: String, attempt: Option<u32>) {
         require!(env::predecessor_account_id() == self.reporter, "Reporter only");
         require!(valid_tx_hash(&tx_hash), "Invalid transaction hash");
         let agent = self.agents.get(&token_id).unwrap();
         let op = self.operations.get(&op_key(&token_id,id)).unwrap();
-        require!(agent.pending_op == Some(id) && op.status == OpStatus::Submitted
+        require!(agent.pending_op == Some(id) && matches!(op.status, OpStatus::Submitted | OpStatus::Uncertain)
             && op.kind == "EVM_TRANSFER", "No signed operation");
         let mut evm = evm_operations().get(&op_key(&token_id,id)).unwrap();
-        require!(evm.tx_hash.as_ref().is_none_or(|old| old.eq_ignore_ascii_case(&tx_hash)),
-            "Conflicting transaction hash");
+        if let Some(old) = evm.tx_hash.clone() { recovery::record_broadcast(&op_key(&token_id,id), &old, Some(0)); }
+        recovery::record_broadcast(&op_key(&token_id,id), &tx_hash, attempt);
         evm.tx_hash = Some(tx_hash.clone());
         evm_operations().insert(&op_key(&token_id,id), &evm);
         event("evm_broadcast", serde_json::json!({"token_id":token_id,"id":id,"tx_hash":tx_hash}));
@@ -426,26 +435,32 @@ impl Registry {
         require!(agent.pending_op == Some(id), "Wrong reconciliation callback");
         let mut op = self.operations.get(&op_key(&token_id,id)).unwrap();
         let mut evm = evm_operations().get(&op_key(&token_id,id)).unwrap();
-        require!(op.kind == "EVM_TRANSFER" && op.status == OpStatus::Submitted, "Wrong EVM state");
+        require!(op.kind == "EVM_TRANSFER" && matches!(op.status, OpStatus::Submitted | OpStatus::Uncertain), "Wrong EVM state");
         let Ok(bytes) = env::promise_result_checked(0, 4096) else { return false };
         let Ok(status) = serde_json::from_slice::<serde_json::Value>(&bytes) else { return false };
         let Some(receipt) = status["last_receipt"].as_array() else { return false };
         if receipt.len() != 4 || status["controller"] != env::current_account_id().as_str()
             || status["chain_id"] != 11_155_111 || status["path"] != "eth-sepolia-v1"
             || !status["pending"].is_null()
-            || receipt[0] != evm.nonce || receipt[1] != evm.tx_hash.as_deref().unwrap()
-            || receipt[2].as_u64().unwrap_or(0) == 0 || !receipt[3].is_boolean()
+            || receipt[0] != evm.nonce || receipt[2].as_u64().unwrap_or(0) == 0 || !receipt[3].is_boolean()
             || status["next_evm_nonce"] != evm.nonce + 1 { return false; }
+        let key = op_key(&token_id,id);
+        let Some(landed) = receipt[1].as_str().and_then(|h| recovery::landed_broadcast(&key, evm.tx_hash.as_deref(), h))
+            else { return false };
         let success = receipt[3].as_bool().unwrap();
+        let cancelled = recovery::cancelled_attempt(&key, landed.attempt);
         evm.observed_block = receipt[2].as_u64(); evm.success = Some(success);
-        op.status = if success { OpStatus::Finalized } else { OpStatus::Failed };
+        evm.tx_hash = Some(landed.tx_hash.clone());
+        // A landed cancellation consumed the nonce without making the requested transfer.
+        op.status = if success && !cancelled { OpStatus::Finalized } else { OpStatus::Failed };
         agent.pending_op = None;
         if agent.lifecycle == Lifecycle::Draining { agent.lifecycle = Lifecycle::Active; }
         evm_nonces().insert(&token_id, &(evm.nonce + 1));
         evm_operations().insert(&op_key(&token_id,id), &evm);
         self.operations.insert(&op_key(&token_id,id), &op);
         self.agents.insert(&token_id, &agent);
-        event("evm_reconciled", serde_json::json!({"token_id":token_id,"id":id,"success":success,"tx_hash":evm.tx_hash}));
+        event("evm_reconciled", serde_json::json!({"token_id":token_id,"id":id,"success":success,
+            "cancelled":cancelled,"attempt":landed.attempt,"tx_hash":evm.tx_hash}));
         true
     }
 
@@ -887,6 +902,7 @@ mod tests {
     use near_sdk::test_utils::VMContextBuilder;
 
     fn id(s: &str) -> AccountId { s.parse().unwrap() }
+    const MIN_MARGIN_FOR_TESTS: u128 = 10_000_000_000_000_000_000_000;
     fn context(caller: &str, deposit: u128) -> VMContextBuilder {
         let mut b = VMContextBuilder::new();
         b.current_account_id(id("registry.testnet")).predecessor_account_id(id(caller))
@@ -1025,6 +1041,10 @@ mod tests {
             "sources":[{"title":"Vault","url":"https://example.org/vault",
             "text":"The vault account stays the same when the NFT owner changes, and the new owner can control its funds."}]}).to_string();
         let input_hash=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        testing_env!(context("alice.testnet",1).build());
+        r.configure_service("nfa-1".into(),"scout".into(),format!("sha256:{}","a".repeat(64)),true,
+            U128(MIN_MARGIN_FOR_TESTS),U128(deposit),
+            outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10});
         testing_env!(context("customer.testnet",fee).build());
         let id=r.request_paid_scout("nfa-1".into(),input_hash,500,U128(fee),U128(deposit),U128(deposit),
             outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10});
@@ -1458,7 +1478,7 @@ mod tests {
         assert!(r.on_evm_request("nfa-1".into(), 1));
         let hash = format!("0x{}", "a".repeat(64));
         testing_env!(context("reporter.testnet", 0).build());
-        r.mark_evm_broadcast("nfa-1".into(), 1, hash.clone());
+        r.mark_evm_broadcast("nfa-1".into(), 1, hash.clone(), None);
         assert_eq!(r.operation("nfa-1".into(), 1).unwrap().status, OpStatus::Submitted);
         let _ = r.reconcile_evm("nfa-1".into(), 1);
         let mismatch = serde_json::json!({"controller":"registry.testnet","chain_id":11155111,"path":"eth-sepolia-v1",
@@ -1610,10 +1630,273 @@ mod tests {
         testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
         let limits=outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10};
         let rejected=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.request_reviewed_service_job(
-            "nfa-1".into(),"scout".into(),format!("sha256:{}","b".repeat(64)),1000,U128(fee),U128(deposit),U128(deposit),limits.clone(),"f".repeat(64),0,None)));
+            "nfa-1".into(),"scout".into(),format!("sha256:{}","b".repeat(64)),1000,U128(fee),U128(deposit),U128(deposit),limits.clone(),"f".repeat(64),1,None)));
         assert!(rejected.is_err());assert_eq!(r.agent("nfa-1".into()).unwrap().next_op_id,next);
         let allocated=r.request_reviewed_service_job("nfa-1".into(),"scout".into(),format!("sha256:{}","b".repeat(64)),
-            1000,U128(fee),U128(deposit),U128(deposit),limits,version,0,None);
+            1000,U128(fee),U128(deposit),U128(deposit),limits,version,1,None);
         assert_eq!(allocated,next);
+    }
+
+    // ---- B1: customers cannot choose job resources; uncertain jobs are releasable ----
+    fn scout_ready()->(Registry,String,u128,u128){
+        let (mut r,first,input,fee,deposit)=paid_setup();
+        testing_env!(context("keeper.testnet",0).block_timestamp(600).build());r.expire_unstarted_paid_scout("nfa-1".into(),first);
+        (r,input,fee,deposit)
+    }
+    fn limits(i:u64)->outlayer::SkillLimits{outlayer::SkillLimits{max_instructions:i,max_memory_mb:64,max_execution_seconds:10}}
+    #[test]
+    fn customer_cannot_choose_tiny_limits_or_deposit(){
+        let (mut r,input,fee,deposit)=scout_ready();
+        let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let next=r.agent("nfa-1".into()).unwrap().next_op_id;
+        for (lim,cap,msg) in [(1,deposit,"limits"),(1_000_000,1,"deposit")]{
+            let fee_paid=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.request_paid_scout("nfa-1".into(),h.clone(),
+                700,U128(fee),U128(cap),U128(cap),limits(lim))));
+            assert!(fee_paid.is_err(),"{msg} must be rejected");
+        }
+        assert_eq!(r.agent("nfa-1".into()).unwrap().next_op_id,next);
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+    }
+    #[test]
+    #[should_panic(expected="Service not configured")]
+    fn paid_job_requires_an_owner_policy(){
+        let mut r=minted();
+        testing_env!(context("alice.testnet",1).build());
+        let _=r.provision_outlayer("nfa-1".into(),"https://test.fastfs.io/scout.wasm".into(),"a".repeat(64),U128(100));
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),
+            vec![PromiseResult::Successful(serde_json::json!({"project_id":"nfa-1.registry.testnet/scout","project_uuid":"p0001"}).to_string().into_bytes())]);
+        r.on_outlayer_project("nfa-1".into(),1);
+        let fee=NearToken::from_millinear(150).as_yoctonear();let deposit=NearToken::from_millinear(100).as_yoctonear();
+        testing_env!(context("customer.testnet",fee).build());
+        r.request_paid_scout("nfa-1".into(),format!("sha256:{}","a".repeat(64)),500,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+    }
+    fn uncertain_job()->(Registry,u64,u128){
+        let (mut r,input,fee,deposit)=scout_ready();
+        let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let id=r.request_paid_scout("nfa-1".into(),h,10_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        testing_env!(context("customer.testnet",0).block_timestamp(700).build());
+        let _=r.start_paid_scout("nfa-1".into(),id,input);
+        // OutLayer rejected or trapped: the vault reports no parseable result.
+        testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(800).build());
+        let _=r.on_outlayer_job("nfa-1".into(),id,None);
+        assert_eq!(r.paid_scout_job("nfa-1".into(),id).unwrap().status,"UNCERTAIN");
+        (r,id,fee)
+    }
+    #[test]
+    fn uncertain_job_is_released_only_after_vault_confirms_no_execution_in_flight(){
+        let (mut r,id,fee)=uncertain_job();
+        let escrow=r.paid_scout_ledger().customer_escrow.0;let refunds=r.payout(id_("customer.testnet")).available.0;
+        testing_env!(context("stranger.testnet",0).block_timestamp(900).build());
+        let _=r.release_service_job("nfa-1".into(),id);
+        // Vault still has the OutLayer callback outstanding.
+        testing_env!(context("registry.testnet",0).block_timestamp(900).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(b"false".to_vec())]);
+        assert!(!r.on_service_job_released("nfa-1".into(),id));
+        assert_eq!(r.agent("nfa-1".into()).unwrap().pending_op,Some(id));
+        testing_env!(context("registry.testnet",0).block_timestamp(900).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(b"true".to_vec())]);
+        assert!(r.on_service_job_released("nfa-1".into(),id));
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+        assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Active);
+        assert_eq!(r.paid_scout_job("nfa-1".into(),id).unwrap().status,"FAILED");
+        assert_eq!(r.paid_scout_ledger().customer_escrow.0,escrow-fee);
+        assert_eq!(r.payout(id_("customer.testnet")).available.0,refunds+fee);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.owner_memory_receipt("nfa-1".into(),id))).is_err());
+        // Released jobs never become memory and the NFA can be sold again.
+        testing_env!(context("alice.testnet",1).block_timestamp(900).build());
+        r.nft_transfer(id_("bob.testnet"),"nfa-1".into(),None,None);
+    }
+    fn id_(s:&str)->AccountId{s.parse().unwrap()}
+    #[test]
+    #[should_panic(expected="Job is not releasable")]
+    fn executing_job_cannot_be_released_before_the_result_window(){
+        let (mut r,input,fee,deposit)=scout_ready();
+        let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let id=r.request_paid_scout("nfa-1".into(),h,10_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        testing_env!(context("customer.testnet",0).block_timestamp(700).build());
+        let _=r.start_paid_scout("nfa-1".into(),id,input);
+        testing_env!(context("customer.testnet",0).block_timestamp(700+899_000_000_000).build());
+        let _=r.release_service_job("nfa-1".into(),id);
+    }
+    #[test]
+    fn executing_job_is_releasable_after_the_result_window(){
+        let (mut r,input,fee,deposit)=scout_ready();
+        let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let id=r.request_paid_scout("nfa-1".into(),h,10_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        testing_env!(context("customer.testnet",0).block_timestamp(700).build());
+        let _=r.start_paid_scout("nfa-1".into(),id,input);
+        testing_env!(context("registry.testnet",0).block_timestamp(700+900_000_000_000).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(b"true".to_vec())]);
+        assert!(r.on_service_job_released("nfa-1".into(),id));
+        // A result arriving afterwards is rejected and cannot finalize memory.
+        testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(800+900_000_000_000).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.on_outlayer_job("nfa-1".into(),id,
+            Some(serde_json::json!({"schemaVersion":1,"jobId":id,"status":"ok"}))))).is_err());
+    }
+
+    // ---- B2: definite vault rejection and reconciliation of NEAR transfers ----
+    fn near_requested()->(Registry,u64){
+        let mut r=minted();
+        testing_env!(context("alice.testnet",1).build());
+        let id=r.request_near_transfer("nfa-1".into(),id_("bob.testnet"),U128(NearToken::from_near(100).as_yoctonear()));
+        (r,id)
+    }
+    #[test]
+    fn vault_rejection_is_a_definite_failure(){
+        let (mut r,id)=near_requested();
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(b"false".to_vec())]);
+        assert!(!r.on_near_operation("nfa-1".into(),id));
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Failed);
+    }
+    fn uncertain_near()->(Registry,u64){
+        let (mut r,id)=near_requested();
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Failed]);
+        r.on_near_operation("nfa-1".into(),id);
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Uncertain);
+        (r,id)
+    }
+    fn vault_says(r:&mut Registry,f:&str,id:u64,status:serde_json::Value)->bool{
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(status.to_string().into_bytes())]);
+        match f{"near"=>r.on_reconcile_near("nfa-1".into(),id),_=>r.on_recover_evm("nfa-1".into(),id)}
+    }
+    #[test]
+    fn old_vault_panic_is_reconciled_when_vault_never_began(){
+        let (mut r,id)=uncertain_near();
+        assert!(!vault_says(&mut r,"near",id,serde_json::json!({"controller":"registry.testnet","pending":{"Near":{}},"next_operation_id":id+1})));
+        assert!(!vault_says(&mut r,"near",id,serde_json::json!({"controller":"other.testnet","pending":null,"next_operation_id":id})));
+        assert!(!vault_says(&mut r,"near",id,serde_json::json!({"controller":"registry.testnet","pending":null,"next_operation_id":id+1})),
+            "Began without a recorded outcome stays uncertain");
+        assert!(vault_says(&mut r,"near",id,serde_json::json!({"controller":"registry.testnet","pending":null,"next_operation_id":id})));
+        let a=r.agent("nfa-1".into()).unwrap();
+        assert!(a.pending_op.is_none());assert_eq!(a.lifecycle,Lifecycle::Active);
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Failed);
+    }
+    #[test]
+    fn recorded_vault_outcome_resolves_uncertain_transfer(){
+        let (mut r,id)=uncertain_near();
+        assert!(vault_says(&mut r,"near",id,serde_json::json!({"controller":"registry.testnet","pending":null,
+            "next_operation_id":id+1,"last_near":[id,true]})));
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Finalized);
+    }
+    #[test]
+    fn delegate_over_balance_request_cannot_brick_and_budget_is_restored(){
+        let mut r=minted();
+        testing_env!(context("alice.testnet",1).block_timestamp(1).build());
+        r.grant_delegate("nfa-1".into(),id_("worker.testnet"),"NEAR_TRANSFER".into(),Some(id_("bob.testnet")),U128(1000),1_000_000);
+        testing_env!(context("worker.testnet",1).block_timestamp(2).build());
+        let id=r.request_near_transfer("nfa-1".into(),id_("bob.testnet"),U128(1000));
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Failed]);
+        r.on_near_operation("nfa-1".into(),id);
+        assert!(vault_says(&mut r,"near",id,serde_json::json!({"controller":"registry.testnet","pending":null,"next_operation_id":id})));
+        assert_eq!(r.grant("nfa-1".into(),id_("worker.testnet"),"NEAR_TRANSFER".into()).unwrap().remaining,U128(1000));
+    }
+
+    // ---- B3: EVM signer retry, rejection and same-nonce replacement ----
+    fn evm_requested()->(Registry,u64){
+        let mut r=minted();pin_test_wallet();
+        testing_env!(context("alice.testnet",1).build());
+        let id=r.request_evm_transfer("nfa-1".into(),"0x2222222222222222222222222222222222222222".into(),U128(10),1_000_000_000,2_000_000_000);
+        (r,id)
+    }
+    fn evm_cb(r:&mut Registry,result:PromiseResult,f:&str,id:u64)->bool{
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![result]);
+        match f{"request"=>r.on_evm_request("nfa-1".into(),id),"resign"=>r.on_evm_resigned("nfa-1".into(),id),
+            "replace"=>r.on_evm_replaced("nfa-1".into(),id,1_100_000_000,2_200_000_000,false),
+            _=>r.on_evm_replaced("nfa-1".into(),id,1_100_000_000,2_200_000_000,true)}
+    }
+    #[test]
+    fn rejected_evm_request_fails_without_locking(){
+        let (mut r,id)=evm_requested();
+        assert!(!evm_cb(&mut r,PromiseResult::Successful(b"\"rejected\"".to_vec()),"request",id));
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Failed);
+    }
+    #[test]
+    fn uncertain_signer_is_retried_for_same_operation(){
+        let (mut r,id)=evm_requested();
+        assert!(!evm_cb(&mut r,PromiseResult::Failed,"request",id));
+        testing_env!(context("stranger.testnet",0).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.retry_evm_signature("nfa-1".into(),id))).is_err());
+        testing_env!(context("reporter.testnet",0).build());let _=r.retry_evm_signature("nfa-1".into(),id);
+        assert!(!evm_cb(&mut r,PromiseResult::Successful(b"\"rejected\"".to_vec()),"resign",id));
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Uncertain);
+        assert!(evm_cb(&mut r,PromiseResult::Successful(b"true".to_vec()),"resign",id));
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Submitted);
+        assert_eq!(r.agent("nfa-1".into()).unwrap().pending_op,Some(id),"Sale stays locked until a receipt");
+    }
+    #[test]
+    fn never_begun_evm_request_is_recovered_from_vault_status(){
+        let (mut r,id)=evm_requested();
+        evm_cb(&mut r,PromiseResult::Failed,"request",id);
+        assert!(!vault_says(&mut r,"evm",id,serde_json::json!({"controller":"registry.testnet","pending":{"Evm":{}},"next_operation_id":id+1})));
+        assert!(vault_says(&mut r,"evm",id,serde_json::json!({"controller":"registry.testnet","pending":null,"next_operation_id":id})));
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+    }
+    fn signed_evm()->(Registry,u64){
+        let (mut r,id)=evm_requested();
+        assert!(evm_cb(&mut r,PromiseResult::Successful(b"true".to_vec()),"request",id));(r,id)
+    }
+    #[test]
+    fn replacement_requires_owner_and_fee_bump(){
+        let (mut r,id)=signed_evm();
+        for (caller,p,m) in [("bob.testnet",1_100_000_000,2_200_000_000),("alice.testnet",1_050_000_000,2_200_000_000),("alice.testnet",1_100_000_000,2_100_000_000)]{
+            testing_env!(context(caller,1).build());
+            assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.replace_evm_transfer("nfa-1".into(),id,p,m,false))).is_err());
+        }
+        testing_env!(context("alice.testnet",1).build());let _=r.replace_evm_transfer("nfa-1".into(),id,1_100_000_000,2_200_000_000,true);
+        let receipts=near_sdk::test_utils::get_created_receipts();
+        let args=receipts.iter().flat_map(|r|r.actions.iter()).find_map(|a|match a{
+            near_sdk::mock::MockAction::FunctionCallWeight{method_name,args,..} if method_name==b"replace_evm"=>Some(serde_json::from_slice::<serde_json::Value>(args).unwrap()),_=>None}).unwrap();
+        assert_eq!(args["recipient_hex"],"0x1111111111111111111111111111111111111111");assert_eq!(args["value_wei"],"0");
+    }
+    fn reconcile_with(r:&mut Registry,id:u64,hash:&str)->bool{
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),
+            vec![PromiseResult::Successful(serde_json::json!({"controller":"registry.testnet","chain_id":11155111,"path":"eth-sepolia-v1",
+                "pending":null,"next_evm_nonce":1,"last_receipt":[0,hash,77,true]}).to_string().into_bytes())]);
+        r.on_reconcile_evm("nfa-1".into(),id)
+    }
+    #[test]
+    fn original_candidate_landing_after_replacement_is_accepted(){
+        let (mut r,id)=signed_evm();
+        let a=format!("0x{}","a".repeat(64));let b=format!("0x{}","b".repeat(64));
+        testing_env!(context("reporter.testnet",0).build());r.mark_evm_broadcast("nfa-1".into(),id,a.clone(),None);
+        assert!(evm_cb(&mut r,PromiseResult::Successful(b"true".to_vec()),"replace",id));
+        testing_env!(context("reporter.testnet",0).build());r.mark_evm_broadcast("nfa-1".into(),id,b.clone(),Some(1));
+        assert_eq!(r.evm_broadcasts("nfa-1".into(),id).len(),2);
+        assert!(!reconcile_with(&mut r,id,&format!("0x{}","c".repeat(64))),"Unrecorded hash is not accepted");
+        assert!(reconcile_with(&mut r,id,&a));
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Finalized);
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+    }
+    #[test]
+    fn landed_cancellation_consumes_nonce_but_fails_the_transfer(){
+        let (mut r,id)=signed_evm();
+        let b=format!("0x{}","b".repeat(64));
+        assert!(evm_cb(&mut r,PromiseResult::Successful(b"true".to_vec()),"cancel",id));
+        assert_eq!(r.evm_operation("nfa-1".into(),id).unwrap().max_fee,2_200_000_000);
+        testing_env!(context("reporter.testnet",0).build());r.mark_evm_broadcast("nfa-1".into(),id,b.clone(),Some(1));
+        assert!(reconcile_with(&mut r,id,&b));
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Failed);
+        assert_eq!(r.evm_operation("nfa-1".into(),id).unwrap().success,Some(true));
+    }
+    #[test]
+    fn uncertain_replacement_signature_keeps_lock_and_earlier_candidate_reportable(){
+        let (mut r,id)=signed_evm();
+        let a=format!("0x{}","a".repeat(64));
+        testing_env!(context("reporter.testnet",0).build());r.mark_evm_broadcast("nfa-1".into(),id,a.clone(),None);
+        assert!(!evm_cb(&mut r,PromiseResult::Failed,"replace",id));
+        assert_eq!(r.operation("nfa-1".into(),id).unwrap().status,OpStatus::Uncertain);
+        assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Draining);
+        assert!(reconcile_with(&mut r,id,&a));
+        assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Active);
     }
 }

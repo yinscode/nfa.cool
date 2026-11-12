@@ -25,6 +25,8 @@ const limits=(x:SkillLimits)=>{if(!Number.isSafeInteger(x.max_instructions)||x.m
   throw Error('Scout resource limits exceeded');return x};
 // A JS number at Unix nanosecond scale loses sub-microsecond precision; expiry
 // decisions are in seconds. The contract checks the final integer against block time.
+const op=(x:number)=>{if(!Number.isSafeInteger(x)||x<1)throw Error('Invalid operation ID');return x};
+const fee=(x:number)=>{if(!Number.isSafeInteger(x)||x<1||x>100_000_000_000)throw Error('Invalid EVM fee');return x};
 const ns=(x:number)=>{if(!Number.isFinite(x)||!Number.isInteger(x)||x<=0)throw Error('Invalid nanosecond timestamp');return x};
 
 /** Read-only RPC plus wallet-owned writes. The SDK holds no private keys. */
@@ -127,6 +129,17 @@ export class NfaSdk {
     return this.prepare('request_evm_transfer',{token_id:token(id),recipient_hex:recipientHex,
       value_wei:amount(valueWei),priority_fee:priorityFee,max_fee:maxFee});
   }
+  /** Owner: same-nonce EVM replacement with >=10% higher fees, or a zero-value self-send that cancels. */
+  replaceEvmTransfer(id:string,operationId:number,priorityFee:number,maxFee:number,cancel=false){
+    return this.prepare('replace_evm_transfer',{token_id:token(id),id:op(operationId),priority_fee:fee(priorityFee),max_fee:fee(maxFee),cancel});
+  }
+  /** Owner or reporter: ask the signer again for the same digest after an uncertain signer result. */
+  retryEvmSignature(id:string,operationId:number){return this.prepare('retry_evm_signature',{token_id:token(id),id:op(operationId)},'0')}
+  /** Permissionless recovery that reads vault state; none can grant a new authority. */
+  recoverEvmOperation(id:string,operationId:number){return this.prepare('recover_evm_operation',{token_id:token(id),id:op(operationId)},'0')}
+  reconcileNearOperation(id:string,operationId:number){return this.prepare('reconcile_near_operation',{token_id:token(id),id:op(operationId)},'0')}
+  releaseServiceJob(id:string,jobId:number){return this.prepare('release_service_job',{token_id:token(id),id:op(jobId)},'0')}
+  retryJobAck(id:string,jobId:number){return this.prepare('retry_job_ack',{token_id:token(id),id:op(jobId)},'0')}
   deriveWallet(id:string){return this.prepare('derive_wallet',{token_id:token(id)},'0')}
   runJob(id:string,briefHash:string,sourceHash:string,fee:string,deadlineNs:number){
     return this.prepare('request_scout_job',{token_id:token(id),brief_hash:hash(briefHash),

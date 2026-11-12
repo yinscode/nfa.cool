@@ -37,6 +37,17 @@ pub struct ProjectRecord { pub project_id: String, pub project_uuid: String, pub
     pub wasm_url: String, pub state: String }
 
 fn project() -> LookupMap<u8, ProjectRecord> { LookupMap::new(&b"outlayer:project:v1"[..]) }
+// Separate prefixes keep the deployed root `Vault` and `Pending` Borsh layout unchanged.
+fn last_near() -> LookupMap<u8, (u64, bool)> { LookupMap::new(&b"near:last:v1"[..]) }
+/// Earlier signed transactions for one EVM nonce. A replacement keeps every prior
+/// signature visible: any of them may still be mined until the nonce is consumed.
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
+pub struct EvmCandidate { pub digest: [u8; 32], pub unsigned: Vec<u8>, pub signature: Vec<u8> }
+fn candidate_store() -> LookupMap<u64, Vec<EvmCandidate>> { LookupMap::new(&b"evm:candidates:v1"[..]) }
+const MAX_EVM_CANDIDATES: usize = 8;
+fn rejected<T>() -> PromiseOrValue<T> where T: Default { PromiseOrValue::Value(T::default()) }
+fn rejection() -> PromiseOrValue<serde_json::Value> { PromiseOrValue::Value(serde_json::json!("rejected")) }
 fn valid_hash(hash: &str) -> bool { hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_hexdigit()) }
 fn valid_url(url: &str) -> bool { url.starts_with("https://") && url.len() <= 300
     && !url.contains('@') && !url.contains('#') && !url.bytes().any(|b| b.is_ascii_whitespace()) }
@@ -76,16 +87,21 @@ impl Vault {
             pending: None, last_receipt: None }
     }
 
-    pub fn send_near(&mut self, id: u64, recipient: AccountId, amount: U128) -> Promise {
-        self.assert_controller(); self.begin(id);
-        require!(recipient != env::current_account_id() && amount.0 > 0, "Invalid NEAR transfer");
+    /// A rejected precondition returns `false` without starting the operation, so the
+    /// registry can record a definite failure instead of an unresolvable panic.
+    pub fn send_near(&mut self, id: u64, recipient: AccountId, amount: U128) -> PromiseOrValue<bool> {
+        self.assert_controller();
         let storage = u128::from(env::storage_usage()) * env::storage_byte_cost().as_yoctonear();
-        require!(env::account_balance().as_yoctonear() >= storage + NEAR_RESERVE + amount.0,
-            "Insufficient unreserved NEAR");
+        if self.pending.is_some() || id < self.next_operation_id || recipient == env::current_account_id()
+            || amount.0 == 0 || env::account_balance().as_yoctonear() < storage.saturating_add(NEAR_RESERVE).saturating_add(amount.0) {
+            env::log_str("NFA_NEAR_TRANSFER_REJECTED");
+            return rejected();
+        }
+        self.begin(id);
         self.pending = Some(Pending::Near { id, recipient: recipient.clone(), amount: amount.0 });
-        Promise::new(recipient).transfer(NearToken::from_yoctonear(amount.0)).then(
+        PromiseOrValue::Promise(Promise::new(recipient).transfer(NearToken::from_yoctonear(amount.0)).then(
             Promise::new(env::current_account_id()).function_call("on_near_transfer".to_string(),
-                serde_json::json!({"id":id}).to_string().into_bytes(), NearToken::from_yoctonear(0), Gas::from_tgas(10)))
+                serde_json::json!({"id":id}).to_string().into_bytes(), NearToken::from_yoctonear(0), Gas::from_tgas(10))))
     }
 
     pub fn create_project(&mut self, id: u64, wasm_url: String, version_key: String,
@@ -220,6 +236,19 @@ impl Vault {
             "result":output}), 60)
     }
 
+    /// Clear a skill whose OutLayer callback already returned (or that never began).
+    /// After that callback no execution result can reach the vault or registry again.
+    pub fn release_skill(&mut self, id: u64) -> bool {
+        self.assert_controller();
+        match &self.pending {
+            Some(Pending::Skill { id: current, reported: true, .. }) if *current == id => {
+                self.pending = None; env::log_str("NFA_SKILL_RELEASED"); true
+            }
+            None => true,
+            _ => false,
+        }
+    }
+
     pub fn ack_skill(&mut self, id: u64) {
         self.assert_controller();
         require!(matches!(self.pending, Some(Pending::Skill { id: current, reported: true, uncertain: false, .. }) if current == id), "Skill not settled");
@@ -306,22 +335,66 @@ impl Vault {
     pub fn on_near_transfer(&mut self, id: u64) -> bool {
         require!(matches!(&self.pending, Some(Pending::Near { id: current, .. }) if *current == id), "Wrong pending operation");
         let ok = env::promise_result_checked(0, 1024).is_ok();
-        self.pending = None;
+        self.pending = None; last_near().insert(&0, &(id, ok));
         env::log_str(if ok { "NFA_NEAR_TRANSFER_FINALIZED" } else { "NFA_NEAR_TRANSFER_FAILED" });
         ok
     }
 
+    /// Returns the signer promise, or the JSON string `"rejected"` when no signature
+    /// was requested (the registry then records a definite failure).
     pub fn request_evm_transfer(&mut self, id: u64, nonce: u64, recipient_hex: String,
-        value_wei: U128, priority_fee: u64, max_fee: u64) -> Promise {
-        self.assert_controller(); self.begin(id);
-        require!(nonce == self.next_evm_nonce, "Wrong EVM nonce");
-        require!(value_wei.0 > 0 && value_wei.0 <= MAX_VALUE, "Invalid amount");
-        require!(priority_fee > 0 && priority_fee <= max_fee && max_fee <= MAX_FEE, "Invalid fee");
-        let recipient = decode20(&recipient_hex);
-        let unsigned = unsigned_eip1559(nonce, priority_fee, max_fee, &recipient, value_wei.0);
+        value_wei: U128, priority_fee: u64, max_fee: u64) -> PromiseOrValue<serde_json::Value> {
+        self.assert_controller();
+        if self.pending.is_some() || id < self.next_operation_id || nonce != self.next_evm_nonce
+            || value_wei.0 == 0 || value_wei.0 > MAX_VALUE || !valid_fees(priority_fee, max_fee)
+            || !valid_address(&recipient_hex) {
+            env::log_str("NFA_EVM_REQUEST_REJECTED");
+            return rejection();
+        }
+        self.begin(id);
+        let unsigned = unsigned_eip1559(nonce, priority_fee, max_fee, &decode20(&recipient_hex), value_wei.0);
         let digest: [u8; 32] = Keccak256::digest(&unsigned).into();
         self.pending = Some(Pending::Evm { id, nonce, digest, unsigned, signature: None, uncertain: false });
-        let args = serde_json::json!({"request":{"path":PATH,"payload_v2":{"Ecdsa":hex(&digest)},"domain_id":0}});
+        PromiseOrValue::Promise(self.sign(id, &digest))
+    }
+
+    /// Retry the signer for the identical digest after an uncertain signer result.
+    /// Any signature over the same digest authorizes exactly the same transaction.
+    pub fn resign_evm(&mut self, id: u64) -> PromiseOrValue<serde_json::Value> {
+        self.assert_controller();
+        let digest = match &mut self.pending {
+            Some(Pending::Evm { id: current, signature: None, uncertain, digest, .. }) if *current == id && *uncertain => {
+                *uncertain = false; *digest
+            }
+            _ => return rejection(),
+        };
+        PromiseOrValue::Promise(self.sign(id, &digest))
+    }
+
+    /// Sign a replacement at the same nonce (higher fees, or a zero-value self-send to
+    /// cancel). Prior signatures stay recorded because they remain valid until the nonce
+    /// is consumed; the registry checks the fee bump and the cancel recipient.
+    pub fn replace_evm(&mut self, id: u64, recipient_hex: String, value_wei: U128,
+        priority_fee: u64, max_fee: u64) -> PromiseOrValue<serde_json::Value> {
+        self.assert_controller();
+        let Some(Pending::Evm { id: current, nonce, digest, unsigned, signature: Some(signature), uncertain: false }) = self.pending.clone()
+            else { return rejection() };
+        let mut previous = candidate_store().get(&nonce).unwrap_or_default();
+        if current != id || value_wei.0 > MAX_VALUE || !valid_fees(priority_fee, max_fee)
+            || !valid_address(&recipient_hex) || previous.len() >= MAX_EVM_CANDIDATES { return rejection() }
+        previous.push(EvmCandidate { digest, unsigned, signature });
+        candidate_store().insert(&nonce, &previous);
+        let unsigned = unsigned_eip1559(nonce, priority_fee, max_fee, &decode20(&recipient_hex), value_wei.0);
+        let digest: [u8; 32] = Keccak256::digest(&unsigned).into();
+        self.pending = Some(Pending::Evm { id, nonce, digest, unsigned, signature: None, uncertain: false });
+        env::log_str("NFA_EVM_REPLACEMENT_REQUESTED");
+        PromiseOrValue::Promise(self.sign(id, &digest))
+    }
+
+    pub fn evm_candidates(&self, nonce: u64) -> Vec<EvmCandidate> { candidate_store().get(&nonce).unwrap_or_default() }
+
+    fn sign(&self, id: u64, digest: &[u8; 32]) -> Promise {
+        let args = serde_json::json!({"request":{"path":PATH,"payload_v2":{"Ecdsa":hex(digest)},"domain_id":0}});
         Promise::new(SIGNER.parse().unwrap()).function_call("sign".to_string(),
             args.to_string().into_bytes(), NearToken::from_yoctonear(1), Gas::from_tgas(30))
             .then(Promise::new(env::current_account_id()).function_call("on_evm_signature".to_string(),
@@ -343,9 +416,12 @@ impl Vault {
         require!(env::predecessor_account_id() == self.reporter, "Reporter only");
         require!(tx_hash.len() == 66 && tx_hash.starts_with("0x") && tx_hash[2..].bytes().all(|b| b.is_ascii_hexdigit()), "Invalid hash");
         require!(observed_block > 0, "Missing block");
-        let Some(Pending::Evm { id: current, nonce, signature: Some(_), .. }) = &self.pending else { env::panic_str("No signed operation") };
+        let Some(Pending::Evm { id: current, nonce, signature, .. }) = &self.pending else { env::panic_str("No signed operation") };
+        // A replacement may still be signing while an earlier candidate is mined.
+        require!(signature.is_some() || candidate_store().get(nonce).is_some_and(|c| !c.is_empty()), "No signed operation");
         require!(*current == id && *nonce == self.next_evm_nonce, "Wrong receipt");
         let nonce = *nonce;
+        candidate_store().remove(&nonce);
         self.next_evm_nonce += 1;
         self.last_receipt = Some((nonce, tx_hash, observed_block, success));
         self.pending = None;
@@ -362,7 +438,8 @@ impl Vault {
     pub fn status(&self) -> serde_json::Value {
         serde_json::json!({"controller":self.controller,"reporter":self.reporter,"guardian":self.guardian,
             "path":PATH,"chain_id":CHAIN_ID,"next_operation_id":self.next_operation_id,
-            "next_evm_nonce":self.next_evm_nonce,"pending":self.pending_json(),"last_receipt":self.last_receipt,"research_interface":1})
+            "next_evm_nonce":self.next_evm_nonce,"pending":self.pending_json(),"last_receipt":self.last_receipt,"research_interface":1,
+            "last_near":last_near().get(&0),"recovery_interface":1})
     }
 
     pub fn treasury(&self) -> serde_json::Value {
@@ -391,6 +468,10 @@ impl Vault {
     }
 }
 
+fn valid_fees(priority_fee: u64, max_fee: u64) -> bool { priority_fee > 0 && priority_fee <= max_fee && max_fee <= MAX_FEE }
+fn valid_address(s: &str) -> bool {
+    let s = s.strip_prefix("0x").unwrap_or(s); s.len() == 40 && s.bytes().all(|b| b.is_ascii_hexdigit())
+}
 fn decode20(s: &str) -> [u8; 20] {
     let s = s.strip_prefix("0x").unwrap_or(s);
     require!(s.len() == 40 && s.bytes().all(|b| b.is_ascii_hexdigit()), "Invalid address");
@@ -477,12 +558,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Operation unresolved")]
-    fn unresolved_signature_blocks_second_transfer() {
+    fn unresolved_signature_rejects_second_transfer_without_starting_it() {
         let mut v = vault();
         let _ = v.request_evm_transfer(1, 0, "0x1111111111111111111111111111111111111111".into(),
             U128(1), 1, 2);
-        let _ = v.send_near(2, id("recipient.testnet"), U128(100));
+        assert!(matches!(v.send_near(2, id("recipient.testnet"), U128(100)), PromiseOrValue::Value(false)));
+        assert_eq!(v.next_operation_id, 2);
+        assert!(matches!(v.pending, Some(Pending::Evm { id: 1, .. })));
     }
 
     #[test]
@@ -522,8 +604,8 @@ mod tests {
             Default::default(),vec![PromiseResult::Successful(vec![])]);
         assert!(v.on_near_transfer(3));
         testing_env!(context("controller.testnet").build());
-        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
-            v.send_near(2,id("recipient.testnet"),U128(100)))).is_err());
+        assert!(matches!(v.send_near(2,id("recipient.testnet"),U128(100)),PromiseOrValue::Value(false)));
+        assert_eq!(v.next_operation_id,4);
     }
 
     #[test]
@@ -550,11 +632,96 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Operation unresolved")]
     fn concurrent_near_spend_cannot_overbook() {
         let mut v = vault();
         let _ = v.send_near(1,id("recipient.testnet"),U128(100));
+        assert!(matches!(v.send_near(2,id("recipient.testnet"),U128(100)),PromiseOrValue::Value(false)));
+        assert!(matches!(v.pending,Some(Pending::Near { id: 1, .. })));
+    }
+
+    fn signed(v:&mut Vault,id:u64){
+        testing_env!(context("vault.testnet").build(), test_vm_config(), RuntimeFeesConfig::test(),
+            Default::default(), vec![PromiseResult::Successful(format!("{{\"sig\":{id}}}").into_bytes())]);
+        assert!(v.on_evm_signature(id));
+        testing_env!(context("controller.testnet").build());
+    }
+
+    #[test]
+    fn over_balance_withdrawal_is_a_definite_rejection_and_records_nothing() {
+        let mut v = vault();
+        assert!(matches!(v.send_near(1,id("recipient.testnet"),U128(NearToken::from_near(10).as_yoctonear())),PromiseOrValue::Value(false)));
+        assert!(v.pending.is_none()); assert_eq!(v.next_operation_id,1);
+        assert!(v.status()["last_near"].is_null());
         let _ = v.send_near(2,id("recipient.testnet"),U128(100));
+        testing_env!(context("vault.testnet").build(), test_vm_config(), RuntimeFeesConfig::test(),
+            Default::default(), vec![PromiseResult::Successful(vec![])]);
+        assert!(v.on_near_transfer(2));
+        assert_eq!(v.status()["last_near"],serde_json::json!([2,true]));
+    }
+
+    #[test]
+    fn invalid_evm_request_is_rejected_before_any_signature() {
+        let mut v = vault();
+        for (nonce,fee) in [(1,2),(0,200_000_000_000)] {
+            assert!(matches!(v.request_evm_transfer(1,nonce,"0x1111111111111111111111111111111111111111".into(),U128(1),1,fee),
+                PromiseOrValue::Value(ref r) if r=="rejected"));
+        }
+        assert!(v.pending.is_none()); assert_eq!(v.next_operation_id,1);
+        assert!(get_created_receipts_empty());
+    }
+    fn get_created_receipts_empty()->bool{near_sdk::test_utils::get_created_receipts().is_empty()}
+
+    #[test]
+    fn uncertain_signature_can_be_requested_again_for_the_same_digest() {
+        let mut v = vault();
+        let _ = v.request_evm_transfer(1, 0, "0x1111111111111111111111111111111111111111".into(), U128(5), 1, 2);
+        let Some(Pending::Evm { digest, .. }) = v.pending.clone() else { panic!() };
+        testing_env!(context("vault.testnet").build(), test_vm_config(), RuntimeFeesConfig::test(),
+            Default::default(), vec![PromiseResult::Failed]);
+        assert!(!v.on_evm_signature(1));
+        testing_env!(context("controller.testnet").build());
+        assert!(matches!(v.resign_evm(2), PromiseOrValue::Value(ref r) if r=="rejected"));
+        assert!(matches!(v.resign_evm(1), PromiseOrValue::Promise(_)));
+        assert!(matches!(&v.pending, Some(Pending::Evm { digest: d, uncertain: false, signature: None, .. }) if *d==digest));
+        assert!(matches!(v.resign_evm(1), PromiseOrValue::Value(ref r) if r=="rejected"), "Second concurrent re-sign");
+        signed(&mut v,1);
+        testing_env!(context("reporter.testnet").build());
+        v.report_evm_receipt(1, format!("0x{}", "a".repeat(64)), 9, true);
+        assert_eq!(v.next_evm_nonce, 1);
+    }
+
+    #[test]
+    fn same_nonce_replacement_keeps_prior_signature_reportable() {
+        let mut v = vault();
+        let _ = v.request_evm_transfer(1, 0, "0x1111111111111111111111111111111111111111".into(), U128(5), 1, 2);
+        let Some(Pending::Evm { digest: first, .. }) = v.pending.clone() else { panic!() };
+        assert!(matches!(v.replace_evm(1,"0x2222222222222222222222222222222222222222".into(),U128(0),2,3),
+            PromiseOrValue::Value(ref r) if r=="rejected"), "Unsigned operation cannot be replaced");
+        signed(&mut v,1);
+        assert!(matches!(v.replace_evm(1,"0x2222222222222222222222222222222222222222".into(),U128(0),2,3),PromiseOrValue::Promise(_)));
+        let Some(Pending::Evm { nonce, digest, unsigned, signature: None, .. }) = v.pending.clone() else { panic!() };
+        assert_eq!(nonce,0); assert_ne!(digest,first);
+        assert_eq!(hex(&unsigned),hex(&unsigned_eip1559(0,2,3,&[0x22;20],0)));
+        assert_eq!(v.evm_candidates(0).len(),1); assert_eq!(v.evm_candidates(0)[0].digest,first);
+        // The original transaction lands while the replacement signature is pending.
+        testing_env!(context("reporter.testnet").build());
+        v.report_evm_receipt(1, format!("0x{}", "b".repeat(64)), 10, true);
+        assert_eq!(v.next_evm_nonce,1); assert!(v.pending.is_none()); assert!(v.evm_candidates(0).is_empty());
+    }
+
+    #[test]
+    fn released_skill_requires_a_returned_callback() {
+        let mut v = vault();
+        project().insert(&0,&ProjectRecord{project_id:"vault.testnet/scout".into(),project_uuid:"p1".into(),
+            version_key:"a".repeat(64),wasm_url:"https://test.fastfs.io/a.wasm".into(),state:"READY".into()});
+        assert!(v.release_skill(4), "Never-started skill has nothing in flight");
+        let _ = v.execute_skill(5,"a".repeat(64),"{\"jobId\":5}".into(),SkillLimits{max_instructions:1,max_memory_mb:1,max_execution_seconds:1},U128(100));
+        assert!(!v.release_skill(5), "OutLayer callback still outstanding");
+        testing_env!(context("vault.testnet").build(), test_vm_config(), RuntimeFeesConfig::test(),
+            Default::default(), vec![PromiseResult::Failed]);
+        let _ = v.on_skill_execution(5);
+        testing_env!(context("controller.testnet").build());
+        assert!(!v.release_skill(6)); assert!(v.release_skill(5)); assert!(v.pending.is_none());
     }
 
     #[test]

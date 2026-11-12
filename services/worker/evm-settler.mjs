@@ -2,7 +2,11 @@ import {assembleEvmTransfer} from './assemble-evm.mjs';
 import {submitAndObserve} from './evm-journal.mjs';
 import {observeSettlement,reportArgs} from './settlement.mjs';
 
-/** Only the configured reporter can complete these typed zero-deposit actions. */
+/**
+ * Only the configured reporter can complete these typed zero-deposit actions.
+ * A same-nonce replacement leaves several signed candidates; whichever one is
+ * finalized consumed the nonce, so all of them are journaled and observed.
+ */
 export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUrl,fetchImpl=fetch,assemble=assembleEvmTransfer,rpcTimeoutMs=8000}){
   const identity=await sdk.get(tokenId),agent=await sdk.getAgentState(tokenId),id=agent.pending_op;
   if(id==null)return {state:'IDLE'};
@@ -10,31 +14,50 @@ export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUr
     sdk.view(sdk.registryAccountId,'operation',{token_id:tokenId,id}),
     sdk.view(sdk.registryAccountId,'evm_operation',{token_id:tokenId,id}),
     sdk.view(identity.vaultAccountId,'status')]);
-  if(op?.kind!=='EVM_TRANSFER'||op.status!=='Submitted')return {state:'WAITING',reason:'not_signed_evm_operation'};
+  if(op?.kind!=='EVM_TRANSFER'||!['Submitted','Uncertain'].includes(op.status))return {state:'WAITING',reason:'not_signed_evm_operation'};
   if(vault.controller!==sdk.registryAccountId||vault.reporter!==reporterId||vault.chain_id!==11155111||vault.path!=='eth-sepolia-v1')
     throw Error('Vault controller/reporter/chain mismatch');
   const pinned=identity.foreignWallet;
   if(!pinned||pinned.chain_id!==11155111||pinned.path!==vault.path)throw Error('Pinned Sepolia wallet required');
-  let record=await journal.get(tokenId,id);
-  if(vault.pending?.Evm){
-    const pending=vault.pending.Evm;
-    if(!pending.signature||pending.uncertain)return {state:'UNCERTAIN',reason:'mpc_signature_unresolved'};
-    const signed=assemble({pending:vault.pending,derivedPublicKey:pinned.public_key,
-      expectedAddress:pinned.address,expectedId:id,expectedNonce:evm.nonce});
-    record=await journal.saveSigned(tokenId,id,signed);
-    const sent=await submitAndObserve({journal,tokenId,id,signed,rpcUrl,fetchImpl,timeoutMs:rpcTimeoutMs});
-    if(sent.state!=='CONFIRMED')return {state:'UNCERTAIN',reason:sent.reason,hash:record.hash};
+  const optional=async(account,method,args)=>{try{return await sdk.view(account,method,args)??[]}catch{return []}};
+  const pending=vault.pending?.Evm??null;
+  // Retained candidates carry only digest/unsigned/signature; the vault pending carries
+  // its own id and nonce, which the assembler checks against the registry operation.
+  const signedAt=candidate=>assemble({pending:{Evm:{id,nonce:evm.nonce,...candidate,uncertain:false}},
+    derivedPublicKey:pinned.public_key,expectedAddress:pinned.address,expectedId:id,expectedNonce:evm.nonce});
+  if(pending){
+    // Earlier candidates are durable before any broadcast of the current one.
+    const earlier=await optional(identity.vaultAccountId,'evm_candidates',{nonce:evm.nonce});
+    for(const [attempt,candidate] of earlier.entries())await journal.saveSigned(tokenId,id,signedAt(candidate),attempt);
+    if(pending.signature&&!pending.uncertain){
+      const attempt=earlier.length,signed=signedAt(pending);
+      await submitAndObserve({journal,tokenId,id,signed,attempt,rpcUrl,fetchImpl,timeoutMs:rpcTimeoutMs});
+    }
   }
-  if(!record||record.sender.toLowerCase()!==pinned.address.toLowerCase()||record.nonce!==evm.nonce)
+  const records=await journal.list(tokenId,id);
+  if(!records.length){
+    if(pending&&(!pending.signature||pending.uncertain))
+      return {state:'UNCERTAIN',reason:'mpc_signature_unresolved',recovery:pending.uncertain?'retry_evm_signature':'await_signer'};
     throw Error('Missing or mismatched durable EVM journal; recovery required');
-  // Reobserve even a previously confirmed journal before making any authority change.
-  const observed=await observeSettlement({rpcUrl,txHash:record.hash,expectedSender:record.sender,
-    expectedNonce:record.nonce,fetchImpl,timeoutMs:rpcTimeoutMs});
-  if(observed.state!=='CONFIRMED')return {state:'UNCERTAIN',reason:observed.reason,hash:record.hash};
+  }
+  let landed=null;
+  for(const record of records){
+    if(record.sender.toLowerCase()!==pinned.address.toLowerCase()||record.nonce!==evm.nonce)
+      throw Error('Missing or mismatched durable EVM journal; recovery required');
+    // Reobserve even a previously confirmed journal before making any authority change.
+    const observed=await observeSettlement({rpcUrl,txHash:record.hash,expectedSender:record.sender,
+      expectedNonce:record.nonce,fetchImpl,timeoutMs:rpcTimeoutMs});
+    if(observed.state==='CONFIRMED'){landed={record,observed};break}
+  }
+  if(!landed)return {state:'UNCERTAIN',reason:pending?.uncertain?'mpc_signature_unresolved':'not_finalized',
+    hashes:records.map(r=>r.hash),...(pending?.uncertain?{recovery:'retry_evm_signature'}:{})};
+  const {record,observed}=landed,attempt=record.attempt??0;
   const send=(stage,receiverId,methodName,args)=>wallet.send(`${tokenId}-${id}-${stage}`,
     {receiverId,methodName,args,gas:'100000000000000',deposit:'0'});
-  if(!evm.tx_hash)return {stage:'mark',...await send('mark',sdk.registryAccountId,'mark_evm_broadcast',{token_id:tokenId,id,tx_hash:record.hash})};
-  if(evm.tx_hash.toLowerCase()!==record.hash.toLowerCase())throw Error('Registry broadcast hash differs');
+  const recorded=[...await optional(sdk.registryAccountId,'evm_broadcasts',{token_id:tokenId,id}),{tx_hash:evm.tx_hash}]
+    .some(row=>row?.tx_hash?.toLowerCase()===record.hash.toLowerCase());
+  if(!recorded)return {stage:'mark',...await send(attempt===0?'mark':`mark-r${attempt}`,sdk.registryAccountId,'mark_evm_broadcast',
+    {token_id:tokenId,id,tx_hash:record.hash,attempt})};
   if(vault.pending?.Evm)return {stage:'report',...await send('report',identity.vaultAccountId,'report_evm_receipt',reportArgs(observed,id))};
   const receipt=vault.last_receipt;
   if(vault.pending!=null||!Array.isArray(receipt)||receipt[0]!==record.nonce||receipt[1]!==record.hash||

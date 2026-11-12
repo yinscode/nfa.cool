@@ -24,8 +24,10 @@ the seller's personal credentials.
 The active testnet component retains Scout/Compare and adds a candidate Research
 handler. Research public quotes remain gated until real inference and buyer
 continuation pass; see [RESEARCH-ACCEPTANCE.md](RESEARCH-ACCEPTANCE.md). Discovery advertises
-Compare as callable only when the owner configures its on-chain policy and the
-API has a matching quote policy. The other services are examples of products
+any service, Scout included, as callable only when the owner configures its
+on-chain policy and the API has a matching quote policy. Paid jobs run with the
+policy's resource limits exactly and an execution deposit of at least 0.001 NEAR;
+a customer cannot choose smaller limits or deposits. The other services are examples of products
 that can use the same interface once they have their own reviewed guest,
 permission model, price policy and public result contract. `Scout` currently
 processes **supplied text** deterministically; it does not fetch websites or

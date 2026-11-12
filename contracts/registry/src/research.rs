@@ -108,6 +108,11 @@ impl Registry {
             "research":c,"context":{"registryAccountId":env::current_account_id(),"tokenId":token_id,
                 "vaultAccountId":a.vault_id,"ownerEpoch":a.epoch,"priorWork":prior}})
     }
+    /// A released job has no definite inference outcome; its reservation stays consumed.
+    pub(super) fn research_released(&self,token_id:&TokenId,id:u64){
+        let Some(mut u)=usage().get(&op_key(token_id,id)) else{return};
+        if u.state=="RESERVED"{u.state="UNKNOWN".into();usage().insert(&op_key(token_id,id),&u);}
+    }
     pub(super) fn research_finalized(&self,token_id:&TokenId,id:u64,hash:&str){
         let mut rows=finalized().get(token_id).unwrap_or_default();rows.push((id,hash.into()));
         if rows.len()>3{rows.remove(0);}finalized().insert(token_id,&rows);

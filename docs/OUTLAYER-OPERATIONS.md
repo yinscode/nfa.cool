@@ -80,14 +80,19 @@ job ID. No process runs continuously inside the NFT.
 | --- | --- |
 | `REQUESTED` past deadline | Permissionless `expire_unstarted_paid_scout` refunds the customer. |
 | Project `UNCERTAIN` | Inspect OutLayer `get_project`/`get_version`, then use `reconcile_outlayer_project`; retain NFT lock until identity matches. |
-| Job `EXECUTING`/`UNCERTAIN` | Check OutLayer request and callbacks; do not refund or retry a potentially executed job. |
+| Job `UNCERTAIN`, or `EXECUTING` 15 minutes after start | Permissionless `release_service_job`. It succeeds only if the vault confirms its OutLayer callback has returned (or it never began). The customer is refunded, the job never becomes memory, and the NFA unlocks. A job is never re-executed. Requires vault code with `release_skill`. |
+| Settled job but vault still pending | Permissionless `retry_job_ack` re-sends the vault acknowledgement. |
+| NEAR transfer `Uncertain` | Permissionless `reconcile_near_operation` resolves from vault status: never began → Failed; recorded `last_near` outcome → applied. Works with old vaults for the never-began case. |
+| EVM request `Uncertain` | Signer timeout: owner or reporter `retry_evm_signature` (same digest). Vault never began: permissionless `recover_evm_operation`. Stuck in the mempool: owner `replace_evm_transfer` (same nonce, fees +10%, or `cancel`). |
 | `RECONCILING` with definite failed reimbursement | Permissionless `retry_outlayer_replenishment`; check registry balance first. |
 | Recall reimbursement failed | `retry_recall_replenishment`; result remains locked until paid. |
 | Definite guest failure | Full fee becomes customer credit. Owner resumes with `resume_failed_service` only after a callback proves the vault is clear; customer withdraws separately. |
 | Low vault runway | Pause new quotes at API/keeper and fund the same vault; project storage identity remains unchanged. |
 
-No automatic timeout resolves a submitted OutLayer execution, because a timeout
-does not prove that the worker failed to charge or write pending memory.
+No automatic timeout resolves a submitted OutLayer execution. Release is explicit
+and only proves that no result can still reach the registry. OutLayer may still
+have charged the vault deposit or written storage for that job ID. That storage
+is unreachable, because recall and prior-work context require `FINALIZED` jobs.
 OutLayer attestation binds an execution to code/input/output. Scout's cited
 source claims still require separate evaluation; execution does not prove an
 LLM or source is factually correct.

@@ -36,7 +36,7 @@ try{
   const call=(who,method,args,deposit=0n)=>raw(who,registryId,method,args,deposit);
   const action=(who,a)=>raw(who,a.receiverId,a.methodName,a.args,a.deposit);
   await outlayer.deployContract(await readFile('output/sandbox-outlayer-mock.wasm'));await raw(outlayer,outlayer.accountId,'new',{});
-  await registry.deployContract(await readFile('output/sandbox-nfa-registry.wasm'));
+  await registry.deployContract(await readFile(process.env.NFA_SANDBOX_REGISTRY_WASM||'output/sandbox-nfa-registry.wasm'));
   await call(registry,'new',{admin:registryId,reporter:registryId,guardian:registryId});
   await call(alice,'create_agent',{request_id:'research-acceptance',manifest_hash:hash('manifest'),manifest_uri:'nfa://research'},6n*10n**24n);
   const sdk=new NfaSdk({registryAccountId:registryId,rpcUrl:running.rpcUrl});

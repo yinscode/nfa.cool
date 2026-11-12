@@ -31,7 +31,17 @@ rejected before guardian upgrade, then its status was preserved and the owner
 explicitly verified the new interface. 67 JavaScript and 56 contract tests pass.
 Evidence: [m03-upgrade-rehearsal.json](m03-upgrade-rehearsal.json).
 
-## M04–M06 — pending
+## M04 — built and pinned
 
-WASI runtime, memory/billing acceptance and hosted paid research/demo follow.
-Research is not advertised as hosted until real acceptance passes.
+The WASI P2 guest retains Scout/Compare, retrieves approved HTTPS sources and
+calls one reviewed inference provider with bounded tokens/time/cost. The stable
+vault predecessor is checked against runtime identity. Six native tests cover
+idempotency, unknown model outcomes, citations and memory after a human signer
+change. The artifact and locked source hashes are recorded in
+[evidence/m04-runtime.json](evidence/m04-runtime.json). Hosted Research remains
+unavailable in public REST quotes until its real acceptance passes.
+
+## M05–M06 — in progress
+
+Receipt-level memory/billing integration and hosted acceptance follow. A dedicated
+model API key is required for live inference; no unrelated credentials are used.

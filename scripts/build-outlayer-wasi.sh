@@ -1,10 +1,10 @@
 #!/bin/sh
-# Build the single OutLayer guest. The target must be installed in the selected toolchain.
+# Build the reviewed guest with pinned Rust and a workspace-only WASI target.
 set -eu
 cd "$(dirname "$0")/.."
-if ! rustup target list --installed | grep -qx 'wasm32-wasip2'; then
-  echo 'Install wasm32-wasip2 in this Rust toolchain, or select a toolchain with it.' >&2
-  exit 2
-fi
-cargo build --locked --release --target wasm32-wasip2 --manifest-path skills/scout-wasi/Cargo.toml
+node scripts/prepare-wasi-toolchain.mjs
+export CARGO_HOME="$PWD/.deps/research-cargo"
+export CARGO_TARGET_WASM32_WASIP2_RUSTFLAGS="--sysroot $PWD/.deps/research-sysroot"
+rustup run 1.88.0 cargo test --locked --manifest-path skills/scout-wasi/Cargo.toml
+rustup run 1.88.0 cargo build --locked --release --target wasm32-wasip2 --manifest-path skills/scout-wasi/Cargo.toml
 node scripts/check-wasi.mjs

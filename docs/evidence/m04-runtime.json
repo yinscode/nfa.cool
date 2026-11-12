@@ -1,0 +1,36 @@
+{
+  "milestone": "M04",
+  "status": "built; hosted acceptance pending",
+  "artifact": "releases/nfa-services-research-6c8f5b72bf48897e.wasm",
+  "bytes": 570962,
+  "sha256": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+  "componentVersion": "0d000100",
+  "storageManifest": {
+    "storage_account": "predecessor"
+  },
+  "storageImport": "near:storage/api@0.2.0",
+  "rust": "1.88.0",
+  "target": "wasm32-wasip2",
+  "sources": {
+    "skills/scout-wasi/src/main.rs": "e1bac8faf26c9831f206121bf6c07da5d57e7b4341fbd5e85e5a00e934f4cdde",
+    "skills/scout-wasi/src/research.rs": "120fbc86ded6a8b593ca996964ca1e709e1fae71be70a88ebd4aebfbdb038eff",
+    "skills/scout-wasi/Cargo.toml": "2a4a3deeb796421a347114f14aa1306717b373b6bbbd5409850569e6422865aa",
+    "skills/scout-wasi/Cargo.lock": "89caba379cdfef068e1cede1c97cc80a0e065edf4241466cd3c8bab9893f81c8",
+    "scripts/build-outlayer-wasi.sh": "ea39fbfd4c9db3c1c20f2f8b44402861391e8ec44a63e235336fb92cbc3048cd",
+    "scripts/prepare-wasi-toolchain.mjs": "ffbc98fe0caba8bfc97e03cfc2c678eb2e1a45ce44f055a8c3c9d700277ac034"
+  },
+  "nativeTests": 6,
+  "checks": [
+    "legacy Scout/Compare handlers retained",
+    "approved HTTPS source retrieval",
+    "bounded inference endpoint and token budget",
+    "runtime-bound configuration hash",
+    "stable vault predecessor identity",
+    "durable inference attempt prevents duplicate model calls"
+  ],
+  "limits": [
+    "Native fake backends do not verify hosted WASI HTTP or TEE execution.",
+    "Configured model token prices are usage estimates, not provider invoices.",
+    "Owner recall returns a summary; the full research artifact remains in encrypted predecessor storage."
+  ]
+}

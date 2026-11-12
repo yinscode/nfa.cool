@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
 use std::io::{self, Read};
+mod research;
 
 #[cfg(target_os = "wasi")]
 wit_bindgen::generate!({path:"wit", world:"nfa", generate_all});
@@ -18,9 +19,10 @@ static MANIFEST: [u8; 33] = *br#"{"storage_account":"predecessor"}"#;
 struct Input {
     operation: String, job_id: u64, question: Option<String>, sources: Option<Vec<SourceInput>>,
     expected_hash: Option<String>, service: Option<String>, criteria: Option<Vec<String>>,
+    research:Option<research::Config>,context:Option<research::Context>,
 }
 #[derive(Deserialize)]
-struct SourceInput { title: String, url: String, text: String }
+struct SourceInput { title: String, url: String, #[serde(default)] text: String }
 #[derive(Serialize)]
 struct Finding { claim: String, #[serde(rename="sourceId")] source_id: usize }
 #[derive(Serialize)]
@@ -157,7 +159,7 @@ fn recall(input:&Input)->Result<String,String>{
     use near::storage::api;
     let expected=input.expected_hash.as_ref().ok_or("Missing finalized commitment")?;
     let service=input.service.as_deref().unwrap_or("scout");
-    if service!="scout" && service!="compare" {return Err("Unknown service".into())}
+    if service!="scout" && service!="compare" && service!="research" {return Err("Unknown service".into())}
     let key=if service=="scout"{format!("pending:{}",input.job_id)}
         else{format!("services/{service}/pending:{}",input.job_id)};
     let (bytes,error)=api::get(&key);
@@ -194,6 +196,7 @@ fn run(raw:&str)->Result<String,String>{
         #[cfg(not(target_os="wasi"))]
         return Err("Recall requires OutLayer project storage".into());
     }
+    if input.operation=="run"&&input.service.as_deref()==Some("research"){return research::run(&input)}
     let service=match(input.operation.as_str(),input.service.as_deref()){
         ("scout",None)|("run",Some("scout"))=>"scout",
         ("run",Some("compare"))=>"compare",

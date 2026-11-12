@@ -45,6 +45,19 @@
         "recall": "AkdhSnxc8HCpJV7S55uLLMM6V7VGy3EeTA6MD6C8Ndju",
         "projectUuid": "p0000000000000163"
       }
+    },
+    {
+      "id": "scout-compare-research-3",
+      "versionKey": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+      "artifact": "releases/nfa-services-research-6c8f5b72bf48897e.wasm",
+      "services": [
+        "scout",
+        "compare",
+        "research"
+      ],
+      "artifactCodec": "research-v1",
+      "hostedStatus": "candidate",
+      "reason": "Real paid inference and buyer continuity acceptance are required before advertising Research."
     }
   ]
 }

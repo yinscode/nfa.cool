@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "research",
-  "version": "0.1.0",
-  "runtime": "node-reference",
+  "version": "1.0.0",
+  "runtime": "wasm32-wasip2",
   "stage": "candidate",
   "inputSchema": {
     "type": "object",
@@ -68,7 +68,8 @@
     "identity": "vault-predecessor",
     "namespace": "research/<jobId>",
     "transfer": "finalized-agent-owned-work",
-    "isolation": "reference-adapter"
+    "isolation": "encrypted predecessor cell in the stable vault-owned Project",
+    "ownerRecall": "finalized commitment and summary; full artifact remains in the encrypted cell"
   },
   "limits": {
     "max_instructions": 1000000000,
@@ -79,5 +80,5 @@
     "asset": "native-NEAR",
     "externalInferenceLedger": "USD-microunits-separate"
   },
-  "source": "services/worker/research.mjs"
+  "source": "skills/scout-wasi/src/research.rs"
 }

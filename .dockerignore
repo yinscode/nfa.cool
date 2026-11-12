@@ -1,0 +1,16 @@
+.git
+.data
+.deps
+deployments
+node_modules
+**/node_modules
+**/target
+**/dist
+output
+*.zip
+.env
+.env.*
+!.env.example
+**/*.key.json
+**/*.signed.json
+**/*.pem

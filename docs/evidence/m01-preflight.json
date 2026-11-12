@@ -1,10 +1,8 @@
 {
-  "checkedAt": "2026-11-12T10:20:48.002Z",
+  "checkedAt": "2026-11-12T10:30:39.505Z",
   "milestone": "M01",
-  "ready": false,
-  "blockers": [
-    "Check failed: testEthFunded"
-  ],
+  "ready": true,
+  "blockers": [],
   "checks": {
     "controller": true,
     "vaultChain": true,
@@ -12,7 +10,7 @@
     "noPending": true,
     "sepolia": true,
     "finalizedRpc": true,
-    "testEthFunded": false
+    "testEthFunded": true
   },
   "nearRpc": [
     {
@@ -74,8 +72,8 @@
   },
   "sepolia": {
     "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
-    "balanceWei": "0",
+    "balanceWei": "100000000000000000",
     "nonce": "0",
-    "finalizedBlock": "0xb8e872"
+    "finalizedBlock": "0xb8e8b1"
   }
 }

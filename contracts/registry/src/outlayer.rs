@@ -69,7 +69,7 @@ fn update_service_ledger(token_id:&str,id:u64,change:impl FnOnce(&mut PaidLedger
     let key=binding.service_id;let mut ledger=service_ledgers().get(&key).unwrap_or_default();
     change(&mut ledger);service_ledgers().insert(&key,&ledger);
 }
-fn known_service(service_id:&str)->bool{matches!(service_id,"scout"|"compare")}
+fn known_service(service_id:&str)->bool{matches!(service_id,"scout"|"compare"|"research")}
 fn valid_limits(l:&SkillLimits)->bool{l.max_instructions>0 && l.max_instructions<=2_000_000_000
     && l.max_memory_mb>0 && l.max_memory_mb<=128 && l.max_execution_seconds>0 && l.max_execution_seconds<=30}
 fn within_limits(request:&SkillLimits,maximum:&SkillLimits)->bool{
@@ -108,7 +108,7 @@ impl Registry {
         if !known_service(&service_id){return None}service_policies().get(&service_key(&token_id,&service_id))
     }
     pub fn service_catalog(&self,token_id:TokenId)->Vec<ServicePolicy>{
-        ["scout","compare"].iter().filter_map(|s|service_policies().get(&service_key(&token_id,s))).collect()
+        ["scout","compare","research"].iter().filter_map(|s|service_policies().get(&service_key(&token_id,s))).collect()
     }
     #[payable]
     pub fn provision_outlayer(&mut self, token_id: TokenId, wasm_url: String,
@@ -192,15 +192,18 @@ impl Registry {
     #[payable]
     pub fn request_service_job(&mut self,token_id:TokenId,service_id:String,input_hash:String,
         deadline_ns:u64,fee:U128,replenish:U128,deposit_cap:U128,limits:SkillLimits)->u64{
+        require!(service_id!="research","Reviewed research quote required");
         self.request_job(&token_id,&service_id,true,input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
     }
     #[payable]
     pub fn request_reviewed_service_job(&mut self,token_id:TokenId,service_id:String,input_hash:String,
         deadline_ns:u64,fee:U128,replenish:U128,deposit_cap:U128,limits:SkillLimits,
-        expected_version:String,expected_policy_version:u64)->u64{
+        expected_version:String,expected_policy_version:u64,expected_research_config:Option<String>)->u64{
         let project=projects().get(&token_id).unwrap_or_else(||env::panic_str("No Project"));
         let policy_version=service_policies().get(&service_key(&token_id,&service_id)).map(|p|p.version).unwrap_or(0);
         require!(project.version_key==expected_version&&policy_version==expected_policy_version,"Quote runtime or policy changed");
+        if service_id=="research"{require!(self.research_config(token_id.clone()).is_some_and(|c|
+            Some(c.configuration_hash)==expected_research_config),"Quote research configuration changed")}
         self.request_job(&token_id,&service_id,service_id!="scout"||expected_policy_version!=0,
             input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
     }
@@ -220,7 +223,9 @@ impl Registry {
             && env::attached_deposit().as_yoctonear() == fee.0,"Invalid paid job quote");
         require!(valid_limits(&limits),"Resource cap");
         require!(deadline_ns > env::block_timestamp() && deadline_ns.saturating_sub(env::block_timestamp()) <= 604_800_000_000_000,"Deadline cap");
-        let id = a.next_op_id; a.next_op_id += 1; a.pending_op = Some(id); self.agents.insert(token_id,&a);
+        let id = a.next_op_id;
+        if service_id=="research"{self.reserve_research(token_id,id,&p.version_key)}
+        a.next_op_id += 1; a.pending_op = Some(id); self.agents.insert(token_id,&a);
         paid_jobs().insert(&op_key(token_id,id),&PaidJob {id,epoch:a.epoch,requester:env::predecessor_account_id(),
             input_hash,fee,replenish,deposit_cap,version_key:p.version_key,limits,deadline_ns,
             created_at_ns:env::block_timestamp(),started_at_ns:None,
@@ -248,14 +253,14 @@ impl Registry {
         let mut j = paid_jobs().get(&op_key(&token_id,id)).unwrap();
         let service=job_service(&token_id,id);
         let input_hash = format!("sha256:{}",hex(&env::sha256(input_data.as_bytes())));
-        require!(a.pending_op == Some(id) && a.lifecycle == Lifecycle::Active && j.status == "REQUESTED"
+        require!(a.pending_op == Some(id) && a.lifecycle == Lifecycle::Active && j.epoch==a.epoch && j.status == "REQUESTED"
             && env::block_timestamp() < j.deadline_ns && j.input_hash == input_hash
             && input_data.len() <= 8_192, "Job input/stage mismatch");
         let value: serde_json::Value = serde_json::from_str(&input_data).unwrap_or_else(|_|env::panic_str("Input must be JSON"));
         let object=value.as_object().unwrap_or_else(||env::panic_str("Scout input must be an object"));
         require!(object.get("question").and_then(|x|x.as_str()).is_some()
             && object.get("sources").and_then(|x|x.as_array()).is_some(),"Typed service input only");
-        let execution_input=if service=="scout"{
+        let execution_input=if service=="research"{self.research_execution(&token_id,id,&value)}else if service=="scout"{
             require!(object.len()==2,"Typed Scout input only");
             serde_json::json!({"operation":"scout","jobId":id,
                 "question":object.get("question").unwrap(),"sources":object.get("sources").unwrap()})
@@ -270,8 +275,9 @@ impl Registry {
         j.status = "EXECUTING".into(); j.started_at_ns=Some(env::block_timestamp()); paid_jobs().insert(&op_key(&token_id,id),&j);
         event("service_job_started",serde_json::json!({"token_id":token_id,"id":id,"service_id":service,
             "input_hash":j.input_hash,"runtime_hash":j.version_key}));
-        ol_call(a.vault_id,"execute_skill",serde_json::json!({"id":id,"version_key":j.version_key,
-            "input_data":execution_input,"limits":j.limits,"deposit":j.deposit_cap}),175)
+        let mut args=serde_json::json!({"id":id,"version_key":j.version_key,"input_data":execution_input,"limits":j.limits,"deposit":j.deposit_cap});
+        if service=="research"{args["secrets_ref"]=serde_json::to_value(self.research_config(token_id.clone()).unwrap().settings.secrets_ref).unwrap();}
+        ol_call(a.vault_id,if service=="research"{"execute_research_skill"}else{"execute_skill"},args,175)
             .then(ol_callback("on_outlayer_start_returned",&token_id,id))
     }
 
@@ -294,6 +300,7 @@ impl Registry {
             j.status="UNCERTAIN".into(); paid_jobs().insert(&op_key(&token_id,id),&j); return PromiseOrValue::Value(false);
         }
         if output.get("status").and_then(|x|x.as_str()) == Some("failed") {
+            if job_service(&token_id,id)=="research"{self.research_result(&token_id,id,&output)}
             j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
             a.pending_op=None; a.lifecycle=Lifecycle::Draining; self.agents.insert(&token_id,&a);
             let mut payout = payouts().get(&j.requester).unwrap_or_default();
@@ -315,6 +322,7 @@ impl Registry {
             j.status="UNCERTAIN".into(); paid_jobs().insert(&op_key(&token_id,id),&j); return PromiseOrValue::Value(false);
         }
         j.output_hash=Some(hash.into()); j.output_uri=Some(uri.into());
+        if job_service(&token_id,id)=="research"{self.research_result(&token_id,id,&output)}
         j.status="RECONCILING".into(); j.reimbursement_pending=true;
         paid_jobs().insert(&op_key(&token_id,id),&j);
         let mut ledger=ledgers().get(&0).unwrap_or_default();
@@ -338,6 +346,7 @@ impl Registry {
             Err(_) => return PromiseOrValue::Value(false),
         }
         j.status="FINALIZED".into(); j.reimbursement_pending=false;
+        if job_service(&token_id,id)=="research"{self.research_finalized(&token_id,id,j.output_hash.as_deref().unwrap())}
         paid_jobs().insert(&op_key(&token_id,id),&j);
         let mut ledger=ledgers().get(&0).unwrap_or_default();
         ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
@@ -368,7 +377,8 @@ impl Registry {
     pub fn service_job(&self,token_id:TokenId,id:u64)->Option<serde_json::Value>{
         let job=paid_jobs().get(&op_key(&token_id,id))?;
         let binding=job_services().get(&op_key(&token_id,id)).unwrap_or(JobService{service_id:"scout".into(),policy_version:0});
-        Some(serde_json::json!({"job":job,"service_id":binding.service_id,"policy_version":binding.policy_version}))
+        Some(serde_json::json!({"job":job,"service_id":binding.service_id,"policy_version":binding.policy_version,
+            "research_usage":self.research_usage(token_id,id)}))
     }
     pub fn paid_scout_ledger(&self) -> PaidLedger { ledgers().get(&0).unwrap_or_default() }
     pub fn service_ledger(&self,service_id:String)->PaidLedger{

@@ -572,7 +572,7 @@
     },
     "/v1/nfas/{tokenId}/services": {
       "get": {
-        "summary": "Discover executable Scout/Compare services",
+        "summary": "Discover executable services; research requires hosted acceptance and owner configuration",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -671,7 +671,8 @@
               "type": "string",
               "enum": [
                 "scout",
-                "compare"
+                "compare",
+                "research"
               ]
             }
           }
@@ -756,7 +757,8 @@
               "type": "string",
               "enum": [
                 "scout",
-                "compare"
+                "compare",
+                "research"
               ]
             }
           },
@@ -825,7 +827,8 @@
               "type": "string",
               "enum": [
                 "scout",
-                "compare"
+                "compare",
+                "research"
               ]
             }
           },
@@ -1188,6 +1191,26 @@
             "OwnerSession": []
           }
         ]
+      }
+    },
+    "/v1/nfas/{tokenId}/research": {
+      "get": {
+        "summary": "Read research configuration, daily USD allowance and vault compatibility",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Research configuration and reservation ledger; contains a secret reference, never credential values"
+          }
+        }
       }
     }
   },

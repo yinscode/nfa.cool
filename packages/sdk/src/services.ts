@@ -1,8 +1,8 @@
 import type {WalletAction} from './client.js';
-export type ServiceId='scout'|'compare';
+export type ServiceId='scout'|'compare'|'research';
 export type ServiceQuote={service:ServiceId;tokenId:string;inputData:string;inputHash:string;versionKey:string;policyVersion:number;
-  feeYocto:string;replenishYocto:string;depositCapYocto:string;deadlineNs:number;unsignedAction:WalletAction};
-export type ServiceRecord={service_id:ServiceId;policy_version:number;job:{status:string;requester:string;input_hash:string;version_key:string;fee:string;output_hash?:string}};
+  feeYocto:string;replenishYocto:string;depositCapYocto:string;deadlineNs:number;unsignedAction:WalletAction;researchConfigHash?:string};
+export type ServiceRecord={service_id:ServiceId;policy_version:number;research_usage?:{configuration_hash:string};job:{status:string;requester:string;input_hash:string;version_key:string;fee:string;output_hash?:string}};
 
 /** REST preparation and exact payment reconciliation. The caller owns signing and retry policy. */
 export class NfaServicesClient{
@@ -18,7 +18,7 @@ export class NfaServicesClient{
     const value=await response.json();if(!response.ok)throw Error(value.error||`NFA API HTTP ${response.status}`);return value as T;
   }
   private path(tokenId:string,service?:ServiceId){
-    if(!/^nfa-[1-9][0-9]*$/.test(tokenId)||service&&!['scout','compare'].includes(service))throw Error('Invalid service identity');
+    if(!/^nfa-[1-9][0-9]*$/.test(tokenId)||service&&!['scout','compare','research'].includes(service))throw Error('Invalid service identity');
     return `/v1/nfas/${tokenId}/services`+(service?'/'+service:'');
   }
   discover(tokenId:string){return this.request<{items:Array<{id:ServiceId;available:boolean;schemaHash:string;reason:string|null}>}>(this.path(tokenId))}
@@ -36,6 +36,7 @@ export class NfaServicesClient{
     if(receipt.status!=='SUCCEEDED'||!Number.isSafeInteger(receipt.assignedJobId)||!receipt.assignedJobId)
       throw Error('Payment is not finalized with an assigned job ID; inspect before retrying');
     const record=await this.job(quote.tokenId,quote.service,receipt.assignedJobId),job=record.job;
+    if(quote.service==='research'&&record.research_usage?.configuration_hash!==quote.researchConfigHash)throw Error('Research configuration differs from reviewed quote');
     if(record.service_id!==quote.service||record.policy_version!==quote.policyVersion||job.requester!==sender||
       job.input_hash!==quote.inputHash||job.version_key!==quote.versionKey||job.fee!==quote.feeYocto)
       throw Error('Finalized payment differs from reviewed service quote');

@@ -1,6 +1,8 @@
 import {createHash} from 'node:crypto';
 import {createScoutBrief} from '../worker/scout.mjs';
 import {createCompareBrief} from '../worker/compare.mjs';
+import {researchInputSchema,validateResearchInput} from '../worker/research.mjs';
+import {researchConfiguration} from './research-adapter.mjs';
 
 const NEAR_MIN_MARGIN=10n**22n;
 const MAX_DEPOSIT=5n*10n**23n;
@@ -16,7 +18,8 @@ const effectivePolicy=(policy,onchain)=>validPolicy(policy)&&onchain?{...policy,
 const serviceInfo={scout:{name:'Scout',description:'Cited findings from supplied source text',
   inputSchema:{question:'string (5–240 characters)',sources:'1–8 title, URL, text records'}},
   compare:{name:'Compare',description:'Rank supplied options by evidence coverage',
-    inputSchema:{question:'string',criteria:'1–5 criteria',sources:'2–8 option title, URL, text records'}}};
+    inputSchema:{question:'string',criteria:'1–5 criteria',sources:'2–8 option title, URL, text records'}},
+  research:{name:'Research',description:'Approved-source retrieval and bounded model inference',inputSchema:{question:'string',sources:'1–3 approved title and HTTPS URL records'}}};
 const permitted=(requested,maximum)=>requested.max_instructions<=maximum.max_instructions&&
   requested.max_memory_mb<=maximum.max_memory_mb&&requested.max_execution_seconds<=maximum.max_execution_seconds;
 export const serviceSchemas={
@@ -29,6 +32,7 @@ export const serviceSchemas={
     sources:{type:'array',minItems:2,maxItems:8,items:{type:'object',additionalProperties:false,
       required:['title','url','text'],properties:{title:{type:'string'},url:{type:'string',format:'uri'},text:{type:'string'}}}}}}
 };
+serviceSchemas.research=researchInputSchema;
 export const schemaHashFor=id=>sha(JSON.stringify(serviceSchemas[id]));
 export const outputSchemas={
   scout:{type:'object',required:['schemaVersion','template','question','findings','sources'],properties:{
@@ -51,11 +55,13 @@ export async function listServices({sdk,tokenId,policy}){
   const ready=project?.state==='READY'&&typeof project.version_key==='string'&&!!project.project_uuid;
   const unblocked=agent?.lifecycle==='Active'&&agent.pending_op==null;
   const funded=treasury&&BigInt(treasury.available)>0n;
-  return {items:Object.entries(serviceInfo).map(([id,info])=>{
+  let researchReady=false;
+  if(policy?.research&&ready){try{await researchConfiguration({sdk,tokenId,project});researchReady=true}catch{}}
+  return {items:Object.entries(serviceInfo).filter(([id])=>id!=='research'||policy?.research).map(([id,info])=>{
     const onchain=catalog.find(p=>p.service_id===id),local=effectivePolicy(localPolicy(policy,id),onchain);
-    const available=!!(ready&&unblocked&&funded&&validPolicy(local)&&(onchain?onchainPolicyCompatible(onchain,local,id):id==='scout'));
+    const available=!!((id!=='research'||researchReady)&&ready&&unblocked&&funded&&validPolicy(local)&&(onchain?onchainPolicyCompatible(onchain,local,id):id==='scout'));
     return {id,...info,version:ready?project.version_key:null,available,
-      reason:!ready?'project_not_ready':!unblocked?'agent_busy':!funded?'vault_low_runway':
+      reason:id==='research'&&!researchReady?'research_release_not_ready':!ready?'project_not_ready':!unblocked?'agent_busy':!funded?'vault_low_runway':
         !validPolicy(local)?'quote_policy_not_configured':
         !onchain&&id==='compare'?'service_not_enabled':onchain&&!onchainPolicyCompatible(onchain,local,id)?'service_policy_mismatch':null,
       schemaHash:schemaHashFor(id),schema:serviceSchemas[id],quotePolicy:validPolicy(local)?local:null,
@@ -64,7 +70,7 @@ export async function listServices({sdk,tokenId,policy}){
 }
 
 /** Wallet checkout. The returned action is unsigned; no REST handler can charge a wallet. */
-export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now()}){
+export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now(),allowResearchCandidate=false}){
   if(!serviceInfo[service])throw Error('Unknown service');
   let local=localPolicy(policy,service);
   if(!validPolicy(local))throw Error('Service quote policy not configured');
@@ -72,21 +78,28 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
   if(project?.state!=='READY'||!project.project_uuid||typeof project.version_key!=='string')throw Error('Project not ready');
   const onchain=await sdk.getServicePolicy(tokenId,service);
   local=effectivePolicy(local,onchain);
-  if(service==='compare'&&!onchainPolicyCompatible(onchain,local,service)||
+  if(service!=='scout'&&!onchainPolicyCompatible(onchain,local,service)||
     onchain&&!onchainPolicyCompatible(onchain,local,service))throw Error('Service not enabled at quoted policy');
   const source=body?.input;
+  let research=null,inputData;
+  if(service==='research'){
+    research=await researchConfiguration({sdk,tokenId,project,allowCandidate:allowResearchCandidate});
+    validateResearchInput(source,research.settings.allowed_sources.map(r=>({host:r.host,pathPrefix:r.path_prefix})));
+    inputData=JSON.stringify({question:source.question,sources:source.sources});
+  }else{
   if(!source||typeof source!=='object'||Array.isArray(source)||
     Object.keys(source).sort().join(',')!==(service==='scout'?'question,sources':'criteria,question,sources'))
     throw Error('Typed service input required');
   if(!Array.isArray(source.sources)||source.sources.some(item=>!item||typeof item!=='object'||Array.isArray(item)||
     Object.keys(item).sort().join(',')!=='text,title,url'))throw Error('Typed service sources required');
   if(service==='scout')createScoutBrief(source);else createCompareBrief(source);
-  const inputData=JSON.stringify(service==='scout'?{question:source.question,sources:source.sources}:
+  inputData=JSON.stringify(service==='scout'?{question:source.question,sources:source.sources}:
     {question:source.question,criteria:source.criteria,sources:source.sources});
+  }
   if(Buffer.byteLength(inputData)>7_800)throw Error('Service input exceeds on-chain limit');
   // The registry appends operation and assigned jobId later; reserve space for them.
   const estimated=await sdk.view(sdk.registryAccountId.endsWith('.test.near')?'outlayer.test.near':'outlayer.testnet','estimate_execution_cost',{
-    resource_limits:local.limits,input_len:Buffer.byteLength(inputData)+128});
+    resource_limits:local.limits,input_len:Buffer.byteLength(inputData)+(research?Buffer.byteLength(JSON.stringify(research))+1200:128)});
   const estimate=BigInt(estimated);
   if(estimate<=0n)throw Error('OutLayer estimate unavailable');
   const depositCap=(estimate*6n+4n)/5n; // 20% headroom for quote drift.
@@ -100,9 +113,10 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
   return {service,tokenId,inputData,inputHash,versionKey:project.version_key,
     estimateYocto:estimate.toString(),feeYocto:fee.toString(),replenishYocto:depositCap.toString(),
     depositCapYocto:depositCap.toString(),limits:local.limits,deadlineNs,
-    policyVersion:onchain?.version??0,
+    policyVersion:onchain?.version??0,...(research?{researchConfigHash:research.configuration_hash,
+      modelBudget:{currency:'USD',reservationMicrousd:String(research.settings.max_cost_microusd),basis:'configured token rates, not a provider invoice'}}:{}),
     unsignedAction:sdk.requestReviewedServiceJob(tokenId,service,inputHash,deadlineNs,fee.toString(),
-        depositCap.toString(),depositCap.toString(),local.limits,project.version_key,onchain?.version??0)};
+        depositCap.toString(),depositCap.toString(),local.limits,project.version_key,onchain?.version??0,research?.configuration_hash)};
 }
 export const quoteScout=args=>quoteService({...args,service:'scout'});
 

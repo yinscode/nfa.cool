@@ -86,7 +86,7 @@ export class NfaSdk {
   getPaidJob(id:string,jobId:number){return this.view<Record<string,unknown>|null>(this.registryAccountId,'paid_scout_job',{token_id:token(id),id:jobId})}
   getServiceJob(id:string,jobId:number){return this.view<Record<string,unknown>|null>(this.registryAccountId,'service_job',{token_id:token(id),id:jobId})}
   getServiceCatalog(id:string){return this.view<Array<Record<string,unknown>>>(this.registryAccountId,'service_catalog',{token_id:token(id)})}
-  getServicePolicy(id:string,serviceId:'scout'|'compare'){
+  getServicePolicy(id:string,serviceId:'scout'|'compare'|'research'){
     return this.view<Record<string,unknown>|null>(this.registryAccountId,'service_policy',{token_id:token(id),service_id:serviceId})
   }
   getAgentState(id:string){return this.view<{lifecycle:string;pending_op:number|null}>(this.registryAccountId,'agent',{token_id:token(id)})}
@@ -137,7 +137,7 @@ export class NfaSdk {
     return this.prepare('request_paid_scout',{token_id:token(id),input_hash:hash(inputHash),deadline_ns:ns(deadlineNs),
       fee:amount(fee),replenish:amount(replenish),deposit_cap:amount(depositCap),limits:limits(resourceLimits)},fee);
   }
-  configureService(id:string,serviceId:'scout'|'compare',schemaHash:string,enabled:boolean,
+  configureService(id:string,serviceId:'scout'|'compare'|'research',schemaHash:string,enabled:boolean,
     margin:string,maxDeposit:string,resourceLimits:SkillLimits){
     return this.prepare('configure_service',{token_id:token(id),service_id:serviceId,schema_hash:hash(schemaHash),
       enabled,min_margin:amount(margin),max_deposit:amount(maxDeposit),limits:limits(resourceLimits)});
@@ -149,17 +149,22 @@ export class NfaSdk {
       input_hash:hash(inputHash),deadline_ns:ns(deadlineNs),fee:amount(fee),
       replenish:amount(replenish),deposit_cap:amount(depositCap),limits:limits(resourceLimits)},fee);
   }
+  getResearchConfig(id:string){return this.view<Record<string,any>|null>(this.registryAccountId,'research_config',{token_id:token(id)})}
+  configureResearch(id:string,settings:Record<string,unknown>){return this.prepare('configure_research',{token_id:token(id),settings})}
+  verifyResearchVault(id:string){return this.prepare('verify_research_vault',{token_id:token(id)})}
   startServiceJob(id:string,jobId:number,inputData:string){
     if(!Number.isSafeInteger(jobId)||jobId<1||new TextEncoder().encode(inputData).length>8192)
       throw Error('Invalid service input');
     return this.prepare('start_service_job',{token_id:token(id),id:jobId,input_data:inputData},'0');
   }
-  requestReviewedServiceJob(id:string,serviceId:'scout'|'compare',inputHash:string,deadlineNs:number,
-    fee:string,replenish:string,depositCap:string,resourceLimits:SkillLimits,versionKey:string,policyVersion:number){
-    if(!Number.isSafeInteger(policyVersion)||policyVersion<0||!['scout','compare'].includes(serviceId))throw Error('Invalid reviewed quote');
+  requestReviewedServiceJob(id:string,serviceId:'scout'|'compare'|'research',inputHash:string,deadlineNs:number,
+    fee:string,replenish:string,depositCap:string,resourceLimits:SkillLimits,versionKey:string,policyVersion:number,researchConfigHash?:string){
+    if(!Number.isSafeInteger(policyVersion)||policyVersion<0||!['scout','compare','research'].includes(serviceId))throw Error('Invalid reviewed quote');
+    if(serviceId==='research'&&!researchConfigHash)throw Error('Pinned research configuration required');
     return this.prepare('request_reviewed_service_job',{token_id:token(id),service_id:serviceId,input_hash:hash(inputHash),
       deadline_ns:ns(deadlineNs),fee:amount(fee),replenish:amount(replenish),deposit_cap:amount(depositCap),
-      limits:limits(resourceLimits),expected_version:wasmHash(versionKey),expected_policy_version:policyVersion},fee);
+      limits:limits(resourceLimits),expected_version:wasmHash(versionKey),expected_policy_version:policyVersion,
+      ...(serviceId==='research'?{expected_research_config:hash(researchConfigHash!)}:{})},fee);
   }
   startPaidScout(id:string,jobId:number,inputData:string){
     if(!Number.isSafeInteger(jobId)||jobId<1||inputData.length>8192)throw Error('Invalid paid Scout input');

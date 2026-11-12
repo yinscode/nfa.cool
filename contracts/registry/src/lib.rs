@@ -14,6 +14,7 @@ const REGISTRY_STORAGE: u128 = 200_000_000_000_000_000_000_000;
 const VAULT_CODE: &[u8] = include_bytes!(env!("NFA_EMBEDDED_VAULT_WASM"));
 mod outlayer;
 mod studio;
+mod research;
 
 #[near(serializers = [borsh, json])]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -238,6 +239,7 @@ impl Registry {
 
     fn finalize_provision(&mut self, token_id: TokenId, provision: Provision) {
         require!(self.agents.get(&token_id).is_none(), "Already minted");
+        if provision.code_hash==env::sha256(VAULT_CODE){research::mark_capable(&token_id)}
         self.agents.insert(&token_id, &Agent { vault_id: provision.vault_id.clone(), epoch: 0,
             lifecycle: Lifecycle::Active, next_op_id: 1, pending_op: None,
             manifest_hash: provision.manifest_hash.clone(), manifest_uri: provision.manifest_uri.clone(),
@@ -905,6 +907,93 @@ mod tests {
             listing_price: None, transfer_from: None, transfer_to: None });
         r
     }
+    fn research_setup()->(Registry,String,u128,u128){
+        let (mut r,old,_,fee,deposit)=paid_setup();
+        testing_env!(context("keeper.testnet",0).block_timestamp(600).build());r.expire_unstarted_paid_scout("nfa-1".into(),old);
+        research::mark_capable(&"nfa-1".into());
+        testing_env!(context("alice.testnet",1).block_timestamp(600).build());
+        r.configure_research("nfa-1".into(),research::ResearchSettings{version_key:"a".repeat(64),
+            secrets_ref:research::SecretsReference{account_id:id("operator.testnet"),profile:"inference".into()},
+            allowed_sources:vec![research::SourceRule{host:"docs.near.org".into(),path_prefix:"/".into()}],model:"reviewed-model".into(),
+            max_input_tokens:24_000,max_output_tokens:512,input_microusd_per_token:1,output_microusd_per_token:2,
+            max_cost_microusd:30_000,daily_budget_microusd:60_000});
+        r.configure_service("nfa-1".into(),"research".into(),format!("sha256:{}","a".repeat(64)),true,U128(10_000_000_000_000_000_000_000),
+            U128(deposit),outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10});
+        let input=serde_json::json!({"question":"What is a stable vault?","sources":[{"title":"Vault","url":"https://docs.near.org/vault"}]}).to_string();
+        (r,input,fee,deposit)
+    }
+    #[test]
+    fn research_quote_pins_config_and_dispatches_only_owner_secret_reference(){
+        let (mut r,input,fee,deposit)=research_setup();let cfg=r.research_config("nfa-1".into()).unwrap();
+        let next=r.agent("nfa-1".into()).unwrap().next_op_id;
+        let limits=outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10};
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let rejected=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.request_reviewed_service_job("nfa-1".into(),"research".into(),
+            format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),U128(deposit),limits.clone(),"a".repeat(64),1,Some(format!("sha256:{}","b".repeat(64))))));
+        assert!(rejected.is_err());assert_eq!(r.agent("nfa-1".into()).unwrap().next_op_id,next);
+        let job=r.request_reviewed_service_job("nfa-1".into(),"research".into(),format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),
+            1000,U128(fee),U128(deposit),U128(deposit),limits,"a".repeat(64),1,Some(cfg.configuration_hash.clone()));
+        assert_eq!(r.research_usage("nfa-1".into(),job).unwrap().reserved_microusd,25_024);
+        testing_env!(context("customer.testnet",0).block_timestamp(600).build());
+        let _=r.start_service_job("nfa-1".into(),job,input);
+        let receipts=near_sdk::test_utils::get_created_receipts();
+        let args=receipts.iter().flat_map(|r|r.actions.iter()).find_map(|a|match a{
+            near_sdk::mock::MockAction::FunctionCallWeight{method_name,args,..} if method_name==b"execute_research_skill"=>Some(serde_json::from_slice::<serde_json::Value>(args).unwrap()),_=>None}).unwrap();
+        assert_eq!(args["secrets_ref"]["account_id"],"operator.testnet");
+        let payload:serde_json::Value=serde_json::from_str(args["input_data"].as_str().unwrap()).unwrap();
+        assert_eq!(payload["context"]["vaultAccountId"],"nfa-1.registry.testnet");assert_eq!(payload["research"]["configuration_hash"],cfg.configuration_hash);
+        assert_eq!(r.outlayer_project("nfa-1".into()).unwrap().project_uuid,"p0001");
+    }
+    #[test]
+    fn old_vault_requires_explicit_successful_compatibility_probe(){
+        let mut r=minted();let token="nfa-1".to_string();
+        let status=serde_json::json!({"controller":"registry.testnet","reporter":"reporter.testnet",
+            "guardian":"guardian.testnet","pending":null,"path":"eth-sepolia-v1","chain_id":11155111});
+        for result in [PromiseResult::Failed,PromiseResult::Successful(status.to_string().into_bytes())]{
+            testing_env!(context("alice.testnet",1).build());let _=r.verify_research_vault(token.clone());
+            let op=r.agent(token.clone()).unwrap().pending_op.unwrap();
+            testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![result]);
+            assert!(!r.on_research_vault_verified(token.clone(),op));
+            assert!(r.agent(token.clone()).unwrap().pending_op.is_none());assert!(!r.research_vault_capable(token.clone()));
+        }
+        testing_env!(context("alice.testnet",1).build());let _=r.verify_research_vault(token.clone());
+        let op=r.agent(token.clone()).unwrap().pending_op.unwrap();let mut upgraded=status;upgraded["research_interface"]=serde_json::json!(1);
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),
+            vec![PromiseResult::Successful(upgraded.to_string().into_bytes())]);
+        assert!(r.on_research_vault_verified(token.clone(),op));assert!(r.research_vault_capable(token));
+    }
+    #[test]
+    fn research_daily_allowance_is_conservative_and_rolls_over(){
+        let (r,_,_,_)=research_setup();let token="nfa-1".to_string();
+        r.reserve_research(&token,100,&"a".repeat(64));r.reserve_research(&token,101,&"a".repeat(64));
+        assert_eq!(r.research_budget(token.clone()).reserved_microusd,50_048);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.reserve_research(&token,102,&"a".repeat(64)))).is_err());
+        assert!(r.research_usage(token.clone(),102).is_none());
+        testing_env!(context("keeper.testnet",0).block_timestamp(86_400_000_000_001).build());
+        r.reserve_research(&token,102,&"a".repeat(64));assert_eq!(r.research_budget(token).reserved_microusd,25_024);
+    }
+    #[test]
+    fn research_unknown_cost_is_reserved_once_and_does_not_enter_finalized_memory(){
+        let (mut r,input,fee,deposit)=research_setup();let cfg=r.research_config("nfa-1".into()).unwrap();
+        let previous_refunds=r.payout("customer.testnet".parse().unwrap()).available.0;
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let id=r.request_reviewed_service_job("nfa-1".into(),"research".into(),format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),U128(deposit),
+            outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10},"a".repeat(64),1,Some(cfg.configuration_hash));
+        let _=r.start_service_job("nfa-1".into(),id,input);
+        testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(600).build());
+        let _=r.on_outlayer_job("nfa-1".into(),id,Some(serde_json::json!({"schemaVersion":1,"jobId":id,"status":"failed","inferenceOutcome":"unknown"})));
+        assert_eq!(r.research_usage("nfa-1".into(),id).unwrap().state,"UNKNOWN");
+        assert_eq!(r.research_budget("nfa-1".into()).reserved_microusd,25_024);
+        assert_eq!(r.paid_scout_job("nfa-1".into(),id).unwrap().status,"FAILED");
+        assert_eq!(r.payout("customer.testnet".parse().unwrap()).available.0,previous_refunds+fee);
+    }
+    #[test]
+    #[should_panic(expected="Owner only")]
+    fn previous_owner_cannot_replace_research_credential_after_sale(){
+        let (mut r,_,_,_)=research_setup();let settings=r.research_config("nfa-1".into()).unwrap().settings;
+        testing_env!(context("alice.testnet",1).build());r.nft_transfer(id("bob.testnet"),"nfa-1".into(),None,None);
+        r.configure_research("nfa-1".into(),settings);
+    }
     fn pin_test_wallet() {
         wallets().insert(&"nfa-1".into(), &DerivedWallet { chain_id: 11_155_111,
             signer_id: id("v1.signer-prod.testnet"), path: "eth-sepolia-v1".into(), domain_id: 0,
@@ -1509,10 +1598,10 @@ mod tests {
         testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
         let limits=outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10};
         let rejected=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.request_reviewed_service_job(
-            "nfa-1".into(),"scout".into(),format!("sha256:{}","b".repeat(64)),1000,U128(fee),U128(deposit),U128(deposit),limits.clone(),"f".repeat(64),0)));
+            "nfa-1".into(),"scout".into(),format!("sha256:{}","b".repeat(64)),1000,U128(fee),U128(deposit),U128(deposit),limits.clone(),"f".repeat(64),0,None)));
         assert!(rejected.is_err());assert_eq!(r.agent("nfa-1".into()).unwrap().next_op_id,next);
         let allocated=r.request_reviewed_service_job("nfa-1".into(),"scout".into(),format!("sha256:{}","b".repeat(64)),
-            1000,U128(fee),U128(deposit),U128(deposit),limits,version,0);
+            1000,U128(fee),U128(deposit),U128(deposit),limits,version,0,None);
         assert_eq!(allocated,next);
     }
 }

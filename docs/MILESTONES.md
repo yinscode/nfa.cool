@@ -8,23 +8,28 @@ key against a live FullAccess key, no pending operations, Sepolia chain ID and
 finalized-block RPC support. NEAR RPC recovered on this attempt.
 
 The current address is `0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9`.
-It has zero ETH and nonce zero. M02 is waiting for 0.005 Sepolia test ETH at
-this verified address; no funding was requested for the old one-use vault.
+The user funded this address with 0.1 Sepolia ETH; the funded preflight passed.
+No funding was requested for the old one-use vault.
 The preflight is read-only and does not claim live transfer acceptance.
 
 Evidence: [m01-preflight.json](evidence/m01-preflight.json).
 
-## M02 — pending test ETH
+## M02 — live acceptance in progress
 
-The typed submission/reporter worker is implemented and locally tested. The
-new live request, pending-sale rejection, handover and buyer repeat transfer
-remain open until the current NFA has test ETH.
+The first bounded self-transfer mined successfully and pending sale was rejected.
+The worker retains the lock until the trusted RPC finalized head includes it.
+Both demo transfers return ETH to the same funded NFA; only gas leaves it.
+Handover and buyer repeat transfer follow settlement.
 
-## M03 — in progress
+## M03 — implemented and rehearsed
 
-Adding a separately typed research configuration, runtime-bound secret reference,
-service dispatch and per-NFA USD usage reservations without changing the old
-contract state layout. Existing Scout/Compare and one Project per NFA remain.
+Typed research configuration, runtime-bound secret reference, service dispatch
+and per-NFA USD reservations are implemented without changing the root state
+layout. Existing Scout/Compare and one Project per NFA remain. The exact deployed
+registry bytes were upgraded in an isolated NEAR sandbox. Its old vault was
+rejected before guardian upgrade, then its status was preserved and the owner
+explicitly verified the new interface. 67 JavaScript and 56 contract tests pass.
+Evidence: [m03-upgrade-rehearsal.json](m03-upgrade-rehearsal.json).
 
 ## M04–M06 — pending
 

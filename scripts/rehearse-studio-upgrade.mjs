@@ -34,12 +34,33 @@ try{
   for(let i=0;i<50;i++){try{after=await sdk.get('nfa-1');break}catch{await pause(200)}}
   assert.equal(after.ownerAccountId,nft.owner_id);assert.equal(after.ownerEpoch,before.epoch);
   assert.equal(after.vaultAccountId,before.vault_id);assert.equal(after.manifestHash,before.manifest_hash);
+  const researchSupported=await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-1'}).catch(()=>null);
+  if(researchSupported!==null)assert.equal(researchSupported,false,'Old vault must not silently gain research capability');
+  let vaultUpgrade;
+  if(researchSupported!==null){
+    const oldStatus=await sdk.view(after.vaultAccountId,'status');
+    assert.equal(oldStatus.research_interface,undefined);
+    await call(alice,'verify_research_vault',{token_id:'nfa-1'},1n);
+    assert.equal(await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-1'}),false);
+    const vaultCode=await readFile('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault.wasm');
+    vaultUpgrade=await registry.functionCall({contractId:after.vaultAccountId,methodName:'emergency_upgrade',
+      args:{code:vaultCode.toString('base64')},gas:100_000_000_000_000n,attachedDeposit:0n});
+    const newStatus=await sdk.view(after.vaultAccountId,'status');
+    assert.equal(newStatus.research_interface,1);
+    const {research_interface,...preserved}=newStatus;assert.deepEqual(preserved,oldStatus);
+    await call(alice,'verify_research_vault',{token_id:'nfa-1'},1n);
+    assert.equal(await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-1'}),true);
+  }
   await call(alice,'create_agent',{request_id:'new-state',manifest_hash:'sha256:'+'b'.repeat(64),manifest_uri:'nfa://manifest/new-state'},6n*10n**24n);
   let second;for(let i=0;i<50;i++){try{second=await sdk.get('nfa-2');break}catch{await pause(200)}}
   assert.equal(second.ownerAccountId,aliceId);
   assert.ok(BigInt((await sdk.getTreasury('nfa-2')).available)>0n);
+  if(researchSupported!==null)assert.equal(await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-2'}),true);
   const result={oldCodeSha256:createHash('sha256').update(oldCode).digest('hex'),newCodeSha256:createHash('sha256').update(newCode).digest('hex'),
-    localUpgradeTransaction:upgraded.transaction.hash,oldToken:{owner:after.ownerAccountId,vault:after.vaultAccountId,epoch:after.ownerEpoch},
-    assertions:['deployed actual prior testnet WASM','minted old contract state','upgraded without state migration','preserved old NFT owner, epoch, manifest and vault','minted funded new vault after upgrade']};
-  await writeFile('docs/studio-upgrade-rehearsal.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));
+    localUpgradeTransaction:upgraded.transaction.hash,localVaultUpgradeTransaction:vaultUpgrade?.transaction.hash,
+    vaultCodeSha256:createHash('sha256').update(await readFile('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault.wasm')).digest('hex'),
+    oldToken:{owner:after.ownerAccountId,vault:after.vaultAccountId,epoch:after.ownerEpoch},
+    assertions:['deployed actual prior testnet WASM','minted old contract state','upgraded without state migration','preserved old NFT owner, epoch, manifest and vault',
+      'old vault research probe denied','guardian upgraded old vault and preserved all status fields','owner verified upgraded vault interface','minted funded new vault after upgrade']};
+  await writeFile(process.env.NFA_REHEARSAL_OUTPUT||'docs/studio-upgrade-rehearsal.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));
 }finally{if(child){child.kill();await new Promise(resolve=>{child.once('exit',resolve);setTimeout(resolve,3000).unref()})}await rm(home,{recursive:true,force:true,maxRetries:5,retryDelay:100})}

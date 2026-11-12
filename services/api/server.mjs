@@ -56,6 +56,8 @@ function prepare(sdk,body){
     case 'paid_scout':return sdk.requestPaidScout(id,body.inputHash,body.deadlineNs,body.fee,body.replenish,body.depositCap,body.limits);
     case 'service_policy':return sdk.configureService(id,body.serviceId,body.schemaHash,body.enabled,
       body.margin,body.maxDeposit,body.limits);
+    case 'research_config':return sdk.configureResearch(id,body.settings);
+    case 'research_verify_vault':return sdk.verifyResearchVault(id);
     case 'recall':return sdk.recallOwnerMemory(id,body.jobId,body.deposit);
     case 'claim':return sdk.claimIncome(id,body.yocto);
     case 'withdraw':return sdk.withdrawProceeds(body.yocto);
@@ -314,6 +316,10 @@ export function createApiServer({sdk,store,access,
         send(res,200,{unsignedAction:prepare(sdk,body)});return;
       }
       const parts=path.split('/').filter(Boolean);
+      if(req.method==='GET'&&/^\/v1\/nfas\/nfa-[1-9][0-9]*\/research$/.test(path)){
+        send(res,200,{configuration:await sdk.getResearchConfig(parts[2]),budget:await sdk.view(sdk.registryAccountId,'research_budget',{token_id:parts[2]}),
+          vaultCapable:await sdk.view(sdk.registryAccountId,'research_vault_capable',{token_id:parts[2]})});return;
+      }
       if(req.method==='GET'&&/^\/v1\/nfas\/nfa-[1-9][0-9]*\/(economics|inventory)$/.test(path)){
         const snapshot=await studioNfa(sdk,parts[2],{servicePolicy});
         send(res,200,parts[3]==='economics'?snapshot.economics:snapshot.inventory);return;
@@ -327,7 +333,7 @@ export function createApiServer({sdk,store,access,
       if(parts[0]==='v1'&&parts[1]==='nfas'&&TOKEN.test(parts[2]||'')&&parts[3]==='services'){
         const id=parts[2],service=parts[4];
         if(req.method==='GET'&&parts.length===4){send(res,200,await listServices({sdk,tokenId:id,policy:servicePolicy}));return}
-        if(!['scout','compare'].includes(service)){send(res,404,{error:'service_not_found'});return}
+        if(!['scout','compare','research'].includes(service)){send(res,404,{error:'service_not_found'});return}
         if(req.method==='POST'&&parts[5]==='quotes'&&parts.length===6){
           send(res,200,await quoteService({sdk,tokenId:id,service,body:await input(req),policy:servicePolicy}));return;
         }
@@ -394,7 +400,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const objects=configuredObjects();
   const store=new WorkStore(resolve(data,'work'),{objects});
   const servicePolicy={scout:process.env.NFA_SCOUT_POLICY_JSON?JSON.parse(process.env.NFA_SCOUT_POLICY_JSON):null,
-    compare:process.env.NFA_COMPARE_POLICY_JSON?JSON.parse(process.env.NFA_COMPARE_POLICY_JSON):null};
+    compare:process.env.NFA_COMPARE_POLICY_JSON?JSON.parse(process.env.NFA_COMPARE_POLICY_JSON):null,
+    research:process.env.NFA_RESEARCH_POLICY_JSON?JSON.parse(process.env.NFA_RESEARCH_POLICY_JSON):null};
   const server=createApiServer({sdk,store,access,renderer:new AvatarRenderer(resolve(data,'render')),
     manifests:new WorkStore(resolve(data,'manifests'),{objects,namespace:'manifests'}),artifacts:new ArtifactStore(resolve(data,'artifacts'),{objects}),
     inputs:new InputStore(resolve(data,'inputs')),servicePolicy,deployment,readyCheck:readiness({sdk,data}),evmRpcUrl:process.env.EVM_RPC_URL});

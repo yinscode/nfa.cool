@@ -27,6 +27,9 @@ fn daily_budget()->LookupMap<u8,DailyBudget>{LookupMap::new(&b"outlayer:day:v1"[
 #[near(serializers = [borsh, json])]
 #[derive(Clone)]
 pub struct SkillLimits { pub max_instructions: u64, pub max_memory_mb: u32, pub max_execution_seconds: u64 }
+#[near(serializers=[borsh,json])]
+#[derive(Clone)]
+pub struct SecretsReference {pub account_id:AccountId,pub profile:String}
 
 #[near(serializers = [borsh, json])]
 #[derive(Clone)]
@@ -167,6 +170,25 @@ impl Vault {
 
     pub fn execute_skill(&mut self, id: u64, version_key: String, input_data: String,
         limits: SkillLimits, deposit: U128) -> Promise {
+        self.execute_internal(id,version_key,input_data,limits,deposit,None)
+    }
+
+    pub fn execute_research_skill(&mut self,id:u64,version_key:String,input_data:String,
+        limits:SkillLimits,deposit:U128,secrets_ref:SecretsReference)->Promise{
+        self.assert_controller();
+        let value:serde_json::Value=serde_json::from_str(&input_data).unwrap_or_else(|_|env::panic_str("Invalid research input"));
+        require!(value["operation"]=="run"&&value["service"]=="research"&&value["jobId"]==id&&
+            value["context"]["vaultAccountId"]==env::current_account_id().as_str()&&
+            value["context"]["registryAccountId"]==self.controller.as_str()&&
+            value["research"]["settings"]["version_key"]==version_key&&
+            value["research"]["settings"]["secrets_ref"]["account_id"]==secrets_ref.account_id.as_str()&&
+            value["research"]["settings"]["secrets_ref"]["profile"]==secrets_ref.profile,"Research context or secret reference mismatch");
+        require!(!secrets_ref.profile.is_empty()&&secrets_ref.profile.len()<=32,"Invalid research secret profile");
+        self.execute_internal(id,version_key,input_data,limits,deposit,Some(secrets_ref))
+    }
+
+    fn execute_internal(&mut self,id:u64,version_key:String,input_data:String,limits:SkillLimits,
+        deposit:U128,secrets_ref:Option<SecretsReference>)->Promise{
         self.assert_controller();
         let p = project().get(&0).unwrap_or_else(|| env::panic_str("No OutLayer project"));
         require!(p.state == "READY" && p.version_key == version_key && !p.project_uuid.is_empty(), "Unapproved version");
@@ -178,10 +200,12 @@ impl Vault {
         self.check_balance(deposit.0); self.begin(id); self.reserve_daily(deposit.0);
         self.pending = Some(Pending::Skill { id, version: version_key.clone(), deposit: deposit.0,
             reported: false, uncertain: false });
-        self.call_outlayer("request_execution", serde_json::json!({
+        let mut args=serde_json::json!({
             "source":{"Project":{"project_id":p.project_id,"version_key":version_key}},
             "input_data":input_data,"resource_limits":limits,"response_format":"Json"
-        }), deposit.0, 80, "on_skill_execution", id, 75)
+        });
+        if let Some(reference)=secrets_ref{args["secrets_ref"]=serde_json::to_value(reference).unwrap();}
+        self.call_outlayer("request_execution",args, deposit.0, 80, "on_skill_execution", id, 75)
     }
 
     #[private]
@@ -208,7 +232,7 @@ impl Vault {
         self.assert_controller();
         let p=project().get(&0).unwrap_or_else(||env::panic_str("No project"));
         let service_id=service_id.unwrap_or_else(||"scout".into());
-        require!(matches!(service_id.as_str(),"scout"|"compare"),"Unknown service");
+        require!(matches!(service_id.as_str(),"scout"|"compare"|"research"),"Unknown service");
         require!(p.state=="READY" && p.version_key==version_key && output_hash.starts_with("sha256:")
             && valid_hash(&output_hash[7..]) && job_id>0,"Invalid finalized memory commitment");
         require!(limits.max_instructions>0 && limits.max_instructions<=2_000_000_000
@@ -338,7 +362,7 @@ impl Vault {
     pub fn status(&self) -> serde_json::Value {
         serde_json::json!({"controller":self.controller,"reporter":self.reporter,"guardian":self.guardian,
             "path":PATH,"chain_id":CHAIN_ID,"next_operation_id":self.next_operation_id,
-            "next_evm_nonce":self.next_evm_nonce,"pending":self.pending_json(),"last_receipt":self.last_receipt})
+            "next_evm_nonce":self.next_evm_nonce,"pending":self.pending_json(),"last_receipt":self.last_receipt,"research_interface":1})
     }
 
     pub fn treasury(&self) -> serde_json::Value {
@@ -422,6 +446,24 @@ mod tests {
         Vault::new(id("controller.testnet"), id("reporter.testnet"), id("guardian.testnet"))
     }
 
+    #[test]
+    fn research_secret_reference_is_bound_to_controller_context(){
+        let mut v=vault();let version="a".repeat(64);
+        project().insert(&0,&ProjectRecord{project_id:"vault.testnet/scout".into(),project_uuid:"stable".into(),version_key:version.clone(),wasm_url:"https://test.fastfs.io/research.wasm".into(),state:"READY".into()});
+        let source=serde_json::json!({"operation":"run","service":"research","jobId":1,
+            "context":{"registryAccountId":"controller.testnet","vaultAccountId":"vault.testnet"},
+            "research":{"settings":{"version_key":version,"secrets_ref":{"account_id":"operator.testnet","profile":"inference"}}}}).to_string();
+        let limits=SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10};
+        let bad=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.execute_research_skill(1,version.clone(),source.clone(),limits.clone(),U128(100),
+            SecretsReference{account_id:id("attacker.testnet"),profile:"inference".into()})));
+        assert!(bad.is_err());assert!(v.pending.is_none());
+        let _=v.execute_research_skill(1,version,source,limits,U128(100),SecretsReference{account_id:id("operator.testnet"),profile:"inference".into()});
+        let receipts=near_sdk::test_utils::get_created_receipts();
+        let payload=receipts.iter().flat_map(|r|r.actions.iter()).find_map(|a|match a{
+            near_sdk::mock::MockAction::FunctionCallWeight{method_name,args,..} if method_name==b"request_execution"=>Some(serde_json::from_slice::<serde_json::Value>(args).unwrap()),_=>None}).unwrap();
+        assert_eq!(payload["secrets_ref"]["account_id"],"operator.testnet");
+        assert_eq!(payload["source"]["Project"]["project_id"],"vault.testnet/scout");
+    }
     #[test]
     fn failed_signature_callback_keeps_nonce_and_blocks_new_work() {
         let mut v = vault();

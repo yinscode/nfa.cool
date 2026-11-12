@@ -15,6 +15,9 @@ export function validateServicePackage(pkg){
     !Number.isSafeInteger(l.max_memory_mb)||l.max_memory_mb<1||l.max_memory_mb>128||
     !Number.isSafeInteger(l.max_execution_seconds)||l.max_execution_seconds<1||l.max_execution_seconds>30)throw Error('Service resource caps exceeded');
   if(pkg.stage==='hosted-testnet-verified'&&pkg.runtime!=='outlayer-wasip2')throw Error('Reference runner is not a hosted release');
+  if(pkg.id==='research'&&pkg.stage==='hosted-testnet-verified'&&
+    !['research','buyerResearch','recall','projectUuid'].every(key=>typeof pkg.hostedEvidence?.[key]==='string'&&pkg.hostedEvidence[key]))
+    throw Error('Research hosted acceptance evidence required');
   return pkg;
 }
 export async function reviewedPackages(){

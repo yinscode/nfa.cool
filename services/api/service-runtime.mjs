@@ -35,6 +35,10 @@ export const serviceSchemas={
 serviceSchemas.research=researchInputSchema;
 export const schemaHashFor=id=>sha(JSON.stringify(serviceSchemas[id]));
 export const outputSchemas={
+  research:{type:'object',required:['schemaVersion','template','question','findings','sources','priorWork','configurationHash','inference'],properties:{
+    schemaVersion:{const:1},template:{const:'research@1.0.0'},question:{type:'string'},
+    findings:{type:'array',maxItems:5,items:{type:'object',required:['claim','sourceId','quote']}},
+    sources:{type:'array',maxItems:3},priorWork:{type:'array',maxItems:3},configurationHash:{type:'string'},inference:{type:'object'}}},
   scout:{type:'object',required:['schemaVersion','template','question','findings','sources'],properties:{
     schemaVersion:{const:1},template:{const:'scout@1.0.0'},question:{type:'string'},
     findings:{type:'array',maxItems:5,items:{type:'object',required:['claim','sourceId']}},
@@ -114,7 +118,9 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
     estimateYocto:estimate.toString(),feeYocto:fee.toString(),replenishYocto:depositCap.toString(),
     depositCapYocto:depositCap.toString(),limits:local.limits,deadlineNs,
     policyVersion:onchain?.version??0,...(research?{researchConfigHash:research.configuration_hash,
-      modelBudget:{currency:'USD',reservationMicrousd:String(research.settings.max_cost_microusd),basis:'configured token rates, not a provider invoice'}}:{}),
+      modelBudget:{currency:'USD',reservationMicrousd:String(research.settings.max_input_tokens*research.settings.input_microusd_per_token+
+        research.settings.max_output_tokens*research.settings.output_microusd_per_token),
+        maxCostMicrousd:String(research.settings.max_cost_microusd),basis:'configured token rates, not a provider invoice'}}:{}),
     unsignedAction:sdk.requestReviewedServiceJob(tokenId,service,inputHash,deadlineNs,fee.toString(),
         depositCap.toString(),depositCap.toString(),local.limits,project.version_key,onchain?.version??0,research?.configuration_hash)};
 }

@@ -7,7 +7,8 @@ const limits={max_instructions:1000000000,max_memory_mb:128,max_execution_second
 function setup(){
   const sdk=new NfaSdk({registryAccountId:'registry.testnet',rpcUrl:'https://rpc.invalid'});
   const config={configuration_hash:'sha256:'+'c'.repeat(64),version:1,settings:{version_key:'a'.repeat(64),
-    allowed_sources:[{host:'docs.near.org',path_prefix:'/'}],max_cost_microusd:30000}};
+    allowed_sources:[{host:'docs.near.org',path_prefix:'/'}],max_cost_microusd:30000,
+    max_input_tokens:24000,max_output_tokens:512,input_microusd_per_token:1,output_microusd_per_token:2}};
   const onchain={service_id:'research',version:2,enabled:true,schema_hash:schemaHashFor('research'),min_margin:'20000000000000000000000',max_deposit:'500000000000000000000000',limits};
   sdk.getOutlayerProject=async()=>({state:'READY',project_uuid:'same-project',version_key:'a'.repeat(64)});
   sdk.getResearchConfig=async()=>config;sdk.getServicePolicy=async()=>onchain;sdk.getServiceCatalog=async()=>[onchain];
@@ -24,6 +25,7 @@ test('research quote pins configuration and remains unavailable before hosted ac
   assert.equal(quote.researchConfigHash,context.config.configuration_hash);
   assert.equal(quote.unsignedAction.args.expected_research_config,context.config.configuration_hash);
   assert.equal(quote.unsignedAction.args.expected_policy_version,2);
+  assert.equal(quote.modelBudget.reservationMicrousd,'25024');
   assert.equal(BigInt(quote.feeYocto)-BigInt(quote.replenishYocto),20000000000000000000000n);
 });
 test('customer research input cannot choose secrets, privileged methods or arbitrary URLs',async()=>{

@@ -988,6 +988,18 @@ mod tests {
         assert_eq!(r.payout("customer.testnet".parse().unwrap()).available.0,previous_refunds+fee);
     }
     #[test]
+    #[should_panic(expected="Job input/stage mismatch")]
+    fn research_job_cannot_start_under_a_stale_owner_epoch(){
+        let (mut r,input,fee,deposit)=research_setup();let cfg=r.research_config("nfa-1".into()).unwrap();
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let id=r.request_reviewed_service_job("nfa-1".into(),"research".into(),format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),
+            1000,U128(fee),U128(deposit),U128(deposit),outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10},
+            "a".repeat(64),1,Some(cfg.configuration_hash));
+        // Fault-injection fixture: ordinary NFT transfers are already blocked by this pending job.
+        let mut a=r.agent("nfa-1".into()).unwrap();a.epoch+=1;r.agents.insert(&"nfa-1".to_string(),&a);
+        let _=r.start_service_job("nfa-1".into(),id,input);
+    }
+    #[test]
     #[should_panic(expected="Owner only")]
     fn previous_owner_cannot_replace_research_credential_after_sale(){
         let (mut r,_,_,_)=research_setup();let settings=r.research_config("nfa-1".into()).unwrap().settings;

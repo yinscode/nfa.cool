@@ -82,7 +82,7 @@ impl Mock {
 
     #[payable]
     pub fn request_execution(&mut self,source:serde_json::Value,input_data:String,
-        resource_limits:serde_json::Value,response_format:String)->serde_json::Value{
+        resource_limits:serde_json::Value,response_format:String,secrets_ref:Option<serde_json::Value>)->serde_json::Value{
         require!(response_format=="Json" && resource_limits.is_object(),"Mock requires JSON execution");
         let s=source.get("Project").unwrap_or_else(||env::panic_str("Mock requires Project"));
         let id=s.get("project_id").and_then(|x|x.as_str()).unwrap_or("");
@@ -107,14 +107,30 @@ impl Mock {
         }
         require!(input.get("operation").and_then(|v|v.as_str())==Some("scout")
             || input.get("operation").and_then(|v|v.as_str())==Some("run"),"Unknown operation");
+        if service=="research"{
+            require!(secrets_ref.as_ref()==input.pointer("/research/settings/secrets_ref"),"Research reference not bound");
+            require!(input["context"]["vaultAccountId"]==env::predecessor_account_id().as_str(),"Research predecessor differs");
+            for prior in input["context"]["priorWork"].as_array().unwrap(){
+                let prior_id=prior["jobId"].as_u64().unwrap();
+                require!(self.memory.get(&format!("{}:{}:research:{}",p.project_uuid,env::predecessor_account_id(),prior_id))
+                    .is_some_and(|h|prior["outputHash"]==h),"Prior work not in stable vault cell");
+            }
+            self.memory.insert(&format!("context:{}:{job}",p.project_uuid),&input["context"].to_string());
+            // Deterministic local fixture only: no retrieval, model, secret or TEE is exercised.
+            if input["question"]=="[fixture] unknown inference result"{
+                return serde_json::json!({"schemaVersion":1,"jobId":job,"status":"failed","inferenceOutcome":"unknown"})
+            }
+        }
         if input.get("sources").and_then(|v|v.as_array()).is_some_and(|s|s.is_empty()){
             return serde_json::json!({"schemaVersion":1,"jobId":job,"status":"failed"})
         }
         let commitment=self.fixtures.get(&format!("{}:{service}:{job}",env::predecessor_account_id()))
             .unwrap_or_else(||format!("sha256:{}",hex(&env::sha256(input_data.as_bytes()))));
         self.memory.insert(&key,&commitment);
-        serde_json::json!({"schemaVersion":1,"jobId":job,"status":"ok","outputHash":commitment,
-            "outputUri":format!("nfa://work/{}",&commitment[7..])})
+        let mut result=serde_json::json!({"schemaVersion":1,"jobId":job,"status":"ok","outputHash":commitment,
+            "outputUri":format!("nfa://work/{}",&commitment[7..])});
+        if service=="research"{result["inferenceOutcome"]=serde_json::json!("succeeded");result["pricedUsageMicrousd"]=serde_json::json!(160)}
+        result
     }
 
     pub fn stored(&self,project_id:String,caller:AccountId,service:String,job_id:u64)->Option<String>{
@@ -122,4 +138,7 @@ impl Mock {
         self.memory.get(&format!("{}:{}:{}:{}",p.project_uuid,caller,service,job_id))
     }
     pub fn cost(&self)->U128{U128(COST)}
+    pub fn research_context(&self,project_uuid:String,job_id:u64)->Option<serde_json::Value>{
+        self.memory.get(&format!("context:{project_uuid}:{job_id}")).map(|s|serde_json::from_str(&s).unwrap())
+    }
 }

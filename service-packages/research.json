@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "research",
   "version": "1.0.0",
-  "runtime": "wasm32-wasip2",
+  "runtime": "outlayer-wasip2",
   "stage": "candidate",
   "inputSchema": {
     "type": "object",

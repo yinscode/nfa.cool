@@ -1,0 +1,65 @@
+{
+  "milestone": "M05",
+  "complete": true,
+  "mode": "isolated NEAR sandbox with deterministic OutLayer fixture",
+  "registryCodeSha256": "9cface814ea7953681e6d04f5f40a13a41fdaa3db9ad83fd44ae99a77b6e0917",
+  "vault": "nfa-1.registry.test.near",
+  "projectUuid": "p0000000000000001",
+  "owner": "bob.test.near",
+  "jobs": {
+    "first": 2,
+    "unknown": 3,
+    "buyer": 6
+  },
+  "priorWork": [
+    {
+      "jobId": 2,
+      "outputHash": "sha256:6203e2b955bfe70d64e06f2bc2dd06ad02a2d8ea7c003e82e7ed3f5bef336986"
+    }
+  ],
+  "ledgers": {
+    "nativeNear": {
+      "customer_escrow": "0",
+      "vault_replenishment_pending": "0",
+      "gross_finalized_receipts": "40000000000000000000000",
+      "customer_refunds": "20000000000000000000000"
+    },
+    "incomeYocto": "34000000000000000000000",
+    "customerRefundYocto": "20000000000000000000000",
+    "modelUsdAllowance": {
+      "day": 20769,
+      "reserved_microusd": 75072
+    },
+    "firstModelUsage": {
+      "configuration_hash": "sha256:3f2396166fbfedc40e479ccb7b8ed347cde143121d51c4ac2a0a1b7e97b8f870",
+      "configuration_version": 1,
+      "reserved_microusd": 25024,
+      "priced_usage_microusd": 160,
+      "state": "PRICED_USAGE",
+      "day": 20769
+    },
+    "unknownModelUsage": {
+      "configuration_hash": "sha256:3f2396166fbfedc40e479ccb7b8ed347cde143121d51c4ac2a0a1b7e97b8f870",
+      "configuration_version": 1,
+      "reserved_microusd": 25024,
+      "priced_usage_microusd": null,
+      "state": "UNKNOWN",
+      "day": 20769
+    }
+  },
+  "recallTransaction": "AoTCsnof1U2pv3S2aA18yp8ne7pLFCAHqhfdeXa9HX8n",
+  "checks": [
+    "same vault/Project across sale",
+    "seller configuration and recall denied",
+    "buyer recalled old work",
+    "only finalized prior work entered buyer context",
+    "unknown inference was not retried",
+    "unknown job refunded customer NEAR",
+    "USD allowance remained reserved separately",
+    "no customer escrow or replenishment remains"
+  ],
+  "limits": [
+    "Fixture does not run a model, retrieve web pages, decrypt credentials or attest execution.",
+    "Native guest tests separately cover durable model-attempt idempotency."
+  ]
+}

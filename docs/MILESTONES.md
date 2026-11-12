@@ -41,7 +41,20 @@ change. The artifact and locked source hashes are recorded in
 [evidence/m04-runtime.json](evidence/m04-runtime.json). Hosted Research remains
 unavailable in public REST quotes until its real acceptance passes.
 
-## M05–M06 — in progress
+## M05 — local acceptance passed
 
-Receipt-level memory/billing integration and hosted acceptance follow. A dedicated
+An isolated NEAR sandbox ran paid research fixtures, refunded an unknown model
+outcome, required owner resume, sold the NFT, rejected the old owner, recalled
+old work for the buyer and supplied only finalized pre-sale work to a new job.
+The vault and Project UUID persisted. Customer escrow and pending replenishment
+ended at zero; native NEAR refunds/income and USD reservations stayed separate.
+The guest tests cover durable attempt idempotency; 42 registry and 15 vault
+native tests pass. See [evidence/m05-memory-billing.json](evidence/m05-memory-billing.json).
+The receipt fixture does not execute WASI HTTP, a model or a TEE.
+
+## M06 — preparing hosted acceptance
+
+The pinned candidate remains unavailable for public research quotes. A dedicated
 model API key is required for live inference; no unrelated credentials are used.
+Secret access is restricted to the stable vault predecessor and exact reviewed
+WASM build. Public hosting remains deferred.

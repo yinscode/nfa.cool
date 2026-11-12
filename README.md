@@ -4,6 +4,22 @@ An NFT that controls a persistent agent account: character, treasury, pinned
 chain-signature identity, reviewed services, work history and unclaimed income.
 The account stays when ownership changes.
 
+## For judges and agents
+
+Start with [AGENTS.md](AGENTS.md). No keys, testnet tokens or Rust are needed:
+
+```sh
+npm ci
+npm run judge            # ~2–3 min; re-runs the claims in a local NEAR sandbox, writes judge-report.json
+npm run verify:testnet   # read-only: re-derives the live NFA's vault, address, Project and Sepolia receipts
+```
+
+- `docker build -f Dockerfile.judge -t nfa-judge . && docker run --rm nfa-judge` runs the judge on any Docker host.
+- [docs/CLAIMS.json](docs/CLAIMS.json) lists every claim with its level, status, evidence and explorer links.
+- `npm run mcp` (configured in [.mcp.json](.mcp.json)) lets an agent quote, hire and sell an NFA against a local Studio.
+- [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) is the text equivalent of the demo video.
+- [The independent review](docs/reviews/2026-11-12-claude-review.md) records findings and fix status.
+
 **The compact Studio flow is complete:** four-step creation, resumable launch,
 persistent local state, public profiles and current paid-service checkout.
 See [six-point completion](docs/STUDIO-UX-STATUS.md) for the new workflow.
@@ -80,8 +96,9 @@ atlases and three sheets containing 48 generated examples are saved here.
 
 Requires Node.js 20.9 or newer.
 
+From the repository root:
+
 ```sh
-cd /Users/user/000/_N/nfa
 npm install
 npm run check
 node generate.cjs --count 16 --seed my-nfa --out output/my-nfa

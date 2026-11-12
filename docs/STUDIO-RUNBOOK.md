@@ -12,8 +12,9 @@ installed with `npm ci`. Cargo commands use the local cache; populate it once
 with `cargo fetch --manifest-path contracts/registry/Cargo.toml` and the vault/
 mock manifests if a fresh checkout lacks dependencies.
 
+From the repository root:
+
 ```sh
-cd /Users/user/000/_N/nfa
 npm run studio:start
 ```
 

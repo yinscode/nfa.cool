@@ -137,6 +137,10 @@ export function createApiServer({sdk,store,access,
       if(req.method==='GET'&&path==='/templates'){send(res,200,{templates:[JSON.parse(await templateLoader()),
         JSON.parse(await readFile(compareTemplatePath,'utf8'))]});return}
       if(req.method==='GET'&&path==='/v1/service-packages'){send(res,200,{items:await reviewedPackages()});return}
+      if(req.method==='GET'&&path==='/llms.txt'){
+        res.writeHead(200,{'content-type':'text/plain; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});
+        res.end(await readFile(new URL('../../llms.txt',import.meta.url),'utf8'));return;
+      }
       if(req.method==='GET'&&path==='/openapi.json'){
         send(res,200,JSON.parse(await readFile(new URL('../../docs/openapi.json',import.meta.url),'utf8')));return;
       }

@@ -28,3 +28,7 @@ contracts/vault-v2/target/
 contracts/registry/target/
 contracts/outlayer-mock/target/
 skills/**/target/
+
+# npm run judge output
+judge-report.json
+verify-testnet-report.json

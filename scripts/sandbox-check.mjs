@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {mkdtemp,readFile,rm,writeFile,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve} from 'node:path';
+import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'node:net';
 import {connect,KeyPair,keyStores,KeyPairSigner,utils,transactions} from 'near-api-js';
@@ -59,7 +59,7 @@ export async function startSandbox(binary,home,rpcPort,netPort,{reuse=false}={})
 export async function serveStudio({sdk,people,rpcUrl,registry,alice,bob,customer,persistent=false,workspaceId=null,controlToken=null}){
       if(!outlayerMock)throw Error('Studio sandbox requires the OutLayer mock');
       const apiPort=studioPort(),origin=`http://127.0.0.1:${apiPort}`;
-      const data=resolve('.data/sandbox');
+      const data=resolve(process.env.NFA_SANDBOX_DATA_DIR||'.data/sandbox');
       const peopleById=new Map([alice,bob,customer].map(p=>[p.id,p]));
       const localWallet={accounts:[alice.id,bob.id,customer.id],instanceId:process.env.NFA_STUDIO_INSTANCE_ID||null,
         async transaction({accountId,action}){
@@ -120,7 +120,7 @@ async function main(){
     if(outlayerMock){
       const mock=await create('outlayer',10);
       assert.equal(mock.id,'outlayer.test.near');
-      success(await mock.account.deployContract(await readFile(resolve('output/sandbox-outlayer-mock.wasm'))),'deploy OutLayer mock');
+      success(await mock.account.deployContract(await readFile(resolve(process.env.NFA_SANDBOX_MOCK_WASM||'output/sandbox-outlayer-mock.wasm'))),'deploy OutLayer mock');
       success(await mock.account.functionCall({contractId:mock.id,methodName:'new',args:{},gas:BigInt('30000000000000'),attachedDeposit:0n}),'init OutLayer mock');
     }
     const code=await readFile(wasmPath),codeHash=utils.serialize.base_encode(createHash('sha256').update(code).digest());
@@ -252,8 +252,9 @@ async function main(){
         failedPayout:gas(failed),sellerWithdrawal:gas(withdrawn)},
       paidResults,assertions:['provisioned keyless vault','paid Scout output','income follows sale','seller payout',
         'old session and old owner rejected','failed vault transfer callback','transfer-call rollback','upgrade preserves state']};
-    await mkdir(resolve('output'),{recursive:true});
-    await writeFile(resolve('output/sandbox-metrics.json'),JSON.stringify(metrics,null,2)+'\n');
+    const metricsPath=resolve(process.env.NFA_SANDBOX_METRICS_OUTPUT||'output/sandbox-metrics.json');
+    await mkdir(dirname(metricsPath),{recursive:true});
+    await writeFile(metricsPath,JSON.stringify(metrics,null,2)+'\n');
     console.log(JSON.stringify(metrics,null,2));
     if(process.argv.includes('--serve'))await serveStudio({sdk,people,rpcUrl,registry,alice,bob,customer});
   }finally{

@@ -18,7 +18,7 @@
     "studio:stop": "node scripts/studio-background.mjs stop",
     "generate": "node generate.cjs",
     "founding": "node generate.cjs --preset founding --out output/founding",
-    "test": "node --test test.cjs services/worker/test/*.test.mjs services/api/test/*.test.mjs packages/sdk/test/*.test.mjs apps/web/test/*.test.mjs",
+    "test": "node --test test.cjs services/worker/test/*.test.mjs services/api/test/*.test.mjs packages/sdk/test/*.test.mjs apps/web/test/*.test.mjs scripts/test/*.test.mjs",
     "dev:vault": "sh scripts/dev.sh vault",
     "dev:registry": "sh scripts/dev.sh registry",
     "dev:worker": "sh scripts/dev.sh worker",
@@ -40,7 +40,12 @@
     "sdk:example": "node scripts/sdk-example-check.mjs",
     "demo:receipts": "node scripts/studio-ux-check.mjs --restart",
     "demo:reel": "node scripts/build-demo-reel.mjs",
-    "settle:evm": "node scripts/settle-evm.mjs"
+    "settle:evm": "node scripts/settle-evm.mjs",
+    "judge": "node scripts/judge.mjs",
+    "judge:quick": "node scripts/judge.mjs --quick",
+    "verify:testnet": "node scripts/verify-testnet.mjs",
+    "mcp": "node scripts/mcp-server.mjs",
+    "build:judge-wasm": "sh scripts/build-judge-wasm.sh"
   },
   "dependencies": {
     "@near-wallet-selector/core": "10.1.4",

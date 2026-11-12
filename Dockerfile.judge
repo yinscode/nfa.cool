@@ -1,0 +1,17 @@
+# Self-contained judge: Node, the official NEAR sandbox and the committed prebuilt WASMs.
+# No keys, no testnet. Rust is not installed, so native contract tests are reported as skipped.
+#   docker build -f Dockerfile.judge --build-arg NFA_COMMIT=$(git rev-parse HEAD) -t nfa-judge .
+#   docker run --rm nfa-judge                       # summary on stdout, exit code = result
+#   docker run --rm -v "$PWD/out:/out" nfa-judge --out /out/judge-report.json
+# The official NEAR sandbox binary needs glibc 2.39+ (Debian trixie); bookworm has 2.36.
+FROM node:22-trixie-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY packages ./packages
+RUN npm ci --no-audit --no-fund
+COPY . .
+RUN sh scripts/install-sandbox.sh && npm run build
+ARG NFA_COMMIT=""
+ENV NFA_COMMIT=$NFA_COMMIT
+ENTRYPOINT ["node", "scripts/judge.mjs"]

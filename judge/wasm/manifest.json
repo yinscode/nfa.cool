@@ -1,0 +1,30 @@
+{
+  "note": "Built by scripts/build-judge-wasm.sh. Hashes are checked by npm run judge; builds are path-dependent, so a rebuild elsewhere can differ.",
+  "sourceCommit": "f664698181b8888501a1a839757e581dc0faa20b",
+  "sourceDirty": false,
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "files": {
+    "registry.wasm": {
+      "bytes": 1346855,
+      "sha256": "4da1981584c82e8a2e78181ae6d6c224113d05255e8bd1207da5e73ee48fbfc4"
+    },
+    "vault.wasm": {
+      "bytes": 349532,
+      "sha256": "45bc98f3d5c9f1b0ab93aa45edef9de401a99ba9d15fcae950ba7f881972bb7d"
+    },
+    "registry-sandbox.wasm": {
+      "bytes": 1346856,
+      "sha256": "49d935953fd0a673ca36683296b808dedeafddb95a203f9ffc434705dd477b45"
+    },
+    "outlayer-mock.wasm": {
+      "bytes": 324974,
+      "sha256": "a5c2281a4ecad32b092e26e52ad85f0af23ad04435bc1f3a0acf133f00c179fb"
+    }
+  },
+  "uses": {
+    "registry-sandbox.wasm": "sandbox suites (vault embedded with the OutLayer mock target)",
+    "outlayer-mock.wasm": "deterministic OutLayer stand-in",
+    "registry.wasm": "upgrade rehearsal: new registry code",
+    "vault.wasm": "upgrade rehearsal: guardian vault upgrade"
+  }
+}

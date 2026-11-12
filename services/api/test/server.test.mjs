@@ -101,3 +101,12 @@ test('development shutdown requires a private control token and never exposes it
     await new Promise(resolve=>setTimeout(resolve,150));assert.equal(stopped,true);
   }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}
 });
+
+test('agents can discover the project through /llms.txt',async()=>{
+  const {createApiServer}=await import('../server.mjs');
+  const server=createApiServer({sdk:{registryAccountId:'registry.testnet',rpcUrl:'https://rpc.invalid'},store:{},access:{}});
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));
+  try{const response=await fetch(`http://127.0.0.1:${server.address().port}/llms.txt`);
+    assert.equal(response.status,200);assert.match(await response.text(),/npm run judge/);}
+  finally{server.close()}
+});

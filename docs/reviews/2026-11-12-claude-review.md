@@ -466,6 +466,31 @@ payouts + replenishment)` holds after random operation sequences.
 
 ## Making it easy for agent judges
 
+### Agent judge kit — status (built)
+
+The suggestions below are implemented:
+
+- **`npm run judge`.**
+  - Covers JS tests, native contract tests (when cargo is present), prebuilt-WASM hash checks,
+    four sandbox suites, and an MCP agent flow (create → hire → sell).
+  - Uses committed WASMs in `judge/wasm`, so Rust is optional.
+  - Writes `judge-report.json` with per-claim verdicts.
+  - Passed on macOS arm64 (96 s, all 10 steps) and in Docker on Linux arm64 (91 s; contract steps
+    skipped without Rust).
+- **`Dockerfile.judge`.** Based on Debian trixie, because the NEAR sandbox binary needs glibc 2.39.
+- **`npm run verify:testnet`.** Read-only check that matched all 12 live facts (vault, address,
+  Project, owner, epoch, runtime, keyless vault, Sepolia receipts and finalized nonce).
+- **Claims ledger.** `docs/CLAIMS.json` has 15 claims with explorer links. A consistency test
+  keeps it tied to the evidence files and to judge assertions.
+- **Agent-facing entry points.** `AGENTS.md` (and `CLAUDE.md`), `llms.txt` (also at `GET /llms.txt`),
+  and a dependency-free stdio MCP server (`npm run mcp`, `.mcp.json`).
+- **Papercuts fixed.**
+  - Repo-relative paths in the README and runbook.
+  - `grep` instead of `rg` in the sandbox installer, which also prints a checksum and has an
+    unsupported-platform message.
+
+**Not done:** a transcript of the demo video. `docs/DEMO-SCRIPT.md` serves as the text equivalent.
+
 Agent judges reward claims they can **re-derive in one sandboxed shell, with no secrets, in a
 few minutes**. Today a fresh checkout needs:
 - Rust and the `wasm32` target

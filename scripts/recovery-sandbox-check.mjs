@@ -40,7 +40,7 @@ try{
     throw Error('Sandbox receipt did not finalize');
   };
   const call=(who,method,args,deposit=0n)=>raw(who,registryId,method,args,deposit);
-  await outlayer.deployContract(await readFile('output/sandbox-outlayer-mock.wasm'));await raw(outlayer,outlayer.accountId,'new',{});
+  await outlayer.deployContract(await readFile(process.env.NFA_SANDBOX_MOCK_WASM||'output/sandbox-outlayer-mock.wasm'));await raw(outlayer,outlayer.accountId,'new',{});
   await registry.deployContract(await readFile(registryWasm));
   await call(registry,'new',{admin:registryId,reporter:registryId,guardian:registryId});
   await call(alice,'create_agent',{request_id:'recovery',manifest_hash:hash('manifest'),manifest_uri:'nfa://recovery'},6n*NEAR);
@@ -136,7 +136,9 @@ try{
   assert.ok(!(await call(alice,'create_listing',{token_id:tokenId,price:NEAR.toString(),expires_at_ns:deadline()},1n)).failed);
   assert.equal((await agent()).lifecycle,'Listed');
   results.push('listing succeeds after recovery');
-  console.log(JSON.stringify({sandbox:'local NEAR sandbox + OutLayer mock',registryWasm,results},null,2));
+  const summary={sandbox:'local NEAR sandbox + OutLayer mock',registryWasm,results};
+  if(process.env.NFA_RECOVERY_OUTPUT)await (await import('node:fs/promises')).writeFile(process.env.NFA_RECOVERY_OUTPUT,JSON.stringify(summary,null,2)+'\n');
+  console.log(JSON.stringify(summary,null,2));
 }finally{
   if(child&&child.exitCode==null){const exited=new Promise(r=>child.once('exit',r));child.kill('SIGTERM');await exited}
   await rm(home,{recursive:true,force:true,maxRetries:5})

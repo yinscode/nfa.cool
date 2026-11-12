@@ -1,0 +1,358 @@
+{
+  "schema": 1,
+  "about": "Machine-readable claims for NFA.gent. \"judge\" entries are re-run by `npm run judge`; \"readOnly\" commands re-derive live facts without keys; transactions link public explorers.",
+  "levels": {
+    "native-test": "contract unit tests with injected callbacks",
+    "sandbox": "local NEAR sandbox with real receipts and a deterministic OutLayer mock",
+    "hosted-testnet": "NEAR testnet with hosted OutLayer",
+    "live-testnet": "NEAR testnet",
+    "live-sepolia": "Ethereum Sepolia"
+  },
+  "statuses": {
+    "verified": "reproduced or recorded with evidence",
+    "disclosed": "a stated limitation or trust",
+    "open": "not yet demonstrated",
+    "not-claimed": "explicitly not claimed"
+  },
+  "claims": [
+    {
+      "id": "handover.ownership",
+      "statement": "Buying the NFT changes the owner and owner epoch while the vault, Sepolia address and OutLayer Project stay the same; the previous owner is denied afterwards.",
+      "level": [
+        "sandbox",
+        "live-testnet"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/m02-handover.json",
+        "docs/evidence/m05-memory-billing.json"
+      ],
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "8LDa9C5CEisYdS2WmvZk3Jz5EeHHqPXhD6XdFhLbtY9q",
+          "label": "NFT purchase",
+          "url": "https://testnet.nearblocks.io/txns/8LDa9C5CEisYdS2WmvZk3Jz5EeHHqPXhD6XdFhLbtY9q",
+          "evidence": "docs/evidence/m02-handover.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "HF11bisQeBQP6ydHKY9oZQkcjyzTT4vj7E2HXAfn7d16",
+          "label": "former owner denied (expected failure)",
+          "url": "https://testnet.nearblocks.io/txns/HF11bisQeBQP6ydHKY9oZQkcjyzTT4vj7E2HXAfn7d16",
+          "evidence": "docs/evidence/m02-handover.json"
+        }
+      ],
+      "judge": [
+        "sandbox:old session and old owner rejected",
+        "sandbox:income follows sale",
+        "research:same vault/Project across sale",
+        "research:seller configuration and recall denied"
+      ],
+      "readOnly": "npm run verify:testnet"
+    },
+    {
+      "id": "handover.pending-blocks-sale",
+      "statement": "An unresolved authority-bearing operation blocks listing and sale.",
+      "level": [
+        "sandbox",
+        "live-testnet"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/m02-handover.json"
+      ],
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "7kVoq2eDnzyJJCWwaTxwNe5oAcFSjsx53AdN5HeA2omt",
+          "label": "listing denied while a Sepolia transfer was pending (expected failure)",
+          "url": "https://testnet.nearblocks.io/txns/7kVoq2eDnzyJJCWwaTxwNe5oAcFSjsx53AdN5HeA2omt",
+          "evidence": "docs/evidence/m02-handover.json"
+        }
+      ],
+      "judge": [
+        "recovery:OutLayer-rejected job released permissionlessly, customer refunded, vault clear"
+      ]
+    },
+    {
+      "id": "evm.sepolia-identity",
+      "statement": "The vault controls a Chain Signatures-derived Sepolia address; two typed self-transfers finalized across a sale and the nonce advanced twice.",
+      "level": [
+        "live-sepolia"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/m02-handover.json"
+      ],
+      "transactions": [
+        {
+          "chain": "sepolia",
+          "hash": "0x28c2a3188e2e3ce30f53c5bf0f87d86efd9f821a5bad2e2ce07f6e9ebe586c17",
+          "label": "nonce 0 self-transfer (seller)",
+          "url": "https://sepolia.etherscan.io/tx/0x28c2a3188e2e3ce30f53c5bf0f87d86efd9f821a5bad2e2ce07f6e9ebe586c17",
+          "evidence": "docs/evidence/m02-handover.json"
+        },
+        {
+          "chain": "sepolia",
+          "hash": "0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+          "label": "nonce 1 self-transfer (buyer)",
+          "url": "https://sepolia.etherscan.io/tx/0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+          "evidence": "docs/evidence/m02-handover.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "AboPePrjgNWri35L8oCcDcyPwAASEFzaKcBg5DT5CXxR",
+          "label": "seller signing request",
+          "url": "https://testnet.nearblocks.io/txns/AboPePrjgNWri35L8oCcDcyPwAASEFzaKcBg5DT5CXxR",
+          "evidence": "docs/evidence/m02-handover.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "AC11ivKd9SdvBPohewZPztDinnNu8X6k6Wp8CuwqwAa",
+          "label": "buyer signing request",
+          "url": "https://testnet.nearblocks.io/txns/AC11ivKd9SdvBPohewZPztDinnNu8X6k6Wp8CuwqwAa",
+          "evidence": "docs/evidence/m02-handover.json"
+        }
+      ],
+      "limits": "Self-transfers only: payment to an external recipient is not demonstrated. The reporter and RPC are trusted for finality.",
+      "readOnly": "npm run verify:testnet"
+    },
+    {
+      "id": "vault.keyless",
+      "statement": "Per-NFA vaults are created without any access key and act only on registry commands.",
+      "level": [
+        "sandbox",
+        "live-testnet"
+      ],
+      "status": "verified",
+      "evidence": [],
+      "judge": [
+        "sandbox:provisioned keyless vault"
+      ],
+      "readOnly": "node scripts/authority-inventory.mjs nfa-2"
+    },
+    {
+      "id": "services.paid-jobs",
+      "statement": "Customers pay Scout/Compare jobs into escrow; the vault is reimbursed for compute and the agent earns the margin net of storage.",
+      "level": [
+        "sandbox",
+        "hosted-testnet"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/m06-preparation.json"
+      ],
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "6eVniqEHB3d2N1muMzgU6HpRMgvhefnt9Z8tbgbbTSrE",
+          "label": "Scout payment",
+          "url": "https://testnet.nearblocks.io/txns/6eVniqEHB3d2N1muMzgU6HpRMgvhefnt9Z8tbgbbTSrE",
+          "evidence": "docs/evidence/m06-preparation.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "D6PKGbULJw78EciTTB39iB6q4LmpUvDs3bVEjtdTzB6r",
+          "label": "Scout start",
+          "url": "https://testnet.nearblocks.io/txns/D6PKGbULJw78EciTTB39iB6q4LmpUvDs3bVEjtdTzB6r",
+          "evidence": "docs/evidence/m06-preparation.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "WC1RmPVwvrGiyA2D6cFdy2HEdDFK7fLaSEgBgJrfKce",
+          "label": "Compare payment",
+          "url": "https://testnet.nearblocks.io/txns/WC1RmPVwvrGiyA2D6cFdy2HEdDFK7fLaSEgBgJrfKce",
+          "evidence": "docs/evidence/m06-preparation.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "C84n6vjKrMJMXgm5Y2yg5pfksQ5PV2YNKBbxVzkttNTm",
+          "label": "Compare start",
+          "url": "https://testnet.nearblocks.io/txns/C84n6vjKrMJMXgm5Y2yg5pfksQ5PV2YNKBbxVzkttNTm",
+          "evidence": "docs/evidence/m06-preparation.json"
+        }
+      ],
+      "judge": [
+        "sandbox:paid Scout output",
+        "sandbox:seller payout"
+      ],
+      "limits": "Scout and Compare process supplied text deterministically; they do not browse or call a model."
+    },
+    {
+      "id": "memory.continuity",
+      "statement": "A buyer recalls pre-sale work, and only finalized prior work enters a later job's context.",
+      "level": [
+        "sandbox",
+        "hosted-testnet"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/m05-memory-billing.json",
+        "docs/evidence/m06-preparation.json"
+      ],
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "CvyfwX63L15gvYy3sZfR3wyeAHVNg1z496EHyyQyKXx6",
+          "label": "buyer recalls pre-sale Scout work",
+          "url": "https://testnet.nearblocks.io/txns/CvyfwX63L15gvYy3sZfR3wyeAHVNg1z496EHyyQyKXx6",
+          "evidence": "docs/evidence/m06-preparation.json"
+        }
+      ],
+      "judge": [
+        "research:buyer recalled old work",
+        "research:only finalized prior work entered buyer context"
+      ]
+    },
+    {
+      "id": "liveness.recovery",
+      "statement": "No customer or delegate can permanently freeze an NFA: rejected executions are released, over-balance transfers fail definitely, stuck EVM transfers can be re-signed or replaced at the same nonce.",
+      "level": [
+        "native-test",
+        "sandbox"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/reviews/2026-11-12-claude-review.md"
+      ],
+      "judge": [
+        "recovery:customer cannot choose 1-yocto deposit or 1-instruction limits",
+        "recovery:OutLayer-rejected job released permissionlessly, customer refunded, vault clear",
+        "recovery:over-balance NEAR transfer fails definitely and unlocks",
+        "recovery:listing succeeds after recovery",
+        "contracts:registry",
+        "contracts:vault"
+      ],
+      "limits": "Not yet deployed on testnet."
+    },
+    {
+      "id": "economics.slot-and-failures",
+      "statement": "An unstarted job returns its deposit and pays the agent for the held slot; a customer-caused failure pays for its compute.",
+      "level": [
+        "native-test",
+        "sandbox"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/SERVICES-API.md"
+      ],
+      "judge": [
+        "recovery:unstarted job: 30-minute window, deposit refunded, margin compensates the agent",
+        "recovery:owner cancels an unstarted job with a full refund",
+        "recovery:customer-caused failure reimburses the vault and leaves the agent Active"
+      ],
+      "limits": "Not yet deployed on testnet."
+    },
+    {
+      "id": "economics.liabilities",
+      "statement": "The registry tracks what it owes, charges each job its storage, and refuses payouts it cannot cover.",
+      "level": [
+        "native-test",
+        "sandbox"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/reviews/2026-11-12-claude-review.md"
+      ],
+      "judge": [
+        "recovery:tracked liabilities equal customer credits plus unclaimed income",
+        "research:no customer escrow or replenishment remains"
+      ],
+      "limits": "The counter starts at zero on an upgraded registry."
+    },
+    {
+      "id": "upgrade.compatibility",
+      "statement": "New registry code upgrades actual prior deployed bytes in place, preserving owners, epochs, vaults and vault status.",
+      "level": [
+        "sandbox"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/m03-upgrade-rehearsal.json"
+      ],
+      "judge": [
+        "rehearsal:upgraded without state migration",
+        "rehearsal:preserved old NFT owner, epoch, manifest and vault",
+        "rehearsal:guardian upgraded old vault and preserved all status fields"
+      ]
+    },
+    {
+      "id": "research.hosted-failure-refund",
+      "statement": "A hosted Research job without a model credential returned NOT_STARTED, refunded the customer in full and resumed by explicit owner action.",
+      "level": [
+        "hosted-testnet"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/m06-preparation.json"
+      ],
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "C2o7SJmDDfmEUN4JPSheF2V7jyh34gC3QAGQBqheVwRs",
+          "label": "Research payment",
+          "url": "https://testnet.nearblocks.io/txns/C2o7SJmDDfmEUN4JPSheF2V7jyh34gC3QAGQBqheVwRs",
+          "evidence": "docs/evidence/m06-preparation.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "A5trkMF1TnMsLbRTFt71PBi5wVnL3w7JJNEdNmGz6UEN",
+          "label": "Research start",
+          "url": "https://testnet.nearblocks.io/txns/A5trkMF1TnMsLbRTFt71PBi5wVnL3w7JJNEdNmGz6UEN",
+          "evidence": "docs/evidence/m06-preparation.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "hx8nTKAqUcas4aVCzSCpQis4TydcGWUaK3FdyHabDMP",
+          "label": "owner resume",
+          "url": "https://testnet.nearblocks.io/txns/hx8nTKAqUcas4aVCzSCpQis4TydcGWUaK3FdyHabDMP",
+          "evidence": "docs/evidence/m06-preparation.json"
+        }
+      ]
+    },
+    {
+      "id": "research.real-inference",
+      "statement": "A paid Research job runs real model inference with approved sources and a buyer continues it after sale.",
+      "level": [],
+      "status": "open",
+      "evidence": [
+        "docs/evidence/m06-preparation.json"
+      ],
+      "limits": "Needs a dedicated model credential; not demonstrated."
+    },
+    {
+      "id": "trust.operators",
+      "statement": "Trusted parties are disclosed: registry admin key, vault guardian, EVM reporter and its RPC providers, OutLayer.",
+      "level": [
+        "live-testnet"
+      ],
+      "status": "disclosed",
+      "evidence": [
+        "docs/OWNERSHIP.md"
+      ],
+      "readOnly": "node scripts/authority-inventory.mjs nfa-2",
+      "limits": "On testnet today the registry, reporter and guardian each hold a full-access key; the new upgrade timelocks bind only after deployment and key removal."
+    },
+    {
+      "id": "attestation.accuracy",
+      "statement": "OutLayer attestation proves which code ran on which input, not that outputs are factually correct.",
+      "level": [],
+      "status": "not-claimed",
+      "evidence": [
+        "docs/OUTLAYER-OPERATIONS.md"
+      ],
+      "limits": "The full Intel collateral chain was not independently verified."
+    },
+    {
+      "id": "hosting.public",
+      "statement": "A public web/API deployment.",
+      "level": [],
+      "status": "open",
+      "evidence": [
+        "docs/PUBLIC-DEPLOYMENT.md"
+      ],
+      "limits": "Runs locally only."
+    }
+  ]
+}

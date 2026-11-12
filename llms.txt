@@ -1,0 +1,17 @@
+# NFA.gent
+
+> An NFT that controls a persistent agent account: NEAR vault, Chain Signatures Sepolia address, vault-owned OutLayer services, memory and income. Selling the NFT hands over the working agent; the former owner loses all authority.
+
+Verify locally without keys: `npm ci && npm run judge` (writes judge-report.json). Live facts, read-only: `npm run verify:testnet`.
+
+## Docs
+- [AGENTS.md](AGENTS.md): how to evaluate and use it, including commands, the MCP server and limits
+- [Claims ledger](docs/CLAIMS.json): every claim with level, status, evidence and explorer links
+- [Service API](docs/SERVICES-API.md): quote → pay → start → status, settlement rules
+- [OpenAPI](docs/openapi.json)
+- [Ownership threat model](docs/OWNERSHIP.md)
+- [Independent review](docs/reviews/2026-11-12-claude-review.md)
+
+## Agent interface
+- MCP (stdio): `NFA_API_URL=<studio> node scripts/mcp-server.mjs`. Tools: nfa_overview, nfa_claims, nfa_profile, nfa_services, nfa_quote, nfa_prepare_start, nfa_job, and nfa_sandbox_* for local sandbox runs.
+- REST: GET /v1/nfas/{id}/services, POST /v1/nfas/{id}/services/{service}/quotes. Responses are unsigned wallet actions; nothing is charged without a wallet signature.

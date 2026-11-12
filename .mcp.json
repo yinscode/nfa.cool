@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "nfa-gent": {
+      "command": "node",
+      "args": ["scripts/mcp-server.mjs"],
+      "env": { "NFA_API_URL": "http://127.0.0.1:3102" }
+    }
+  }
+}

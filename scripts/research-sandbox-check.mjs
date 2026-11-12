@@ -35,7 +35,7 @@ try{
   };
   const call=(who,method,args,deposit=0n)=>raw(who,registryId,method,args,deposit);
   const action=(who,a)=>raw(who,a.receiverId,a.methodName,a.args,a.deposit);
-  await outlayer.deployContract(await readFile('output/sandbox-outlayer-mock.wasm'));await raw(outlayer,outlayer.accountId,'new',{});
+  await outlayer.deployContract(await readFile(process.env.NFA_SANDBOX_MOCK_WASM||'output/sandbox-outlayer-mock.wasm'));await raw(outlayer,outlayer.accountId,'new',{});
   await registry.deployContract(await readFile(process.env.NFA_SANDBOX_REGISTRY_WASM||'output/sandbox-nfa-registry.wasm'));
   await call(registry,'new',{admin:registryId,reporter:registryId,guardian:registryId});
   await call(alice,'create_agent',{request_id:'research-acceptance',manifest_hash:hash('manifest'),manifest_uri:'nfa://research'},6n*10n**24n);
@@ -89,7 +89,7 @@ try{
   const budget=await sdk.view(registryId,'research_budget',{token_id:tokenId});assert.equal(budget.reserved_microusd,75072);
   const refund=await sdk.view(registryId,'payout',{seller:customer.accountId});assert.equal(refund.available,fee);
   const result={milestone:'M05',complete:true,mode:'isolated NEAR sandbox with deterministic OutLayer fixture',
-    registryCodeSha256:createHash('sha256').update(await readFile('output/sandbox-nfa-registry.wasm')).digest('hex'),
+    registryCodeSha256:createHash('sha256').update(await readFile(process.env.NFA_SANDBOX_REGISTRY_WASM||'output/sandbox-nfa-registry.wasm')).digest('hex'),
     vault:final.vaultAccountId,projectUuid:finalProject.project_uuid,owner:final.ownerAccountId,
     jobs:{first:first.id,unknown:unknown.id,buyer:second.id},priorWork:second.context.priorWork,
     ledgers:{nativeNear:ledger,incomeYocto:final.income,customerRefundYocto:refund.available,modelUsdAllowance:budget,

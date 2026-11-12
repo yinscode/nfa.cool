@@ -8,7 +8,7 @@ implementation check does not stand in for a hosted or wallet acceptance check.
 | --- | --- | --- | --- |
 | R001 | T024, T035–T036 | Stable deployable web/API, durable data, readiness, public origin and external-wallet acceptance | Deferred by user; deployment code retained |
 | R002 | T004, T011–T015, T034 | Restart-safe Sepolia submission/reporter worker, holdings and complete transfer acceptance | Code/local checks complete; live acceptance blocked |
-| R003 | T016–T020 | Bounded research skill, reviewed retrieval/inference, eligible memory continuity and paid execution | Reference candidate tested; WASI/contract/secret integration remains |
+| R003 | T016–T020 | Bounded research skill, reviewed retrieval/inference, eligible memory continuity and paid execution | Typed contracts/SDK/API, pinned WASI and local memory/billing acceptance complete; hosted legacy probe passed; real model/transfer acceptance remains |
 | R004 | T021–T024, T042 | Versioned service package, validator, REST/OpenAPI and runnable SDK example | Implemented; local create/pay/resume verified |
 | R005 | T019, T027, T032, T035 | Revenue/cost/reserve/withdrawable views and buyer inventory | Implemented; browser and receipt checks passed |
 | R006 | T037–T038 | Reproducible judge demo, evidence manifest, architecture and submission material | Draft/local replay complete; next recording uses local Studio with live testnets |

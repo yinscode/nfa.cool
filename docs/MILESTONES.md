@@ -37,7 +37,11 @@ The WASI P2 guest retains Scout/Compare, retrieves approved HTTPS sources and
 calls one reviewed inference provider with bounded tokens/time/cost. The stable
 vault predecessor is checked against runtime identity. Six native tests cover
 idempotency, unknown model outcomes, citations and memory after a human signer
-change. The artifact and locked source hashes are recorded in
+change. The same HTTP-capable component also ran Scout and Compare in the
+existing disposable hosted probe Project; both matched the reviewed output
+codec, and runtime/input/report-data bindings and actual compute charges were
+checked. This is not vault-owned research acceptance. See
+[evidence/m04-component-smoke.json](evidence/m04-component-smoke.json). The artifact and locked source hashes are recorded in
 [evidence/m04-runtime.json](evidence/m04-runtime.json). Hosted Research remains
 unavailable in public REST quotes until its real acceptance passes.
 

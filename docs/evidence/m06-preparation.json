@@ -1,0 +1,65 @@
+{
+  "milestone": "M06",
+  "complete": false,
+  "status": "Preparing hosted smoke; real model credential absent",
+  "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+  "identity": {
+    "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "projectUuid": "p0000000000000163",
+    "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout"
+  },
+  "upload": {
+    "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3.wasm",
+    "hash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+    "transaction": "CuN2KGJHJ49rWewDLSGa7wYhMXQfP7XgezWQuJXtGwro"
+  },
+  "secret": {
+    "owner": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+    "profile": "research-v3-smoke",
+    "access": {
+      "Logic": {
+        "operator": "And",
+        "conditions": [
+          {
+            "Predecessor": {
+              "condition": {
+                "Whitelist": {
+                  "accounts": [
+                    "nfa-2.nfagent-registry-0e9b2a.testnet"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "WasmHash": {
+              "hash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3"
+            }
+          }
+        ]
+      }
+    },
+    "stored": true
+  },
+  "nearTransactions": {
+    "researchRuntimeUpload": {
+      "hash": "CuN2KGJHJ49rWewDLSGa7wYhMXQfP7XgezWQuJXtGwro",
+      "failed": true
+    },
+    "storeSmokeSecret": {
+      "hash": "2BNfaAvDji2y1KyBHgWCvxiQoxgVLaobA9LcD6ynsV5X",
+      "failed": false
+    }
+  },
+  "remaining": [
+    "Hosted WASI no-key failure and legacy handlers",
+    "Dedicated model credential",
+    "Real paid research, sale, buyer recall and follow-up",
+    "Final Studio/testnet recording"
+  ],
+  "limitations": [
+    "Uploaded bytes and a stored secret row are not hosted execution acceptance.",
+    "The smoke secret contains only a provider name; no model API key."
+  ]
+}

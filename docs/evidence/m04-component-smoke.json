@@ -1,0 +1,90 @@
+{
+  "milestone": "M04",
+  "mode": "real OutLayer testnet on existing disposable probe Project; caller is probe signer, not NFA vault",
+  "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+  "projectId": "nfagent-alice-fe53d8.testnet/nfa-probe",
+  "projectUuid": "p000000000000015f",
+  "results": {
+    "scout": {
+      "transaction": "Gc4fUn5KdcT8msLZXxrXWjfYxd6oMBZ1q2v4b6SREPT7",
+      "output": {
+        "jobId": 1,
+        "outputHash": "sha256:9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+        "outputUri": "nfa://work/9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+        "schemaVersion": 1,
+        "status": "ok"
+      },
+      "depositYocto": "4800120000000000000000",
+      "execution": {
+        "transaction": "Gc4fUn5KdcT8msLZXxrXWjfYxd6oMBZ1q2v4b6SREPT7",
+        "hostJobId": 74008,
+        "requestId": 30746,
+        "predecessor": "nfagent-alice-fe53d8.testnet",
+        "projectId": "nfagent-alice-fe53d8.testnet/nfa-probe",
+        "projectUuid": "p000000000000015f",
+        "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+        "inputHash": "d0d238f05a92094d391b3df10e73c2370a4bb62e5c2156403931c09f3bf31c6f",
+        "stdoutHash": "5ea56005e22878f23d49d531022f654480e8f0683c10139321a9cb3577866792",
+        "priorWork": [],
+        "reportDataHash": "f158822d513444e8edfd3cd31409771075736cdc0c542b127c29ced33fca1923",
+        "quoteSha256": "43f4248ecaba2aec01b4b6283ace1983f0c5c0e35fae9f09ded01e7aa0755596",
+        "paymentYocto": "4800120000000000000000",
+        "chargedYocto": "1157600000000000000000",
+        "refundedYocto": "3642520000000000000000",
+        "resources": {
+          "instructions": 282154,
+          "time_ms": 1576,
+          "compile_time_ms": null
+        },
+        "intelCollateralVerified": false
+      }
+    },
+    "compare": {
+      "transaction": "3nk9wMowE5oCWkZUueu2Ajs7Vqn31G3vcHbCkuwtVchp",
+      "output": {
+        "jobId": 2,
+        "outputHash": "sha256:aceb241e34567d99e37815438d70825fc805f153c254a003e64a8cd4c5a40988",
+        "outputUri": "nfa://work/aceb241e34567d99e37815438d70825fc805f153c254a003e64a8cd4c5a40988",
+        "schemaVersion": 1,
+        "status": "ok"
+      },
+      "depositYocto": "4800120000000000000000",
+      "execution": {
+        "transaction": "3nk9wMowE5oCWkZUueu2Ajs7Vqn31G3vcHbCkuwtVchp",
+        "hostJobId": 74013,
+        "requestId": 30749,
+        "predecessor": "nfagent-alice-fe53d8.testnet",
+        "projectId": "nfagent-alice-fe53d8.testnet/nfa-probe",
+        "projectUuid": "p000000000000015f",
+        "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+        "inputHash": "8eee9e338f3000ad6dd6214ce81d16dd43be4b47176886ef0d3fbb25d2c6a5df",
+        "stdoutHash": "74cea9616084ae9e3acd5b6c6b9b24c6b2145b67dc7b93d58d3144a2149069a6",
+        "priorWork": [],
+        "reportDataHash": "f0cec54793cbbe89105b5b191ebc5927e168e7cb386350ffd3865adb1ebe5dae",
+        "quoteSha256": "1c46ad77ee86a2daf3b7d15207209d4771cec889abf105d8a2a590686dd338a3",
+        "paymentYocto": "4800120000000000000000",
+        "chargedYocto": "1157400000000000000000",
+        "refundedYocto": "3642720000000000000000",
+        "resources": {
+          "instructions": 526684,
+          "time_ms": 1574,
+          "compile_time_ms": null
+        },
+        "intelCollateralVerified": false
+      }
+    }
+  },
+  "standaloneRefusal": {
+    "transaction": "DSQqvtkM813PyK7bLoQ3rJkXzpUMjvczrLAj2pCBRvY3",
+    "reason": "Storage-importing guests require a Project UUID; standalone request returned no result."
+  },
+  "checks": [
+    "HTTP-capable WASI component links on host",
+    "Scout output matches reviewed codec",
+    "Compare output matches reviewed codec"
+  ],
+  "limits": [
+    "Does not run model inference or use NFA memory.",
+    "Does not replace M06 vault-owned Project acceptance."
+  ]
+}

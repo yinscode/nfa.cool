@@ -8,6 +8,7 @@ import {NfaSdk} from '@nfa/sdk';
 import {testnet,pause} from './testnet-lib.mjs';
 import {quoteService,schemaHashFor} from '../services/api/service-runtime.mjs';
 import {researchEncryptionKey,researchSecretAccess,sealOutlayerSecrets} from '../services/worker/outlayer-secrets.mjs';
+import {hostedExecutionEvidence} from './hosted-execution-evidence.mjs';
 const phase=process.argv[2]||'inspect';
 if(!['inspect','upload','upgrade','secrets-smoke','secrets','stage','activate','configure-smoke','configure','smoke','legacy','research','handover','buyer','verify'].includes(phase))throw Error('Unknown M06 phase');
 const ctx=await testnet('deployments/m06-research.json'),registry=await ctx.signer('t006-registry'),operator=await ctx.signer('t004-operator'),
@@ -33,7 +34,10 @@ const policy={limits,marginYocto:'10000000000000000000000',maxDepositYocto:'5000
 async function run(label,service,input){
   let record=ctx.evidence[label];
   if(!record){
-    const quote=await quoteService({sdk,tokenId,service,body:{input},policy:{[service]:policy},allowResearchCandidate:true});
+    const existing=await sdk.getServicePolicy(tokenId,service);
+    const compatible=service==='research'||!existing?policy:{...policy,limits:existing.limits,
+      maxDepositYocto:(BigInt(existing.max_deposit)<BigInt(policy.maxDepositYocto)?BigInt(existing.max_deposit):BigInt(policy.maxDepositYocto)).toString()};
+    const quote=await quoteService({sdk,tokenId,service,body:{input},policy:{[service]:compatible},allowResearchCandidate:true});
     record={quote,input};ctx.evidence[label]=record;await ctx.save();
   }
   const paid=await action(label+'Pay',customer,record.quote.unsignedAction);
@@ -130,8 +134,12 @@ if(phase==='upload'){
     ctx.evidence[label].result=live;
   }
   const ledger=await sdk.getPaidLedger();if(ledger.customer_escrow!=='0'||ledger.vault_replenishment_pending!=='0')throw Error('Native ledger still has pending liabilities');
+  const hosted={};
+  for(const label of ['research','buyer'])hosted[label]=await hostedExecutionEvidence({sdk,hash:ctx.evidence.steps[label+'Start'].hash,
+    sender:customer.id,runtimeHash:runtime.sha256,predecessor:vault,projectUuid:project.project_uuid,
+    requiredPriorWork:label==='buyer'?[{jobId:ctx.evidence.research.id,outputHash:ctx.evidence.research.result.job.output_hash}]:[]});
   const evidence={milestone:'M06',complete:true,checkedAt:new Date().toISOString(),mode:'real NEAR testnet / hosted OutLayer',initial,
-    owner:current.ownerAccountId,runtimeHash:runtime.sha256,projectUuid:project.project_uuid,nativeLedger:ledger,
+    owner:current.ownerAccountId,runtimeHash:runtime.sha256,projectUuid:project.project_uuid,nativeLedger:ledger,hosted,
     jobs:Object.fromEntries(['smoke','legacyscout','legacycompare','research','buyer'].filter(k=>ctx.evidence[k]).map(k=>[k,{id:ctx.evidence[k].id,result:ctx.evidence[k].result}])),
     nearTransactions:Object.fromEntries(Object.entries(ctx.evidence.steps).map(([k,v])=>[k,{hash:v.hash,failed:v.outcome?.failed}])),
     memoryBasis:'The deployed registry supplies its finalized research index; the pinned guest validates every prior commitment in the vault cell before successful buyer inference.',

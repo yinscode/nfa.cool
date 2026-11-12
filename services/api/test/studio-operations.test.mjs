@@ -14,7 +14,10 @@ test('Studio finances keep escrow, replenishment and income separate; recovery n
   assert.deepEqual(finances(rows),{customerEscrow:'60',replenishmentLiability:'30',recallFunding:'0',grossReceipts:'50',replenished:'20',refunded:'70'});
   const args={registryAccountId:'registry.testnet',tokenId:'nfa-1',agent:{pending_op:2},rows};
   assert.equal(recoveryActions(args)[0].unsignedAction.methodName,'retry_outlayer_replenishment');
-  rows[1].service.job.status='UNCERTAIN';assert.deepEqual(recoveryActions(args),[]);
+  rows[1].service.job.status='UNCERTAIN';
+  // Uncertain work is never restarted, retried or refunded by guess; the only offer is the
+  // vault-confirmed release (B1), which fails unless no result can still arrive.
+  assert.deepEqual(recoveryActions(args).map(a=>a.unsignedAction.methodName),['release_service_job']);
 });
 
 test('transfer preview enforces recipient, budget and epoch before returning exact unsigned bytes',async()=>{

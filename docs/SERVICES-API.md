@@ -100,7 +100,15 @@ Settlement rules (all amounts in NEAR, credited to the payer's `payout`):
 | Released (`release_service_job`) or cancelled by the owner | full fee | — | − job storage fee |
 | Not started within the window | execution deposit | — | margin − job storage fee |
 
-The start deadline is at most 30 minutes after the request; quotes use 15. The job
+The start deadline is at most 30 minutes after the request; quotes use 15.
+`request_reviewed_service_job` is the only paid-job entry point; it pins the runtime,
+policy version and Research configuration.
+
+**Research memory.** A Research job receives up to three earlier finalized Research jobs
+of the same NFA as context, reduced to verified source quotations (earlier customers'
+questions and model-written claims are never forwarded). Quotes disclose this in
+`memory`. Pass `"useMemory": false` beside `input` in the quote request to keep a job
+from receiving that context; the flag is part of the paid input commitment. The job
 storage fee (800 bytes of NEAR storage, 0.008 NEAR, `registry_ledger`) pays for the
 registry records a job leaves behind. The owner's margin must cover it.
 
@@ -156,7 +164,7 @@ testnet acceptance; these adapters are still separate work.
 The x402 v2 `exact` NEAR scheme lets a payer authorize one NEP-141
 `ft_transfer` with a NEP-366 signed delegate action; a configured facilitator
 verifies and settles it. It does **not** pay the registry's current native-NEAR
-`request_paid_scout` deposit directly. Keep x402 in an HTTP billing adapter,
+`request_reviewed_service_job` deposit directly. Keep x402 in an HTTP billing adapter,
 outside the vault and the WASI guest.
 
 | Component | Responsibility |
@@ -164,7 +172,7 @@ outside the vault and the WASI guest.
 | REST API | Creates expiring `(token, service, input hash, version, amount, asset, payee)` quote; serves x402 `402` challenge |
 | x402 facilitator | Settles the exact NEP-141 transfer and reports the final inner transfer receipt |
 | Merchant ledger | Durably claims one settlement for one quote/job; tracks token receipts, NEAR funding, refunds and reconciliation separately |
-| NEAR relayer | Fronts native NEAR from an operator reserve to call `request_paid_scout`, then starts the committed job |
+| NEAR relayer | Fronts native NEAR from an operator reserve to call `request_reviewed_service_job`, then starts the committed job |
 | NFA vault and OutLayer | Run the approved pinned service and return result; never parse x402 headers or customer payment keys |
 
 Proposed route: `POST /v1/nfas/:id/services/scout/jobs` with a quote ID and

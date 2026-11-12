@@ -114,6 +114,74 @@ B1–B3 are fixed in the working tree. Nothing has been deployed or committed.
   fallback rules apply.
 - The registry is 1.44 MB, about 133 KB under the 1.5 MiB transaction limit.
 
+### M1–M7 (fixed after H1–H3)
+
+**Checks:**
+
+| Check | Result |
+| --- | --- |
+| Registry native tests | 78 |
+| Vault native tests | 23 |
+| Guest tests | 7 |
+| JS tests | 80 |
+| Main, recovery and research sandbox suites, upgrade rehearsal | Pass |
+
+**M1 — Research memory.**
+- Earlier jobs reach the model only as verified source quotations. Free-text claims (and
+  anything planted in them) are never forwarded.
+- Quotes disclose this memory. `useMemory: false` beside `input` opts a job out; the flag is
+  part of the paid commitment.
+- The input schema hash is unchanged, so the deployed Research policy still matches.
+
+**M2 — No panics in result callbacks.**
+- A reported cost above the reservation is recorded as `UNKNOWN` instead of panicking.
+- Ledger arithmetic in callbacks saturates.
+
+**M3 — Receipts and finality.**
+- The vault accepts a receipt only for a transaction hash it can rebuild from a signature it
+  holds. A cross-language test vector ties the vault's encoding to the settler's.
+- The settler requires every provider in `EVM_RPC_URLS` to agree, and the sender's finalized
+  nonce to have advanced.
+- The inventory flags full-access reporter keys.
+
+**M4 — Upgrade powers.**
+- Vault upgrades need a guardian proposal plus either the owner's approval (relayed by the
+  registry; valid one day; not while listed) or a public seven-day delay.
+- The registry gains a two-day timelocked self-upgrade path and an `authorities` view.
+- `scripts/authority-inventory.mjs` lists keys, roles and pending proposals. Read-only run
+  against testnet:
+  - The registry, reporter and guardian each hold a full-access key.
+  - The nfa-2 vault has no keys, but its current code allows an immediate guardian upgrade.
+
+**M5 — Stuck recalls.** Permissionless `release_recall`, confirmed by the vault, refunds the
+deposit.
+
+**M6 — Unbound entry points.** `request_paid_scout` and `request_service_job` are gone from the
+contract ABI and the SDK. `request_reviewed_service_job` is the only paid entry point.
+
+**M7 — Off-chain fixes.**
+- The request body is decoded once (UTF-8 safe).
+- A pid-stamped lock reclaims a crashed writer's lock.
+- Reporter signing is serialized per account.
+- Intents that never landed are retired and re-signed after 48 hours.
+- `/studio/owned` reads one identity per token (at most 100).
+- Studio page and audit reads are bounded.
+- `NFA_TRUST_PROXY=1` keys rate limits on the first forwarded hop.
+- Studio recovery actions now offer each new recovery call when it applies.
+
+**Found while fixing:**
+- **Gas.** Hashing the embedded vault inside `on_provision` (about 12 TGas for 0.5 MB) exhausted
+  that callback's gas once the vault grew. The hash is now computed in `build.rs`.
+- **Size.** The registry now embeds the `wasm-opt`ed vault: 350 KB vault, 1.35 MB registry
+  (about 226 KB under NEAR's 1.5 MiB transaction limit).
+- **Unsafe build profile.** A size-optimized LTO profile was tried and rejected: it emits
+  bulk-memory WASM (`memory.copy`) that `wasm-opt` refuses.
+
+**Still to do before deploying:**
+1. Delete the registry's full-access key after the first timelocked upgrade.
+2. Move the reporter to a FunctionCall key.
+3. Build and pin the changed guest.
+
 ---
 
 ## Blockers

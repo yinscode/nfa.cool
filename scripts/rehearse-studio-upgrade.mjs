@@ -42,15 +42,15 @@ try{
     assert.equal(oldStatus.research_interface,undefined);
     await call(alice,'verify_research_vault',{token_id:'nfa-1'},1n);
     assert.equal(await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-1'}),false);
-    const vaultCode=await readFile('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault.wasm');
+    const vaultCode=await readFile('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault_opt.wasm');
     vaultUpgrade=await registry.functionCall({contractId:after.vaultAccountId,methodName:'emergency_upgrade',
       args:{code:vaultCode.toString('base64')},gas:100_000_000_000_000n,attachedDeposit:0n});
     // Views read final state, which can trail the executed deployment by a block or two.
     let newStatus;for(let i=0;i<50;i++){newStatus=await sdk.view(after.vaultAccountId,'status');if(newStatus.research_interface!=null)break;await pause(200)}
     assert.equal(newStatus.research_interface,1);
     // Fields added by newer vault code are new views of separate storage, not migrated state.
-    const {research_interface,recovery_interface,last_near,...preserved}=newStatus;assert.deepEqual(preserved,oldStatus);
-    assert.equal(last_near??null,null);
+    const {research_interface,recovery_interface,last_near,upgrade_proposal,...preserved}=newStatus;assert.deepEqual(preserved,oldStatus);
+    assert.equal(last_near??null,null);assert.equal(upgrade_proposal??null,null);
     await call(alice,'verify_research_vault',{token_id:'nfa-1'},1n);
     let capable=false;for(let i=0;i<50&&!capable;i++){capable=await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-1'});if(!capable)await pause(200)}
     assert.equal(capable,true);
@@ -62,7 +62,7 @@ try{
   if(researchSupported!==null)assert.equal(await sdk.view(registryId,'research_vault_capable',{token_id:'nfa-2'}),true);
   const result={oldCodeSha256:createHash('sha256').update(oldCode).digest('hex'),newCodeSha256:createHash('sha256').update(newCode).digest('hex'),
     localUpgradeTransaction:upgraded.transaction.hash,localVaultUpgradeTransaction:vaultUpgrade?.transaction.hash,
-    vaultCodeSha256:createHash('sha256').update(await readFile('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault.wasm')).digest('hex'),
+    vaultCodeSha256:createHash('sha256').update(await readFile('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault_opt.wasm')).digest('hex'),
     oldToken:{owner:after.ownerAccountId,vault:after.vaultAccountId,epoch:after.ownerEpoch},
     assertions:['deployed actual prior testnet WASM','minted old contract state','upgraded without state migration','preserved old NFT owner, epoch, manifest and vault',
       'old vault research probe denied','guardian upgraded old vault and preserved all status fields','owner verified upgraded vault interface','minted funded new vault after upgrade']};

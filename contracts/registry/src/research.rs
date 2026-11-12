@@ -105,13 +105,17 @@ impl Registry {
         let a=self.agents.get(token_id).unwrap();let c=configs().get(token_id).unwrap();let u=usage().get(&op_key(token_id,id)).unwrap();
         require!(u.configuration_hash==c.configuration_hash&&u.configuration_version==c.version,"Research configuration changed");
         let object=value.as_object().unwrap();
-        require!(object.len()==2&&object["question"].as_str().is_some_and(|q|q.trim().len()>=5&&q.len()<=240),"Typed research input only");
+        // Optional `useMemory: false` keeps this job out of the agent's prior-work context.
+        let memory=object.get("useMemory");
+        require!(memory.is_none_or(|m|m.is_boolean())&&object.len()==2+usize::from(memory.is_some()),"Typed research input only");
+        let use_memory=memory.and_then(|m|m.as_bool()).unwrap_or(true);
+        require!(object["question"].as_str().is_some_and(|q|q.trim().len()>=5&&q.len()<=240),"Typed research input only");
         let sources=object["sources"].as_array().unwrap();
         require!(!sources.is_empty()&&sources.len()<=3&&sources.iter().all(|s|s.as_object().is_some_and(|o|
             o.len()==2&&o.get("title").and_then(|t|t.as_str()).is_some_and(|t|!t.is_empty()&&t.len()<=120)&&
             o.get("url").and_then(|u|u.as_str()).is_some_and(|u|u.len()<=500&&!u.bytes().any(|b|b"@?%#\\".contains(&b))&&!u.contains("..")&&c.settings.allowed_sources.iter().any(|r|u.starts_with(&format!("https://{}{}",r.host,r.path_prefix)))))),"Typed research sources only");
-        let prior:Vec<serde_json::Value>=finalized().get(token_id).unwrap_or_default().into_iter().rev().take(3)
-            .map(|(job_id,output_hash)|serde_json::json!({"jobId":job_id,"outputHash":output_hash})).collect();
+        let prior:Vec<serde_json::Value>=if use_memory{finalized().get(token_id).unwrap_or_default().into_iter().rev().take(3)
+            .map(|(job_id,output_hash)|serde_json::json!({"jobId":job_id,"outputHash":output_hash})).collect()}else{vec![]};
         serde_json::json!({"operation":"run","service":"research","jobId":id,"question":object["question"],"sources":sources,
             "research":c,"context":{"registryAccountId":env::current_account_id(),"tokenId":token_id,
                 "vaultAccountId":a.vault_id,"ownerEpoch":a.epoch,"priorWork":prior}})
@@ -130,14 +134,20 @@ impl Registry {
         if rows.len()>3{rows.remove(0);}finalized().insert(token_id,&rows);
     }
     pub(super) fn research_result(&self,token_id:&TokenId,id:u64,output:&serde_json::Value){
+        // Runs inside the vault's result callback: never panic, or a delivered result is lost.
         let Some(mut u)=usage().get(&op_key(token_id,id)) else{return};
-        require!(u.state=="RESERVED","Research usage already settled");
+        if u.state!="RESERVED"{return}
         let cost=output.get("pricedUsageMicrousd").and_then(|v|v.as_u64());
-        if let Some(cost)=cost{require!(cost<=u.reserved_microusd,"Inference usage exceeds reservation");u.priced_usage_microusd=Some(cost)}
+        // A reported cost above the reservation is not trusted as priced usage.
+        let within=cost.filter(|c|*c<=u.reserved_microusd);
+        if within.is_some(){u.priced_usage_microusd=within}
         u.state=match output.get("inferenceOutcome").and_then(|v|v.as_str()){
-            Some("not_started")=>"NOT_STARTED",Some("succeeded") if cost.is_some()=>"PRICED_USAGE",_=>"UNKNOWN"
+            Some("not_started")=>"NOT_STARTED",Some("succeeded") if within.is_some()=>"PRICED_USAGE",_=>"UNKNOWN"
         }.into();
         // Reservations stay consumed for the day, including failed/unknown attempts.
         usage().insert(&op_key(token_id,id),&u);
     }
 }
+
+#[cfg(test)]
+pub(crate) mod tests_support{use super::*;pub fn finalize(token:&TokenId,id:u64,hash:&str){let mut rows=finalized().get(token).unwrap_or_default();rows.push((id,hash.into()));finalized().insert(token,&rows);}}

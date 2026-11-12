@@ -45,8 +45,10 @@ if(!failure){
   const estimate=BigInt(await sdk.view('outlayer.testnet','estimate_execution_cost',{resource_limits:limits,input_len:Buffer.byteLength(inputData)+128}));
   const deposit=(estimate*6n+4n)/5n,fee=deposit+10n**22n;
   const beforeIncome=(await sdk.get(tokenId)).income,beforePayout=await sdk.view(registryId,'payout',{seller:funder.id});
-  const payment=await send('payDefiniteFailure',funder,sdk.requestServiceJob(tokenId,'scout','sha256:'+sha(inputData),
-    Number(BigInt(Date.now()+900000)*1_000_000n),fee.toString(),deposit.toString(),deposit.toString(),limits));
+  const project=await sdk.getOutlayerProject(tokenId),scoutPolicy=await sdk.getServicePolicy(tokenId,'scout');
+  const payment=await send('payDefiniteFailure',funder,sdk.requestReviewedServiceJob(tokenId,'scout','sha256:'+sha(inputData),
+    Number(BigInt(Date.now()+900000)*1_000_000n),fee.toString(),deposit.toString(),deposit.toString(),scoutPolicy.limits,
+    project.version_key,scoutPolicy.version));
   assert.ok(Number.isSafeInteger(payment.value));
   failure={jobId:payment.value,inputData,fee:fee.toString(),beforeIncome,beforePayout};ctx.evidence.definiteFailure=failure;await ctx.save();
 }

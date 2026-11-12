@@ -18,6 +18,7 @@ test('settler restarts through mark/report/reconcile, preserving pending authori
       if(method==='eth_getTransactionByHash')result={hash:record.hash,from:address,blockHash:block,nonce:'0x0',chainId:'0xaa36a7'};
       if(method==='eth_getTransactionReceipt')result={transactionHash:record.hash,from:address,blockHash:block,blockNumber:'0x64',status:'0x1'};
       if(method==='eth_blockNumber')result='0x66';if(method==='eth_getBlockByNumber')result={hash:block,number:'0x64'};
+      if(method==='eth_getTransactionCount')result='0x1';
       if(method==='eth_sendRawTransaction'){broadcasts++;result=record.hash}
       return {ok:true,json:async()=>({result})};
     };
@@ -69,6 +70,7 @@ test('after a same-nonce replacement the settler journals both candidates and se
       if(method==='eth_getTransactionByHash')result=landed?{hash:original.hash,from:address,blockHash:block,nonce:'0x0',chainId:'0xaa36a7'}:null;
       if(method==='eth_getTransactionReceipt')result=landed?{transactionHash:original.hash,from:address,blockHash:block,blockNumber:'0x64',status:'0x1'}:null;
       if(method==='eth_blockNumber')result='0x66';if(method==='eth_getBlockByNumber')result={hash:block,number:'0x64'};
+      if(method==='eth_getTransactionCount')result='0x1';
       if(method==='eth_sendRawTransaction'){sent.push(params[0]);result='0x'+'d'.repeat(64)}
       return {ok:true,json:async()=>({result})};
     };

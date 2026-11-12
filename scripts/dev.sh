@@ -12,6 +12,8 @@ vault_wasm() {
   # be rebuilt before compiling registry tests, even on a clean checkout.
   cargo build --offline --quiet --release --target wasm32-unknown-unknown \
     --manifest-path contracts/vault-v2/Cargo.toml
+  wasm-opt -Oz --strip-debug --strip-producers contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault.wasm \
+    -o contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault_opt.wasm
 }
 registry_test() {
   vault_wasm

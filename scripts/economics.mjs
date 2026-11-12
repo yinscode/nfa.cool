@@ -19,7 +19,7 @@ const registry=String(await file('contracts/registry/src/lib.rs'));
 const vault=String(await file('contracts/vault-v2/src/lib.rs'));
 const [registryWasm,vaultWasm]=await Promise.all([
   file('contracts/registry/target/wasm32-unknown-unknown/release/nfa_registry_opt.wasm'),
-  file('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault.wasm')]);
+  file('contracts/vault-v2/target/wasm32-unknown-unknown/release/nfa_vault_opt.wasm')]);
 const provision=numeric(registry,'MIN_PROVISION'),registryStorage=numeric(registry,'REGISTRY_STORAGE');
 const reserve=numeric(vault,'NEAR_RESERVE');
 const jobCap=numeric(vault,'MAX_JOB_DEPOSIT');

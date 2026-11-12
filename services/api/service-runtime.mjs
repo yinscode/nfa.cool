@@ -92,7 +92,9 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
   if(service==='research'){
     research=await researchConfiguration({sdk,tokenId,project,allowCandidate:allowResearchCandidate});
     validateResearchInput(source,research.settings.allowed_sources.map(r=>({host:r.host,pathPrefix:r.path_prefix})));
-    inputData=JSON.stringify({question:source.question,sources:source.sources});
+    // `useMemory` is a quote option beside `input`, so the pinned input schema hash is unchanged.
+    if(body?.useMemory!==undefined&&typeof body.useMemory!=='boolean')throw Error('useMemory must be boolean');
+    inputData=JSON.stringify({question:source.question,sources:source.sources,...(body?.useMemory===false?{useMemory:false}:{})});
   }else{
   if(!source||typeof source!=='object'||Array.isArray(source)||
     Object.keys(source).sort().join(',')!==(service==='scout'?'question,sources':'criteria,question,sources'))
@@ -122,6 +124,7 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
     estimateYocto:estimate.toString(),feeYocto:fee.toString(),replenishYocto:depositCap.toString(),
     depositCapYocto:depositCap.toString(),limits:local.limits,deadlineNs,
     policyVersion:onchain.version,...(research?{researchConfigHash:research.configuration_hash,
+      memory:{usesPriorWork:body?.useMemory!==false,detail:'Up to three earlier finalized Research jobs of this NFA are supplied as verified source quotations only; set useMemory:false to opt out. This job\'s own verified quotations may inform later jobs.'},
       modelBudget:{currency:'USD',reservationMicrousd:String(research.settings.max_input_tokens*research.settings.input_microusd_per_token+
         research.settings.max_output_tokens*research.settings.output_microusd_per_token),
         maxCostMicrousd:String(research.settings.max_cost_microusd),basis:'configured token rates, not a provider invoice'}}:{}),

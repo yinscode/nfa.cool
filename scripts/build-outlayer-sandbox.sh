@@ -7,7 +7,9 @@ base="$(pwd)"
 CARGO_TARGET_DIR="$base/output/sandbox-vault-target" cargo build --offline --release \
   --features sandbox-outlayer --target wasm32-unknown-unknown \
   --manifest-path contracts/vault-v2/Cargo.toml
-NFA_VAULT_WASM_PATH="$base/output/sandbox-vault-target/wasm32-unknown-unknown/release/nfa_vault.wasm" \
+wasm-opt -Oz --strip-debug --strip-producers output/sandbox-vault-target/wasm32-unknown-unknown/release/nfa_vault.wasm \
+  -o output/sandbox-vault-target/wasm32-unknown-unknown/release/nfa_vault_opt.wasm
+NFA_VAULT_WASM_PATH="$base/output/sandbox-vault-target/wasm32-unknown-unknown/release/nfa_vault_opt.wasm" \
   CARGO_TARGET_DIR="$base/output/sandbox-registry-target" cargo build --offline --release \
   --target wasm32-unknown-unknown --manifest-path contracts/registry/Cargo.toml
 wasm-opt -Oz --strip-debug --strip-producers \

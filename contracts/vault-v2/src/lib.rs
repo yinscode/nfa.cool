@@ -46,6 +46,15 @@ fn last_near() -> LookupMap<u8, (u64, bool)> { LookupMap::new(&b"near:last:v1"[.
 pub struct EvmCandidate { pub digest: [u8; 32], pub unsigned: Vec<u8>, pub signature: Vec<u8> }
 fn candidate_store() -> LookupMap<u64, Vec<EvmCandidate>> { LookupMap::new(&b"evm:candidates:v1"[..]) }
 const MAX_EVM_CANDIDATES: usize = 8;
+/// A guardian upgrade without the owner's approval waits this long after its proposal.
+const UPGRADE_DELAY_NS: u64 = 7 * DAY_NS;
+/// An owner approval of a proposed upgrade expires, so it cannot outlive a quick sale.
+const APPROVAL_TTL_NS: u64 = DAY_NS;
+/// A proposed vault code hash, visible in `status` to owners and buyers.
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
+pub struct UpgradeProposal { pub code_hash: String, pub proposed_at_ns: u64, pub approved_at_ns: Option<u64> }
+fn upgrade_store() -> LookupMap<u8, UpgradeProposal> { LookupMap::new(&b"upgrade:proposal:v1"[..]) }
 fn rejected<T>() -> PromiseOrValue<T> where T: Default { PromiseOrValue::Value(T::default()) }
 fn rejection() -> PromiseOrValue<serde_json::Value> { PromiseOrValue::Value(serde_json::json!("rejected")) }
 fn valid_hash(hash: &str) -> bool { hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_hexdigit()) }
@@ -289,6 +298,18 @@ impl Vault {
             "id":id,"job_id":job_id,"result":result}),60)
     }
 
+    /// Clear a recall whose OutLayer callback already returned (or that never began).
+    pub fn release_recall(&mut self, id: u64) -> bool {
+        self.assert_controller();
+        match &self.pending {
+            Some(Pending::Recall { id: current, reported: true, .. }) if *current == id => {
+                self.pending = None; env::log_str("NFA_RECALL_RELEASED"); true
+            }
+            None => true,
+            _ => false,
+        }
+    }
+
     pub fn ack_recall(&mut self,id:u64){
         self.assert_controller();
         require!(matches!(self.pending,Some(Pending::Recall{id:current,reported:true,uncertain:false,..}) if current==id),"Recall not settled");
@@ -416,9 +437,14 @@ impl Vault {
         require!(env::predecessor_account_id() == self.reporter, "Reporter only");
         require!(tx_hash.len() == 66 && tx_hash.starts_with("0x") && tx_hash[2..].bytes().all(|b| b.is_ascii_hexdigit()), "Invalid hash");
         require!(observed_block > 0, "Missing block");
-        let Some(Pending::Evm { id: current, nonce, signature, .. }) = &self.pending else { env::panic_str("No signed operation") };
-        // A replacement may still be signing while an earlier candidate is mined.
-        require!(signature.is_some() || candidate_store().get(nonce).is_some_and(|c| !c.is_empty()), "No signed operation");
+        let Some(Pending::Evm { id: current, nonce, signature, unsigned, .. }) = &self.pending else { env::panic_str("No signed operation") };
+        // A replacement may still be signing while an earlier candidate is mined. The reported
+        // hash must be one of the transactions this vault signed for the nonce: the reporter
+        // stays trusted for inclusion and finality, but cannot name an unrelated transaction.
+        let mut known: Vec<String> = signature.as_ref().and_then(|sig| signed_tx_hash(unsigned, sig)).into_iter().collect();
+        known.extend(candidate_store().get(nonce).unwrap_or_default().iter().filter_map(|c| signed_tx_hash(&c.unsigned, &c.signature)));
+        require!(!known.is_empty(), "No signed operation");
+        require!(known.iter().any(|h| h.eq_ignore_ascii_case(&tx_hash)), "Receipt hash is not a signed candidate");
         require!(*current == id && *nonce == self.next_evm_nonce, "Wrong receipt");
         let nonce = *nonce;
         candidate_store().remove(&nonce);
@@ -428,10 +454,40 @@ impl Vault {
         env::log_str("NFA_EVM_RECEIPT_REPORTED");
     }
 
-    // Testnet recovery authority: explicit and trusted. Never grant this to an NFT holder.
-    pub fn emergency_upgrade(&self, code: Base64VecU8) -> Promise {
+    /// Guardian proposes exact vault code. It deploys after the NFT owner approves it
+    /// through the registry, or after a seven-day delay that owners and buyers can see.
+    pub fn propose_upgrade(&mut self, code_hash: String) {
+        require!(env::predecessor_account_id() == self.guardian, "Guardian only");
+        require!(valid_hash(&code_hash), "Invalid code hash");
+        let proposal = UpgradeProposal { code_hash: code_hash.to_ascii_lowercase(), proposed_at_ns: env::block_timestamp(), approved_at_ns: None };
+        upgrade_store().insert(&0, &proposal);
+        env::log_str(&format!("NFA_VAULT_UPGRADE_PROPOSED:{}", proposal.code_hash));
+    }
+    /// Registry relays the current NFT owner's approval of the proposed hash.
+    pub fn approve_upgrade(&mut self, code_hash: String) {
+        self.assert_controller();
+        let mut proposal = upgrade_store().get(&0).unwrap_or_else(|| env::panic_str("No proposed upgrade"));
+        require!(proposal.code_hash.eq_ignore_ascii_case(&code_hash), "Different proposed code");
+        proposal.approved_at_ns = Some(env::block_timestamp());
+        upgrade_store().insert(&0, &proposal);
+    }
+    pub fn cancel_upgrade(&mut self) {
+        let caller = env::predecessor_account_id();
+        require!(caller == self.guardian || caller == self.controller, "Guardian or controller only");
+        upgrade_store().remove(&0);
+    }
+    pub fn upgrade_proposal(&self) -> Option<UpgradeProposal> { upgrade_store().get(&0) }
+
+    // Trusted recovery authority, now bounded by an owner approval or a public delay.
+    pub fn emergency_upgrade(&mut self, code: Base64VecU8) -> Promise {
         require!(env::predecessor_account_id() == self.guardian, "Guardian only");
         require!(!code.0.is_empty() && code.0.len() <= 512_000, "Invalid code size");
+        let proposal = upgrade_store().get(&0).unwrap_or_else(|| env::panic_str("Propose the code hash first"));
+        require!(hex(&env::sha256(&code.0)) == proposal.code_hash, "Code differs from proposal");
+        let now = env::block_timestamp();
+        let approved = proposal.approved_at_ns.is_some_and(|t| now <= t.saturating_add(APPROVAL_TTL_NS));
+        require!(approved || now >= proposal.proposed_at_ns.saturating_add(UPGRADE_DELAY_NS), "Upgrade needs owner approval or the delay");
+        upgrade_store().remove(&0);
         Promise::new(env::current_account_id()).deploy_contract(code.0)
     }
 
@@ -439,7 +495,7 @@ impl Vault {
         serde_json::json!({"controller":self.controller,"reporter":self.reporter,"guardian":self.guardian,
             "path":PATH,"chain_id":CHAIN_ID,"next_operation_id":self.next_operation_id,
             "next_evm_nonce":self.next_evm_nonce,"pending":self.pending_json(),"last_receipt":self.last_receipt,"research_interface":1,
-            "last_near":last_near().get(&0),"recovery_interface":1})
+            "last_near":last_near().get(&0),"recovery_interface":1,"upgrade_proposal":upgrade_store().get(&0)})
     }
 
     pub fn treasury(&self) -> serde_json::Value {
@@ -471,6 +527,32 @@ impl Vault {
 fn valid_fees(priority_fee: u64, max_fee: u64) -> bool { priority_fee > 0 && priority_fee <= max_fee && max_fee <= MAX_FEE }
 fn valid_address(s: &str) -> bool {
     let s = s.strip_prefix("0x").unwrap_or(s); s.len() == 40 && s.bytes().all(|b| b.is_ascii_hexdigit())
+}
+fn decode_hex(s: &str) -> Option<Vec<u8>> {
+    if s.len() % 2 != 0 { return None }
+    (0..s.len()).step_by(2).map(|i| u8::from_str_radix(s.get(i..i + 2)?, 16).ok()).collect()
+}
+/// Ethereum hash of the EIP-1559 transaction `unsigned` signed by an MPC response. It is
+/// the same encoding as `services/worker/assemble-evm.mjs`.
+fn signed_tx_hash(unsigned: &[u8], signature: &[u8]) -> Option<String> {
+    let sig: serde_json::Value = serde_json::from_slice(signature).ok()?;
+    let r = decode_hex(sig["big_r"]["affine_point"].as_str()?.get(2..)?)?;
+    let s = decode_hex(sig["s"]["scalar"].as_str()?)?;
+    let v = sig["recovery_id"].as_u64()?;
+    if r.len() != 32 || s.len() != 32 || v > 1 || unsigned.first() != Some(&2) { return None }
+    let encoded = &unsigned[1..];
+    let head = *encoded.first()?;
+    let body = if head <= 0xf7 { encoded.get(1..1 + (head.checked_sub(0xc0)? as usize))? }
+        else if head == 0xf8 { encoded.get(2..2 + *encoded.get(1)? as usize)? } else { return None };
+    if body.len() + if head <= 0xf7 { 1 } else { 2 } != encoded.len() { return None }
+    let trim = |b: &[u8]| b[b.iter().position(|x| *x != 0).unwrap_or(b.len())..].to_vec();
+    let mut items = body.to_vec();
+    items.extend(rlp_bytes(if v == 0 { &[] } else { &[1] }));
+    items.extend(rlp_bytes(&trim(&r)));
+    items.extend(rlp_bytes(&trim(&s)));
+    let mut raw = vec![2];
+    raw.extend(rlp_list(&[items]));
+    Some(format!("0x{}", hex(&Keccak256::digest(&raw))))
 }
 fn decode20(s: &str) -> [u8; 20] {
     let s = s.strip_prefix("0x").unwrap_or(s);
@@ -572,11 +654,9 @@ mod tests {
         let mut v = vault();
         let _ = v.request_evm_transfer(1, 0, "0x1111111111111111111111111111111111111111".into(),
             U128(1), 1, 2);
-        testing_env!(context("vault.testnet").build(), test_vm_config(), RuntimeFeesConfig::test(),
-            Default::default(), vec![PromiseResult::Successful(br#"{"scheme":"Secp256k1"}"#.to_vec())]);
-        assert!(v.on_evm_signature(1));
+        signed(&mut v,1);let hash=pending_hash(&v);
         testing_env!(context("reporter.testnet").build());
-        v.report_evm_receipt(1, format!("0x{}", "a".repeat(64)), 123, true);
+        v.report_evm_receipt(1, hash, 123, true);
         assert_eq!(v.next_evm_nonce, 1);
         testing_env!(context("controller.testnet").build());
         let _ = v.request_evm_transfer(2, 1, "0x2222222222222222222222222222222222222222".into(), U128(2), 1, 2);
@@ -625,9 +705,10 @@ mod tests {
 
     #[test]
     fn guardian_can_schedule_upgrade_without_deployment_key() {
-        let v = vault();
-        testing_env!(context("guardian.testnet").build());
-        let _ = v.emergency_upgrade(Base64VecU8(vec![0, 97, 115, 109]));
+        let mut v = vault();let code=vec![0, 97, 115, 109];
+        testing_env!(context("guardian.testnet").build());v.propose_upgrade(hex(&env::sha256(&code)));
+        testing_env!(context("guardian.testnet").block_timestamp(UPGRADE_DELAY_NS).build());
+        let _ = v.emergency_upgrade(Base64VecU8(code));
         assert!(!near_sdk::test_utils::get_created_receipts().is_empty());
     }
 
@@ -639,11 +720,54 @@ mod tests {
         assert!(matches!(v.pending,Some(Pending::Near { id: 1, .. })));
     }
 
+    // MPC response shape with arbitrary scalars; the vault only hashes it.
+    fn mpc_sig(seed:u8)->Vec<u8>{serde_json::json!({"scheme":"Secp256k1","big_r":{"affine_point":format!("02{}",hex(&[seed;32]))},
+        "s":{"scalar":hex(&[seed.wrapping_add(1);32])},"recovery_id":seed%2}).to_string().into_bytes()}
     fn signed(v:&mut Vault,id:u64){
         testing_env!(context("vault.testnet").build(), test_vm_config(), RuntimeFeesConfig::test(),
-            Default::default(), vec![PromiseResult::Successful(format!("{{\"sig\":{id}}}").into_bytes())]);
+            Default::default(), vec![PromiseResult::Successful(mpc_sig(id as u8+40))]);
         assert!(v.on_evm_signature(id));
         testing_env!(context("controller.testnet").build());
+    }
+    fn pending_hash(v:&Vault)->String{
+        let Some(Pending::Evm{unsigned,signature:Some(sig),..})=&v.pending else{panic!("not signed")};signed_tx_hash(unsigned,sig).unwrap()
+    }
+
+    #[test]
+    fn signed_hash_matches_the_settler_encoding(){
+        // Generated by services/worker/assemble-evm.mjs from a real secp256k1 signature.
+        let unsigned=decode_hex("02e283aa36a78001028252089411111111111111111111111111111111111111110180c0").unwrap();
+        let sig=br#"{"scheme":"Secp256k1","big_r":{"affine_point":"02ba6f00faf4788cc7abea17e24459352d61ce7142242d762d09b0cd95730e11d0"},"s":{"scalar":"3ec57bac5cd27c4c11222d06cc67bbb2ee31d379d81fa06080664283f80e38c2"},"recovery_id":0}"#;
+        assert_eq!(signed_tx_hash(&unsigned,sig).unwrap(),"0x2c5a15442063c049c8820427d711ce4d25b01b7f8093bdc09968b69fe57078cd");
+        assert!(signed_tx_hash(&unsigned,b"{}").is_none());
+    }
+    #[test]
+    #[should_panic(expected = "Receipt hash is not a signed candidate")]
+    fn reporter_cannot_settle_with_an_unrelated_hash(){
+        let mut v=vault();
+        let _ = v.request_evm_transfer(1, 0, "0x1111111111111111111111111111111111111111".into(), U128(5), 1, 2);
+        signed(&mut v,1);
+        testing_env!(context("reporter.testnet").build());
+        v.report_evm_receipt(1, format!("0x{}", "a".repeat(64)), 9, true);
+    }
+    #[test]
+    fn upgrade_requires_proposal_and_owner_approval_or_delay(){
+        let mut v=vault();let code=vec![0u8,97,115,109,1];let hash=hex(&env::sha256(&code));
+        testing_env!(context("guardian.testnet").build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.emergency_upgrade(Base64VecU8(code.clone())))).is_err(),"no proposal");
+        v.propose_upgrade(hash.clone());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.emergency_upgrade(Base64VecU8(code.clone())))).is_err(),"no approval, no delay");
+        testing_env!(context("guardian.testnet").block_timestamp(UPGRADE_DELAY_NS).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.emergency_upgrade(Base64VecU8(vec![1,2,3])))).is_err(),"different code");
+        let _=v.emergency_upgrade(Base64VecU8(code.clone()));
+        assert!(v.upgrade_proposal().is_none(),"proposal consumed");
+        // Owner approval (relayed by the registry) allows an immediate upgrade.
+        testing_env!(context("guardian.testnet").block_timestamp(UPGRADE_DELAY_NS+1).build());v.propose_upgrade(hash.clone());
+        testing_env!(context("alice.testnet").build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.approve_upgrade(hash.clone()))).is_err(),"only the registry relays approval");
+        testing_env!(context("controller.testnet").block_timestamp(UPGRADE_DELAY_NS+2).build());v.approve_upgrade(hash.clone());
+        testing_env!(context("guardian.testnet").block_timestamp(UPGRADE_DELAY_NS+3).build());
+        let _=v.emergency_upgrade(Base64VecU8(code));
     }
 
     #[test]
@@ -685,8 +809,9 @@ mod tests {
         assert!(matches!(&v.pending, Some(Pending::Evm { digest: d, uncertain: false, signature: None, .. }) if *d==digest));
         assert!(matches!(v.resign_evm(1), PromiseOrValue::Value(ref r) if r=="rejected"), "Second concurrent re-sign");
         signed(&mut v,1);
+        let hash=pending_hash(&v);
         testing_env!(context("reporter.testnet").build());
-        v.report_evm_receipt(1, format!("0x{}", "a".repeat(64)), 9, true);
+        v.report_evm_receipt(1, hash, 9, true);
         assert_eq!(v.next_evm_nonce, 1);
     }
 
@@ -704,8 +829,9 @@ mod tests {
         assert_eq!(hex(&unsigned),hex(&unsigned_eip1559(0,2,3,&[0x22;20],0)));
         assert_eq!(v.evm_candidates(0).len(),1); assert_eq!(v.evm_candidates(0)[0].digest,first);
         // The original transaction lands while the replacement signature is pending.
+        let original=signed_tx_hash(&v.evm_candidates(0)[0].unsigned,&v.evm_candidates(0)[0].signature).unwrap();
         testing_env!(context("reporter.testnet").build());
-        v.report_evm_receipt(1, format!("0x{}", "b".repeat(64)), 10, true);
+        v.report_evm_receipt(1, original, 10, true);
         assert_eq!(v.next_evm_nonce,1); assert!(v.pending.is_none()); assert!(v.evm_candidates(0).is_empty());
     }
 

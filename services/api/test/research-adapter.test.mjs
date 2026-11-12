@@ -35,3 +35,12 @@ test('customer research input cannot choose secrets, privileged methods or arbit
     await assert.rejects(()=>quoteService({...context,service:'research',body:{input:value},allowResearchCandidate:true}),/Typed|allowlist/);
   }
 });
+test('research quotes disclose prior-work memory and let the customer opt out',async()=>{
+  const context=setup();
+  const shared=await quoteService({...context,service:'research',body:{input},allowResearchCandidate:true});
+  assert.equal(shared.memory.usesPriorWork,true);assert.equal(JSON.parse(shared.inputData).useMemory,undefined);
+  const isolated=await quoteService({...context,service:'research',body:{input,useMemory:false},allowResearchCandidate:true});
+  assert.equal(isolated.memory.usesPriorWork,false);assert.equal(JSON.parse(isolated.inputData).useMemory,false);
+  assert.notEqual(isolated.inputHash,shared.inputHash,'the opt-out is part of the paid commitment');
+  await assert.rejects(()=>quoteService({...context,service:'research',body:{input,useMemory:'no'},allowResearchCandidate:true}),/boolean/);
+});

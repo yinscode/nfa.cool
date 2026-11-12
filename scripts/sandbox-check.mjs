@@ -171,8 +171,9 @@ async function main(){
         {title:'A',url:'https://example.org/a',text:'The cost for option A is five units in the source text.'},
         {title:'B',url:'https://example.org/b',text:'The cost for option B is six units in the source text.'}]});
       const compareHash='sha256:'+createHash('sha256').update(compareData).digest('hex');
-      const compareRequest=await call(customer,'request_service_job',{token_id:'nfa-1',service_id:'compare',
-        input_hash:compareHash,deadline_ns:ns(1500),fee,replenish,deposit_cap:replenish,limits},fee);
+      const compareRequest=await call(customer,'request_reviewed_service_job',{token_id:'nfa-1',service_id:'compare',
+        input_hash:compareHash,deadline_ns:ns(1500),fee,replenish,deposit_cap:replenish,limits,
+        expected_version:versionKey,expected_policy_version:comparePolicy.version??1},fee);
       const compareId=(await until(()=>sdk.getAgentState('nfa-1'),a=>a?.pending_op!=null)).pending_op;
       const compareStart=await call(worker,'start_service_job',{token_id:'nfa-1',id:compareId,input_data:compareData},'0');
       await until(()=>sdk.getServiceJob('nfa-1',compareId),j=>j?.job?.status==='FINALIZED');

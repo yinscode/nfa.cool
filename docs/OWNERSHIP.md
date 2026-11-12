@@ -84,6 +84,13 @@ the MVP is not immutable or free of operator trust.
   reporter, but sale must remain locked if the reporter is stale or unavailable.
 - What happens to holdings when token contracts have transfer approvals, staking
   or delayed withdrawals? Exclude those asset types until separately audited.
+- Upgrade powers (review M4). Vault code changes only by a guardian proposal that the
+  current owner approves through the registry (`approve_vault_upgrade`, valid one day,
+  not while listed) or after a public seven-day delay shown in vault `status`. The
+  registry can upgrade itself through `propose_registry_upgrade` and, two days later,
+  `apply_registry_upgrade`; that bound is only real once the operator deletes the
+  registry's full-access key. `node scripts/authority-inventory.mjs` lists every key,
+  role and pending proposal.
 - Review every registry upgrade/admin path and whether TLA's shared wallet design
   can be adapted legally. Its repository exposes no license at the checked commit;
   do not copy its code pending a license grant or separate verification.

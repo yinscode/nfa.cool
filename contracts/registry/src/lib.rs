@@ -12,6 +12,12 @@ use sha3::{Digest, Keccak256};
 const MIN_PROVISION: u128 = 6_000_000_000_000_000_000_000_000;
 const REGISTRY_STORAGE: u128 = 200_000_000_000_000_000_000_000;
 const VAULT_CODE: &[u8] = include_bytes!(env!("NFA_EMBEDDED_VAULT_WASM"));
+/// SHA-256 of `VAULT_CODE`, computed by build.rs. Hashing ~0.5 MB on chain costs about
+/// 12 TGas, enough to exhaust the provisioning callback's gas.
+pub(crate) const VAULT_CODE_SHA256: &str = env!("NFA_EMBEDDED_VAULT_SHA256");
+pub(crate) fn vault_code_hash() -> Vec<u8> {
+    (0..VAULT_CODE_SHA256.len()).step_by(2).map(|i| u8::from_str_radix(&VAULT_CODE_SHA256[i..i + 2], 16).unwrap()).collect()
+}
 /// A job must be started (or, for legacy jobs, completed) within this window. Holding the
 /// single operation slot longer is not possible, and an unused slot costs its requester.
 pub(crate) const START_WINDOW_NS: u64 = 1_800_000_000_000;
@@ -24,6 +30,7 @@ mod outlayer;
 mod studio;
 mod research;
 mod recovery;
+mod governance;
 
 #[near(serializers = [borsh, json])]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -194,7 +201,7 @@ impl Registry {
         self.client_requests.insert(&key, &token_id);
         provision_deposits().insert(&token_id, &deposit);
         self.provisions.insert(&token_id, &Provision { owner: owner.clone(), vault_id: vault_id.clone(),
-            manifest_hash, manifest_uri, code_hash: env::sha256(VAULT_CODE), failed: false });
+            manifest_hash, manifest_uri, code_hash: vault_code_hash(), failed: false });
         event("provision_requested", serde_json::json!({"token_id":token_id,"vault_id":vault_id,"owner_id":owner}));
         let init = serde_json::json!({"controller":env::current_account_id(),"reporter":self.reporter,"guardian":self.guardian});
         Promise::new(vault_id).create_account().transfer(NearToken::from_yoctonear(deposit))
@@ -257,7 +264,7 @@ impl Registry {
 
     fn finalize_provision(&mut self, token_id: TokenId, provision: Provision) {
         require!(self.agents.get(&token_id).is_none(), "Already minted");
-        if provision.code_hash==env::sha256(VAULT_CODE){research::mark_capable(&token_id)}
+        if provision.code_hash==vault_code_hash(){research::mark_capable(&token_id)}
         self.agents.insert(&token_id, &Agent { vault_id: provision.vault_id.clone(), epoch: 0,
             lifecycle: Lifecycle::Active, next_op_id: 1, pending_op: None,
             manifest_hash: provision.manifest_hash.clone(), manifest_uri: provision.manifest_uri.clone(),
@@ -2143,5 +2150,104 @@ mod tests {
         r.reserve_research(&token,200,&"a".repeat(64),&me);
         assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.reserve_research(&token,201,&"a".repeat(64),&me))).is_err());
         r.reserve_research(&token,201,&"a".repeat(64),&id_("c2.testnet"));
+    }
+
+    // ---- M4: upgrade powers ----
+    fn input_ctx(mut c:near_sdk::VMContext,bytes:Vec<u8>)->near_sdk::VMContext{c.input=std::rc::Rc::from(bytes);c}
+    #[test]
+    fn registry_upgrade_waits_for_the_public_delay(){
+        let mut r=minted();let code=vec![0u8,97,115,109,1,0,0,0];let hash=hex(&env::sha256(&code));
+        testing_env!(context("alice.testnet",0).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.propose_registry_upgrade(hash.clone()))).is_err());
+        testing_env!(context("admin.testnet",0).block_timestamp(10).build());r.propose_registry_upgrade(hash.clone());
+        assert_eq!(r.authorities()["registry_upgrade"]["code_hash"],hash);
+        testing_env!(input_ctx(context("admin.testnet",0).block_timestamp(10+governance::REGISTRY_UPGRADE_DELAY_NS-1).build(),code.clone()));
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.apply_registry_upgrade())).is_err(),"before delay");
+        testing_env!(input_ctx(context("admin.testnet",0).block_timestamp(10+governance::REGISTRY_UPGRADE_DELAY_NS).build(),vec![9,9]));
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.apply_registry_upgrade())).is_err(),"different code");
+        testing_env!(input_ctx(context("admin.testnet",0).block_timestamp(10+governance::REGISTRY_UPGRADE_DELAY_NS).build(),code));
+        let _=r.apply_registry_upgrade();
+        assert!(r.authorities()["registry_upgrade"].is_null());
+    }
+    #[test]
+    fn only_the_current_unlisted_owner_approves_a_vault_upgrade(){
+        let mut r=minted();let hash="ab".repeat(32);
+        testing_env!(context("bob.testnet",1).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.approve_vault_upgrade("nfa-1".into(),hash.clone()))).is_err());
+        testing_env!(context("alice.testnet",1).build());r.list_agent("nfa-1".into(),U128(1));
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.approve_vault_upgrade("nfa-1".into(),hash.clone()))).is_err(),"listed");
+        r.unlist_agent("nfa-1".into());
+        let _=r.approve_vault_upgrade("nfa-1".into(),hash);
+    }
+
+    // ---- M2/M5 ----
+    #[test]
+    fn over_reservation_cost_does_not_panic_the_result_callback(){
+        let (mut r,input,fee,deposit)=research_setup();let cfg=r.research_config("nfa-1".into()).unwrap();
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let id=r.request_reviewed_service_job("nfa-1".into(),"research".into(),format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),U128(deposit),
+            outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10},"a".repeat(64),1,Some(cfg.configuration_hash));
+        let _=r.start_service_job("nfa-1".into(),id,input);
+        testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(700).build());
+        let out=serde_json::json!({"schemaVersion":1,"jobId":id,"status":"ok","outputHash":format!("sha256:{}","f".repeat(64)),
+            "outputUri":format!("nfa://work/{}","f".repeat(64)),"inferenceOutcome":"succeeded","pricedUsageMicrousd":999_999_999u64});
+        assert!(matches!(r.on_outlayer_job("nfa-1".into(),id,Some(out)),PromiseOrValue::Promise(_)));
+        let usage=r.research_usage("nfa-1".into(),id).unwrap();
+        assert_eq!(usage.state,"UNKNOWN");assert!(usage.priced_usage_microusd.is_none());
+    }
+    fn uncertain_recall()->(Registry,u64,u128){
+        let (mut r,job_id,input,_,deposit)=paid_setup();
+        testing_env!(context("keeper.testnet",0).build());let _=r.start_paid_scout("nfa-1".into(),job_id,input);
+        let out=serde_json::json!({"schemaVersion":1,"jobId":job_id,"status":"ok","outputHash":format!("sha256:{}","f".repeat(64)),"outputUri":format!("nfa://work/{}","f".repeat(64))});
+        testing_env!(context("nfa-1.registry.testnet",0).build());let _=r.on_outlayer_job("nfa-1".into(),job_id,Some(out));
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Successful(vec![])]);
+        let _=r.on_outlayer_replenished("nfa-1".into(),job_id);
+        testing_env!(context("alice.testnet",deposit).block_timestamp(1_000).build());
+        let _=r.recall_owner_memory("nfa-1".into(),job_id,U128(deposit));
+        let id=r.agent("nfa-1".into()).unwrap().pending_op.unwrap();
+        testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(2_000).build());
+        let _=r.on_outlayer_recall("nfa-1".into(),id,job_id,None);
+        (r,id,deposit)
+    }
+    #[test]
+    fn uncertain_recall_is_released_and_refunds_the_paying_owner(){
+        let (mut r,id,deposit)=uncertain_recall();
+        let before=r.payout(id_("alice.testnet")).available.0;
+        testing_env!(context("stranger.testnet",0).block_timestamp(3_000).build());let _=r.release_recall("nfa-1".into(),id);
+        testing_env!(context("registry.testnet",0).block_timestamp(3_000).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Successful(b"false".to_vec())]);
+        assert!(!r.on_recall_released("nfa-1".into(),id));
+        testing_env!(context("registry.testnet",0).block_timestamp(3_000).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Successful(b"true".to_vec())]);
+        assert!(r.on_recall_released("nfa-1".into(),id));
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+        assert_eq!(r.payout(id_("alice.testnet")).available.0-before,deposit);
+    }
+
+    // ---- M1: customers can keep a Research job out of the shared prior-work context ----
+    #[test]
+    fn research_memory_opt_out_sends_no_prior_work(){
+        let (mut r,_,fee,deposit)=research_setup();let cfg=r.research_config("nfa-1".into()).unwrap();
+        research::tests_support::finalize(&"nfa-1".to_string(),7,"sha256:prior");
+        for (payer,use_memory,expected) in [("c1.testnet",None,1usize),("c2.testnet",Some(false),0)]{
+            let mut value=serde_json::json!({"question":"What is a stable vault?","sources":[{"title":"Vault","url":"https://docs.near.org/vault"}]});
+            if let Some(flag)=use_memory{value["useMemory"]=serde_json::json!(flag)}
+            let input=value.to_string();
+            testing_env!(context(payer,fee).block_timestamp(600).build());
+            let id=r.request_reviewed_service_job("nfa-1".into(),"research".into(),format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),U128(deposit),
+                outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10},"a".repeat(64),1,Some(cfg.configuration_hash.clone()));
+            testing_env!(context(payer,0).block_timestamp(600).build());
+            let _=r.start_service_job("nfa-1".into(),id,input);
+            let receipts=near_sdk::test_utils::get_created_receipts();
+            let args=receipts.iter().flat_map(|r|r.actions.iter()).find_map(|a|match a{
+                near_sdk::mock::MockAction::FunctionCallWeight{method_name,args,..} if method_name==b"execute_research_skill"=>Some(serde_json::from_slice::<serde_json::Value>(args).unwrap()),_=>None}).unwrap();
+            let payload:serde_json::Value=serde_json::from_str(args["input_data"].as_str().unwrap()).unwrap();
+            assert_eq!(payload["context"]["priorWork"].as_array().unwrap().len(),expected);
+            assert!(payload.get("useMemory").is_none(),"the flag is consumed by the registry");
+            testing_env!(context("alice.testnet",1).block_timestamp(600).build());r.cancel_unstarted_job_for_tests("nfa-1".into(),id);
+        }
+    }
+
+    #[test]
+    fn build_time_vault_hash_matches_the_embedded_code(){
+        let _=registry();assert_eq!(vault_code_hash(),env::sha256(VAULT_CODE));
     }
 }

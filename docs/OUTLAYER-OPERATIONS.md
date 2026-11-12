@@ -86,6 +86,7 @@ job ID. No process runs continuously inside the NFT.
 | EVM request `Uncertain` | Signer timeout: owner or reporter `retry_evm_signature` (same digest). Vault never began: permissionless `recover_evm_operation`. Stuck in the mempool: owner `replace_evm_transfer` (same nonce, fees +10%, or `cancel`). |
 | `RECONCILING` with definite failed reimbursement | Permissionless `retry_outlayer_replenishment`; check registry balance first. |
 | Recall reimbursement failed | `retry_recall_replenishment`; result remains locked until paid. |
+| Recall `UNCERTAIN`, or `EXECUTING` 15 minutes after start | Permissionless `release_recall` once the vault confirms its callback returned; the deposit is credited to the owner who paid. Recall is read-only, so nothing else changes. |
 | Definite guest failure, customer fault | Vault reimbursed for compute from the fee; the rest, net of storage, is credited to the customer. The NFA stays Active. |
 | Definite guest failure, operator fault | Full fee becomes customer credit; storage is charged to agent income. Owner resumes with `resume_failed_service` only after a callback proves the vault is clear. |
 | Low vault runway | Pause new quotes at API/keeper and fund the same vault; project storage identity remains unchanged. |

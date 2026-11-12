@@ -1,7 +1,7 @@
 const amount=value=>{try{return BigInt(value||0)}catch{throw Error('Invalid on-chain amount')}};
 export async function studioPages(sdk,id){
   const rows=[];let from=1;
-  for(let page=0;page<100;page++){
+  for(let page=0;page<20;page++){ // 1,000 operations; older rows are reported as incomplete
     const data=await sdk.view(sdk.registryAccountId,'studio_page',{token_id:id,from,limit:50});
     if(!Array.isArray(data?.rows))throw Error('Studio registry views unavailable');
     rows.push(...data.rows);if(data.next==null)return {rows,complete:true};from=data.next;
@@ -36,6 +36,23 @@ export function recoveryActions({registryAccountId,tokenId,project,agent,rows,re
     add('retry_outlayer_replenishment',{id:pending.id},'Retry confirmed replenishment failure');
   if(recall?.state==='RECONCILING'&&!recall.reimbursement_pending)
     add('retry_recall_replenishment',{id:pending.id},'Retry recall replenishment');
+  // Liveness recovery (review B1-B3, M5). Each succeeds only if the contract and vault agree
+  // that no result or signature can still arrive; otherwise it fails without changing state.
+  const RELEASE_NS=900_000_000_000n,nowNs=BigInt(now)*1_000_000n;
+  if(job?.status==='UNCERTAIN'||job?.status==='EXECUTING'&&job.started_at_ns!=null&&BigInt(job.started_at_ns)+RELEASE_NS<=nowNs)
+    add('release_service_job',{id:pending.id},'Release a job whose result can no longer arrive (customer refunded)');
+  if(job?.status==='REQUESTED'&&BigInt(job.deadline_ns)>nowNs){
+    add('cancel_unstarted_job',{id:pending.id},'Cancel the unstarted job and refund the customer');
+    actions.at(-1).ownerRequired=true;actions.at(-1).unsignedAction.deposit='1';
+  }
+  if(recall?.state==='UNCERTAIN')add('release_recall',{id:pending.id},'Release an unresolved recall and refund its deposit');
+  const operation=pending?.operation;
+  if(operation?.status==='Uncertain'&&operation.kind==='NEAR_TRANSFER')
+    add('reconcile_near_operation',{id:pending.id},'Resolve the NEAR transfer from vault state');
+  if(operation?.status==='Uncertain'&&operation.kind==='EVM_TRANSFER'){
+    add('recover_evm_operation',{id:pending.id},'Fail the EVM request if the vault never began it');
+    add('retry_evm_signature',{id:pending.id},'Ask the signer again for the same transaction');actions.at(-1).ownerRequired=true;
+  }
   const failed=rows.find(row=>row.id===(resume?.failed_job_id??(agent?.next_op_id-1))&&row.service?.job.status==='FAILED');
   if(agent?.lifecycle==='Draining'&&failed&&(agent.pending_op==null||resume)){
     add('resume_failed_service',{failed_job_id:failed.id},'Verify vault is clear and resume after definite failure');
@@ -45,7 +62,8 @@ export function recoveryActions({registryAccountId,tokenId,project,agent,rows,re
 }
 export async function studioAudit(sdk,id){
   const first=await sdk.view(sdk.registryAccountId,'studio_audit',{token_id:id,from:1,limit:50});
-  let from=Math.max(1,(first?.count||0)-199),rows=[];
+  // The registry keeps the 64 most recent audit rows per token.
+  let from=Math.max(1,(first?.count||0)-63),rows=[];
   while(rows.length<200){const page=from===1?first:await sdk.view(sdk.registryAccountId,'studio_audit',
     {token_id:id,from,limit:50});if(!Array.isArray(page?.rows))throw Error('Audit unavailable');
     rows.push(...page.rows);if(page.next==null)break;from=page.next}

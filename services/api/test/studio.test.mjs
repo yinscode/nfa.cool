@@ -61,3 +61,15 @@ test('Studio publishes content-addressed character revisions and checks owner ep
     assert.equal(buyer.status,200);
   }finally{await new Promise(resolve=>server.close(resolve));await rm(directory,{recursive:true,force:true})}
 });
+
+test('recovery actions offer only the matching liveness exit',async()=>{
+  const {recoveryActions}=await import('../studio-state.mjs');
+  const base={registryAccountId:'registry.testnet',tokenId:'nfa-1',project:{state:'READY'},resume:null,now:Date.now()};
+  const methods=(rows,pending)=>recoveryActions({...base,agent:{pending_op:pending,lifecycle:'Active',next_op_id:pending+1},rows}).map(a=>a.unsignedAction.methodName);
+  assert.deepEqual(methods([{id:4,service:{job:{status:'UNCERTAIN'}}}],4),['release_service_job']);
+  assert.deepEqual(methods([{id:4,service:{job:{status:'EXECUTING',started_at_ns:String(BigInt(Date.now())*1_000_000n)}}}],4),[],'too early to release');
+  assert.deepEqual(methods([{id:4,service:{job:{status:'REQUESTED',deadline_ns:String(BigInt(Date.now()+600_000)*1_000_000n)}}}],4),['cancel_unstarted_job']);
+  assert.deepEqual(methods([{id:5,operation:{kind:'NEAR_TRANSFER',status:'Uncertain'}}],5),['reconcile_near_operation']);
+  assert.deepEqual(methods([{id:6,operation:{kind:'EVM_TRANSFER',status:'Uncertain'}}],6),['recover_evm_operation','retry_evm_signature']);
+  assert.deepEqual(methods([{id:7,recall:{state:'UNCERTAIN'}}],7),['release_recall']);
+});

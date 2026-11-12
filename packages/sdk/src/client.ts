@@ -155,21 +155,10 @@ export class NfaSdk {
     return this.prepare('add_outlayer_version',{token_id:token(id),wasm_url:wasmUrl(url),version_key:wasmHash(versionKey),deposit:amount(deposit)});
   }
   activateOutlayerVersion(id:string){return this.prepare('activate_outlayer_version',{token_id:token(id)})}
-  requestPaidScout(id:string,inputHash:string,deadlineNs:number,fee:string,replenish:string,depositCap:string,resourceLimits:SkillLimits){
-    return this.prepare('request_paid_scout',{token_id:token(id),input_hash:hash(inputHash),deadline_ns:ns(deadlineNs),
-      fee:amount(fee),replenish:amount(replenish),deposit_cap:amount(depositCap),limits:limits(resourceLimits)},fee);
-  }
   configureService(id:string,serviceId:'scout'|'compare'|'research',schemaHash:string,enabled:boolean,
     margin:string,maxDeposit:string,resourceLimits:SkillLimits){
     return this.prepare('configure_service',{token_id:token(id),service_id:serviceId,schema_hash:hash(schemaHash),
       enabled,min_margin:amount(margin),max_deposit:amount(maxDeposit),limits:limits(resourceLimits)});
-  }
-  requestServiceJob(id:string,serviceId:'scout'|'compare',inputHash:string,deadlineNs:number,
-    fee:string,replenish:string,depositCap:string,resourceLimits:SkillLimits){
-    if(!['scout','compare'].includes(serviceId))throw Error('Unknown service');
-    return this.prepare('request_service_job',{token_id:token(id),service_id:serviceId,
-      input_hash:hash(inputHash),deadline_ns:ns(deadlineNs),fee:amount(fee),
-      replenish:amount(replenish),deposit_cap:amount(depositCap),limits:limits(resourceLimits)},fee);
   }
   getResearchConfig(id:string){return this.view<ResearchConfig|null>(this.registryAccountId,'research_config',{token_id:token(id)})}
   configureResearch(id:string,settings:ResearchSettings){return this.prepare('configure_research',{token_id:token(id),settings})}

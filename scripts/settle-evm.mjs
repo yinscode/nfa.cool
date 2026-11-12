@@ -11,8 +11,11 @@ import {createPrivateKey,createPublicKey} from 'node:crypto';
 const tokenId=process.argv[2],send=process.argv.includes('--send'),watch=process.argv.includes('--watch');
 if(!/^nfa-[1-9][0-9]*$/.test(tokenId||'')||process.argv.slice(3).some(x=>!['--send','--watch'].includes(x)))
   throw Error('Usage: node scripts/settle-evm.mjs nfa-1 [--send] [--watch]');
-const rpcUrl=process.env.NEAR_RPC_URL||'https://test.rpc.fastnear.com',evmRpc=process.env.EVM_RPC_URL;
-if(!evmRpc)throw Error('EVM_RPC_URL required');
+const rpcUrl=process.env.NEAR_RPC_URL||'https://test.rpc.fastnear.com';
+// Comma-separated independent providers; every one must confirm the same finalized receipt.
+const evmRpcs=(process.env.EVM_RPC_URLS||process.env.EVM_RPC_URL||'').split(',').map(s=>s.trim()).filter(Boolean),evmRpc=evmRpcs[0];
+if(!evmRpc)throw Error('EVM_RPC_URLS (or EVM_RPC_URL) required');
+if(evmRpcs.length<2)console.error(JSON.stringify({warning:'single EVM RPC: finality is trusted to one provider; set EVM_RPC_URLS'}));
 const rpc=async(method,params)=>{
   const r=await fetch(rpcUrl,{method:'POST',headers:{'content-type':'application/json'},
     body:JSON.stringify({jsonrpc:'2.0',id:'settler',method,params}),signal:AbortSignal.timeout(15000)});
@@ -45,7 +48,7 @@ if(!send){
   const journal=new EvmJournal(resolve(data,'evm-settlement'));
   let stopped=false;process.once('SIGINT',()=>{stopped=true});process.once('SIGTERM',()=>{stopped=true});
   do{
-    try{console.log(JSON.stringify({tokenId,...await settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUrl:evmRpc})}))}
+    try{console.log(JSON.stringify({tokenId,...await settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUrls:evmRpcs})}))}
     catch(error){console.error(JSON.stringify({tokenId,state:'BLOCKED',reason:error.message}));if(!watch)process.exitCode=1}
     if(watch&&!stopped)await new Promise(resolve=>setTimeout(resolve,5000));
   }while(watch&&!stopped);

@@ -1,13 +1,14 @@
 import {assembleEvmTransfer} from './assemble-evm.mjs';
 import {submitAndObserve} from './evm-journal.mjs';
-import {observeSettlement,reportArgs} from './settlement.mjs';
+import {observeQuorum,reportArgs} from './settlement.mjs';
 
 /**
  * Only the configured reporter can complete these typed zero-deposit actions.
  * A same-nonce replacement leaves several signed candidates; whichever one is
  * finalized consumed the nonce, so all of them are journaled and observed.
  */
-export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUrl,fetchImpl=fetch,assemble=assembleEvmTransfer,rpcTimeoutMs=8000}){
+export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUrl,rpcUrls=[rpcUrl],fetchImpl=fetch,assemble=assembleEvmTransfer,rpcTimeoutMs=8000}){
+  rpcUrl=rpcUrls[0];
   const identity=await sdk.get(tokenId),agent=await sdk.getAgentState(tokenId),id=agent.pending_op;
   if(id==null)return {state:'IDLE'};
   const [op,evm,vault]=await Promise.all([
@@ -45,7 +46,7 @@ export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUr
     if(record.sender.toLowerCase()!==pinned.address.toLowerCase()||record.nonce!==evm.nonce)
       throw Error('Missing or mismatched durable EVM journal; recovery required');
     // Reobserve even a previously confirmed journal before making any authority change.
-    const observed=await observeSettlement({rpcUrl,txHash:record.hash,expectedSender:record.sender,
+    const observed=await observeQuorum({rpcUrls,txHash:record.hash,expectedSender:record.sender,
       expectedNonce:record.nonce,fetchImpl,timeoutMs:rpcTimeoutMs});
     if(observed.state==='CONFIRMED'){landed={record,observed};break}
   }

@@ -33,8 +33,10 @@ const TOKEN=/^nfa-[1-9][0-9]*$/;
 const send=(res,status,body)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8',
   'cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(body))};
 async function input(req){
-  let body='', size=0;
-  for await(const chunk of req){size+=chunk.length;if(size>64_000)throw Error('Request body too large');body+=chunk}
+  // Decode once: a multibyte character split across chunks must not become U+FFFD.
+  const chunks=[];let size=0;
+  for await(const chunk of req){size+=chunk.length;if(size>64_000)throw Error('Request body too large');chunks.push(chunk)}
+  const body=Buffer.concat(chunks).toString('utf8');
   return JSON.parse(body||'{}');
 }
 function prepare(sdk,body){
@@ -53,7 +55,9 @@ function prepare(sdk,body){
     case 'outlayer_add_version':return sdk.addOutlayerVersion(id,body.wasmUrl,body.versionKey,body.deposit);
     case 'outlayer_activate':return sdk.activateOutlayerVersion(id);
     case 'transaction_policy':return sdk.prepare('configure_transaction_policy',{token_id:id,...validateTransactionPolicy(body)});
-    case 'paid_scout':return sdk.requestPaidScout(id,body.inputHash,body.deadlineNs,body.fee,body.replenish,body.depositCap,body.limits);
+    // Only the reviewed entry point exists: it pins runtime and policy versions.
+    case 'paid_scout':return sdk.requestReviewedServiceJob(id,'scout',body.inputHash,body.deadlineNs,body.fee,body.replenish,
+      body.depositCap,body.limits,body.versionKey,body.policyVersion);
     case 'service_policy':return sdk.configureService(id,body.serviceId,body.schemaHash,body.enabled,
       body.margin,body.maxDeposit,body.limits);
     case 'research_config':return sdk.configureResearch(id,body.settings);
@@ -96,7 +100,10 @@ export function createApiServer({sdk,store,access,
       if(deployment?.production&&req.headers.origin&&req.headers.origin!==deployment.origin&&req.method!=='GET'){
         send(res,403,{error:'origin_not_allowed'});return;
       }
-      const ip=req.socket.remoteAddress||'local', now=Date.now();
+      // Behind a reverse proxy every client shares the proxy address; trust the first
+      // forwarded hop only when explicitly configured.
+      const forwarded=process.env.NFA_TRUST_PROXY==='1'?String(req.headers['x-forwarded-for']||'').split(',')[0].trim():'';
+      const ip=forwarded||req.socket.remoteAddress||'local', now=Date.now();
       if(hits.size>10000)for(const [key,value] of hits)if(now-value.start>=60_000)hits.delete(key);
       if(!hits.has(ip)&&hits.size>=10000){send(res,429,{error:'rate_limited'});return}
       const entry=hits.get(ip)||{start:now,count:0};

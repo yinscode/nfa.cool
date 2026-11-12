@@ -3,6 +3,7 @@ import {mkdir,readFile,writeFile,rename,open,unlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {keccak_256} from '@noble/hashes/sha3';
 import {observeSettlement} from './settlement.mjs';
+import {withFileLock} from './file-lock.mjs';
 
 const txHash=raw=>'0x'+Buffer.from(keccak_256(Buffer.from(raw.slice(2),'hex'))).toString('hex');
 const MAX_ATTEMPTS=8;
@@ -24,15 +25,14 @@ export class EvmJournal {
     await mkdir(this.directory,{recursive:true,mode:0o700});
     const attempt=record.attempt??0;
     const target=this.path(tokenId,id,attempt),lock=target+'.lock',tmp=target+'.'+randomBytes(8).toString('hex')+'.tmp';
-    const handle=await open(lock,'wx',0o600);
-    try{
+    return withFileLock(lock,async()=>{
       const prior=await this.get(tokenId,id,attempt);
       if(prior&&(prior.hash!==record.hash||prior.nonce!==record.nonce||prior.sender!==record.sender))
         throw Error('Conflicting journal update');
       if(prior?.state==='CONFIRMED'&&record.state!=='CONFIRMED')throw Error('Cannot regress confirmed journal');
       await writeFile(tmp,JSON.stringify(record)+'\n',{mode:0o600});await rename(tmp,target);
       return record;
-    }finally{await handle.close();await unlink(lock)}
+    });
   }
   async saveSigned(tokenId,id,{raw,nonce,sender},attempt=0){
     if(!validRaw(raw)||!Number.isSafeInteger(nonce)||nonce<0||!/^0x[0-9a-fA-F]{40}$/.test(sender))throw Error('Invalid signed transaction');

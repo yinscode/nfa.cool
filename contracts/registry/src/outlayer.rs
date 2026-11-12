@@ -61,6 +61,11 @@ fn projects() -> LookupMap<TokenId, OutlayerProject> { LookupMap::new(&b"OLP"[..
 fn paid_jobs() -> LookupMap<String, PaidJob> { LookupMap::new(&b"OLJ"[..]) }
 fn ledgers() -> LookupMap<u8, PaidLedger> { LookupMap::new(&b"OLL"[..]) }
 fn recalls() -> LookupMap<String, RecallRequest> { LookupMap::new(&b"OLR"[..]) }
+fn recall_started()->LookupMap<String,u64>{LookupMap::new(&b"OLRT"[..])}
+fn recall_releasable(a:&Agent,r:&RecallRequest,started:Option<u64>,id:u64)->bool{
+    a.pending_op==Some(id) && (r.state=="UNCERTAIN" || (r.state=="EXECUTING"
+        && started.is_some_and(|t|env::block_timestamp()>=t.saturating_add(RELEASE_DELAY_NS))))
+}
 pub(super) fn recall_view(token_id:&str,id:u64)->Option<RecallRequest>{recalls().get(&op_key(token_id,id))}
 fn service_policies()->LookupMap<String,ServicePolicy>{LookupMap::new(&b"OLSP"[..])}
 /// Jobs that failed because of their input; settled like a completed job's compute.
@@ -204,19 +209,9 @@ impl Registry {
             .then(ol_callback("on_outlayer_project",&token_id,id))
     }
 
-    #[payable]
-    pub fn request_paid_scout(&mut self, token_id: TokenId, input_hash: String,
-        deadline_ns: u64, fee: U128, replenish: U128, deposit_cap: U128,
-        limits: SkillLimits) -> u64 {
-        self.request_job(&token_id,"scout",input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
-    }
-
-    #[payable]
-    pub fn request_service_job(&mut self,token_id:TokenId,service_id:String,input_hash:String,
-        deadline_ns:u64,fee:U128,replenish:U128,deposit_cap:U128,limits:SkillLimits)->u64{
-        require!(service_id!="research","Reviewed research quote required");
-        self.request_job(&token_id,&service_id,input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
-    }
+    /// The only paid-job entry point: the quote pins the runtime version, the service
+    /// policy version and (for Research) the configuration hash, so an owner change between
+    /// quote and payment is rejected before any fee is escrowed.
     #[payable]
     pub fn request_reviewed_service_job(&mut self,token_id:TokenId,service_id:String,input_hash:String,
         deadline_ns:u64,fee:U128,replenish:U128,deposit_cap:U128,limits:SkillLimits,
@@ -342,10 +337,10 @@ impl Registry {
             let mut payout = payouts().get(&j.requester).unwrap_or_default();
             payout.available.0 = payout.available.0.checked_add(j.fee.0).unwrap(); payouts().insert(&j.requester,&payout);
             let mut ledger=ledgers().get(&0).unwrap_or_default();
-            ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+            ledger.customer_escrow.0=ledger.customer_escrow.0.saturating_sub(j.fee.0);
             ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(j.fee.0).unwrap(); save_ledger(&ledger);
             update_service_ledger(&token_id,id,|s|{
-                s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+                s.customer_escrow.0=s.customer_escrow.0.saturating_sub(j.fee.0);
                 s.customer_refunds.0=s.customer_refunds.0.checked_add(j.fee.0).unwrap();
             });
             event("service_job_failed",serde_json::json!({"token_id":token_id,"id":id,"fault":"operator","refund_credit":j.fee,"runtime_hash":j.version_key}));
@@ -393,14 +388,14 @@ impl Registry {
         let failed=customer_failures().get(&op_key(&token_id,id)).is_some();
         if failed{customer_failures().remove(&op_key(&token_id,id));}
         let mut ledger=ledgers().get(&0).unwrap_or_default();
-        ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
-        ledger.vault_replenishment_pending.0=ledger.vault_replenishment_pending.0.checked_sub(j.replenish.0).unwrap();
+        ledger.customer_escrow.0=ledger.customer_escrow.0.saturating_sub(j.fee.0);
+        ledger.vault_replenishment_pending.0=ledger.vault_replenishment_pending.0.saturating_sub(j.replenish.0);
         if failed{ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(remainder).unwrap()}
         else{ledger.gross_finalized_receipts.0=ledger.gross_finalized_receipts.0.checked_add(j.fee.0).unwrap()}
         save_ledger(&ledger);
         update_service_ledger(&token_id,id,|s|{
-            s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
-            s.vault_replenishment_pending.0=s.vault_replenishment_pending.0.checked_sub(j.replenish.0).unwrap();
+            s.customer_escrow.0=s.customer_escrow.0.saturating_sub(j.fee.0);
+            s.vault_replenishment_pending.0=s.vault_replenishment_pending.0.saturating_sub(j.replenish.0);
             if failed{s.customer_refunds.0=s.customer_refunds.0.checked_add(remainder).unwrap()}
             else{s.gross_finalized_receipts.0=s.gross_finalized_receipts.0.checked_add(j.fee.0).unwrap()}
         });
@@ -509,10 +504,10 @@ impl Registry {
         let mut payout=payouts().get(&j.requester).unwrap_or_default();
         payout.available.0=payout.available.0.checked_add(refund).unwrap();payouts().insert(&j.requester,&payout);
         let mut ledger=ledgers().get(&0).unwrap_or_default();
-        ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+        ledger.customer_escrow.0=ledger.customer_escrow.0.saturating_sub(j.fee.0);
         ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(refund).unwrap();save_ledger(&ledger);
         update_service_ledger(&token_id,id,|s|{
-            s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+            s.customer_escrow.0=s.customer_escrow.0.saturating_sub(j.fee.0);
             s.customer_refunds.0=s.customer_refunds.0.checked_add(refund).unwrap();
         });
         event("service_job_expired",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":U128(refund),
@@ -533,10 +528,10 @@ impl Registry {
             j.status="FAILED".into(); paid_jobs().insert(&key,&j);
             if job_service(&token_id,id)=="research"{self.research_not_started(&token_id,id)}
             let mut ledger=ledgers().get(&0).unwrap_or_default();
-            ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+            ledger.customer_escrow.0=ledger.customer_escrow.0.saturating_sub(j.fee.0);
             ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(j.fee.0).unwrap();save_ledger(&ledger);
             update_service_ledger(&token_id,id,|s|{
-                s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+                s.customer_escrow.0=s.customer_escrow.0.saturating_sub(j.fee.0);
                 s.customer_refunds.0=s.customer_refunds.0.checked_add(j.fee.0).unwrap();
             });
             (j.requester,j.fee.0)
@@ -572,6 +567,7 @@ impl Registry {
             && deposit.0<=MAX_JOB_DEPOSIT && env::attached_deposit().as_yoctonear()==deposit.0,"Recall requires finalized memory and exact funding");
         let id=a.next_op_id;a.next_op_id+=1;a.pending_op=Some(id);self.agents.insert(&token_id,&a);
         add_liability(deposit.0);
+        recall_started().insert(&op_key(&token_id,id),&env::block_timestamp());
         recalls().insert(&op_key(&token_id,id),&RecallRequest{id,job_id,
             owner:env::predecessor_account_id(),deposit,output_hash:j.output_hash.clone().unwrap(),
             summary:None,state:"EXECUTING".into(),reimbursement_pending:false});
@@ -627,6 +623,30 @@ impl Registry {
             .then(ol_callback("on_recall_replenished",&token_id,id))
     }
 
+    /// Permissionless. Ends a recall whose OutLayer callback returned without a usable
+    /// result (recall is read-only, so nothing can change afterwards). The deposit is
+    /// credited back to the owner who paid it.
+    pub fn release_recall(&mut self,token_id:TokenId,id:u64)->Promise{
+        let a=self.agents.get(&token_id).unwrap_or_else(||env::panic_str("Unknown agent"));
+        let r=recalls().get(&op_key(&token_id,id)).unwrap_or_else(||env::panic_str("Unknown recall"));
+        require!(recall_releasable(&a,&r,recall_started().get(&op_key(&token_id,id)),id),"Recall is not releasable");
+        ol_call(a.vault_id,"release_recall",serde_json::json!({"id":id}),15)
+            .then(ol_callback("on_recall_released",&token_id,id))
+    }
+    #[private]
+    pub fn on_recall_released(&mut self,token_id:TokenId,id:u64)->bool{
+        let mut a=self.agents.get(&token_id).unwrap();let key=op_key(&token_id,id);
+        let mut r=recalls().get(&key).unwrap();
+        if !recall_releasable(&a,&r,recall_started().get(&key),id){return false}
+        if !matches!(env::promise_result_checked(0,16),Ok(ref b) if b==b"true"){return false}
+        r.state="FAILED".into();recalls().insert(&key,&r);
+        a.pending_op=None;self.agents.insert(&token_id,&a);
+        let mut payout=payouts().get(&r.owner).unwrap_or_default();
+        payout.available.0=payout.available.0.checked_add(r.deposit.0).unwrap();payouts().insert(&r.owner,&payout);
+        event("recall_released",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":r.deposit}));
+        true
+    }
+
     pub fn owner_recall_result(&self,token_id:TokenId,id:u64)->Option<serde_json::Value>{
         // Execution is owner-gated; NEAR transaction outputs and view receipts are public.
         let recall=recalls().get(&op_key(&token_id,id))?;
@@ -638,3 +658,21 @@ impl Registry {
 
 #[cfg(test)]
 pub(crate) mod tests_support{pub fn fault(service:&str,output:&serde_json::Value)->&'static str{super::failure_fault(service,output)}}
+
+// Tests reach the shared request path directly; customers use `request_reviewed_service_job`.
+#[cfg(test)]
+impl Registry {
+    /// Test shortcut: clear a started job's slot (state assertions happen before this).
+    pub fn cancel_unstarted_job_for_tests(&mut self,token_id:TokenId,id:u64){
+        let mut a=self.agents.get(&token_id).unwrap();if a.pending_op==Some(id){a.pending_op=None;self.agents.insert(&token_id,&a);}
+    }
+    pub fn request_paid_scout(&mut self, token_id: TokenId, input_hash: String,
+        deadline_ns: u64, fee: U128, replenish: U128, deposit_cap: U128, limits: SkillLimits) -> u64 {
+        self.request_job(&token_id,"scout",input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
+    }
+    pub fn request_service_job(&mut self,token_id:TokenId,service_id:String,input_hash:String,
+        deadline_ns:u64,fee:U128,replenish:U128,deposit_cap:U128,limits:SkillLimits)->u64{
+        require!(service_id!="research","Reviewed research quote required");
+        self.request_job(&token_id,&service_id,input_hash,deadline_ns,fee,replenish,deposit_cap,limits)
+    }
+}

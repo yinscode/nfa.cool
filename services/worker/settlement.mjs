@@ -38,11 +38,31 @@ export async function observeSettlement({rpcUrl, txHash, expectedSender, expecte
     const finalized=await rpc('eth_getBlockByNumber',['finalized',false]);
     if(!finalized||number(finalized.number)<block||number(finalized.number)===block&&!same(finalized.hash,receipt.blockHash))
       return {state:'UNCERTAIN',reason:'block_not_finalized'};
+    // Independent of the receipt: the sender's finalized nonce must have moved past it.
+    const count=await rpc('eth_getTransactionCount',[expectedSender,'finalized']);
+    if(count==null||number(count)<=BigInt(expectedNonce))return {state:'UNCERTAIN',reason:'nonce_not_finalized'};
     return {state:'CONFIRMED',txHash,nonce:Number(expectedNonce),blockNumber:Number(block),
       success:receipt.status === '0x1', confirmations:Number(head-block+1n),finality:'trusted_rpc_finalized'};
   } catch (error) {
     return {state:'UNCERTAIN',reason:'rpc_error',detail:String(error)};
   }
+}
+
+/**
+ * Settlement observed through several independent RPC providers. Every provider must report
+ * the same finalized block and outcome; any disagreement or failure keeps the NFA locked.
+ * One provider is accepted only when it is the only one configured (it stays fully trusted).
+ */
+export async function observeQuorum({rpcUrls,...request}) {
+  const urls=[...new Set((Array.isArray(rpcUrls)?rpcUrls:[rpcUrls]).filter(Boolean))];
+  if(!urls.length)throw Error('At least one EVM RPC URL required');
+  const results=await Promise.all(urls.map(rpcUrl=>observeSettlement({...request,rpcUrl})));
+  const failed=results.find(r=>r.state!=='CONFIRMED');
+  if(failed)return {...failed,providers:urls.length};
+  const [first]=results;
+  if(results.some(r=>r.blockNumber!==first.blockNumber||r.success!==first.success))
+    return {state:'UNCERTAIN',reason:'rpc_disagreement',providers:urls.length};
+  return {...first,providers:urls.length,finality:urls.length>1?'rpc_quorum_finalized':first.finality};
 }
 
 export function reportArgs(observation, operationId) {

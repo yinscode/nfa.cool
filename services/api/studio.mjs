@@ -39,14 +39,17 @@ export function validateTraits(traits,catalog){
   return traits;
 }
 
+// Lists identities only: one registry read per token. Building full Studio snapshots here
+// let one unauthenticated request fan out into thousands of RPC calls.
+const MAX_OWNED=100;
 export async function ownedNfas(sdk,accountId){
   if(!ACCOUNT.test(accountId))throw Error('Invalid owner account');
   const rows=[];let from=0;
-  while(from<250){
+  while(from<MAX_OWNED){
     const page=await sdk.view(sdk.registryAccountId,'nft_tokens_for_owner',
       {account_id:accountId,from_index:String(from),limit:25});
     if(!Array.isArray(page))throw Error('Invalid owner token view');
-    for(const token of page){if(TOKEN.test(token.token_id))rows.push((await studioNfa(sdk,token.token_id)).identity)}
+    for(const token of page){if(TOKEN.test(token.token_id))rows.push(await sdk.get(token.token_id))}
     if(page.length<25)break;
     from+=page.length;
   }

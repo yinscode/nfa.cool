@@ -1,0 +1,81 @@
+{
+  "checkedAt": "2026-11-12T10:20:48.002Z",
+  "milestone": "M01",
+  "ready": false,
+  "blockers": [
+    "Check failed: testEthFunded"
+  ],
+  "checks": {
+    "controller": true,
+    "vaultChain": true,
+    "reporterKey": true,
+    "noPending": true,
+    "sepolia": true,
+    "finalizedRpc": true,
+    "testEthFunded": false
+  },
+  "nearRpc": [
+    {
+      "url": "https://test.rpc.fastnear.com",
+      "chain": "testnet"
+    },
+    {
+      "url": "https://rpc.testnet.near.org",
+      "unavailable": true
+    }
+  ],
+  "identity": {
+    "registryAccountId": "nfagent-registry-0e9b2a.testnet",
+    "tokenId": "nfa-2",
+    "vaultAccountId": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "ownerAccountId": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+    "ownerEpoch": 1,
+    "lifecycle": "ACTIVE",
+    "manifestHash": "sha256:5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e",
+    "manifestUri": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e.json",
+    "income": "30000000000000000000000",
+    "listing": null,
+    "foreignWallet": {
+      "chain_id": 11155111,
+      "signer_id": "v1.signer-prod.testnet",
+      "path": "eth-sepolia-v1",
+      "domain_id": 0,
+      "public_key": "secp256k1:3qHqt4jJWkeUKiYGydWD9qcQfNri65Qtn4VHiVy5XAJdT4CNuszFhm2msDAe82fYY7PUKX69vKquKcJ8tRUNyzAP",
+      "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9"
+    }
+  },
+  "vaultStatus": {
+    "controller": "nfagent-registry-0e9b2a.testnet",
+    "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+    "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+    "path": "eth-sepolia-v1",
+    "chain_id": 11155111,
+    "next_operation_id": 12,
+    "next_evm_nonce": 0,
+    "pending": null,
+    "last_receipt": null
+  },
+  "nearBalances": {
+    "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d": {
+      "amount": "1029767163542824399999995",
+      "storageUsage": 182,
+      "codeHash": "11111111111111111111111111111111"
+    },
+    "nfa-2.nfagent-registry-0e9b2a.testnet": {
+      "amount": "5796392360000000000000000",
+      "storageUsage": 417245,
+      "codeHash": "3aHVcRRV7w9sKJN2Wj36Hht4URA1xFLjAzFgbKH6jvm5"
+    },
+    "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8": {
+      "amount": "1683328024028465800000000",
+      "storageUsage": 182,
+      "codeHash": "11111111111111111111111111111111"
+    }
+  },
+  "sepolia": {
+    "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "balanceWei": "0",
+    "nonce": "0",
+    "finalizedBlock": "0xb8e872"
+  }
+}

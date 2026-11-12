@@ -16,12 +16,21 @@ fn audit_count()->LookupMap<TokenId,u64>{LookupMap::new(&b"studio:audit-count:v1
 pub struct ServiceResume{pub id:u64,pub failed_job_id:u64}
 fn resumes()->LookupMap<TokenId,ServiceResume>{LookupMap::new(&b"studio:resume:v1"[..])}
 
+/// Recent on-chain audit rows kept per token. Older rows are deleted; every event is still
+/// emitted as an `EVENT_JSON` log for indexers, so storage per NFA stays bounded.
+pub(super) const AUDIT_ROWS:u64=64;
+/// Job lifecycle events are already recorded in the job and operation records returned by
+/// `studio_page`; duplicating them here would grow registry storage with every customer job.
+fn job_event(name:&str)->bool{name.starts_with("service_job_")||matches!(name,
+    "job_requested"|"job_finalized"|"job_refunded"|"memory_recalled"|"replenishment_failed")}
 pub(super) fn audit(name:&str,data:&serde_json::Value){
+    if job_event(name){return}
     let Some(token)=data.get("token_id").and_then(|v|v.as_str()) else{return};
     let token=token.to_string();let id=audit_count().get(&token).unwrap_or(0)+1;
     audits().insert(&op_key(&token,id),&serde_json::json!({"id":id,"event":name,"data":data,
         "block_height":env::block_height(),"timestamp_ns":env::block_timestamp().to_string(),
         "caller":env::predecessor_account_id()}).to_string());
+    if id>AUDIT_ROWS{audits().remove(&op_key(&token,id-AUDIT_ROWS));}
     audit_count().insert(&token,&id);
 }
 pub(super) fn index_grant(token:&TokenId,delegate:&AccountId,method:&str){

@@ -159,7 +159,7 @@ async function main(){
         schema_hash:'sha256:'+'5'.repeat(64),enabled:true,min_margin:'10000000000000000000000',
         max_deposit:'500000000000000000000000',limits});
       const scoutRequest=await call(customer,'request_reviewed_service_job',{token_id:'nfa-1',service_id:'scout',input_hash:scoutHash,
-        deadline_ns:ns(3600),fee,replenish,deposit_cap:replenish,limits,expected_version:versionKey,expected_policy_version:1},fee);
+        deadline_ns:ns(1500),fee,replenish,deposit_cap:replenish,limits,expected_version:versionKey,expected_policy_version:1},fee);
       const scoutId=(await until(()=>sdk.getAgentState('nfa-1'),a=>a?.pending_op!=null)).pending_op;
       const scoutStart=await call(worker,'start_paid_scout',{token_id:'nfa-1',id:scoutId,input_data:scoutData},'0');
       await until(()=>sdk.getPaidJob('nfa-1',scoutId),j=>j?.status==='FINALIZED');
@@ -172,7 +172,7 @@ async function main(){
         {title:'B',url:'https://example.org/b',text:'The cost for option B is six units in the source text.'}]});
       const compareHash='sha256:'+createHash('sha256').update(compareData).digest('hex');
       const compareRequest=await call(customer,'request_service_job',{token_id:'nfa-1',service_id:'compare',
-        input_hash:compareHash,deadline_ns:ns(3600),fee,replenish,deposit_cap:replenish,limits},fee);
+        input_hash:compareHash,deadline_ns:ns(1500),fee,replenish,deposit_cap:replenish,limits},fee);
       const compareId=(await until(()=>sdk.getAgentState('nfa-1'),a=>a?.pending_op!=null)).pending_op;
       const compareStart=await call(worker,'start_service_job',{token_id:'nfa-1',id:compareId,input_data:compareData},'0');
       await until(()=>sdk.getServiceJob('nfa-1',compareId),j=>j?.job?.status==='FINALIZED');
@@ -190,7 +190,7 @@ async function main(){
     await call(alice,'grant_delegate',{token_id:'nfa-1',delegate:worker.id,method:'SCOUT_RUN',recipient:null,
       budget:'2',expires_at_ns:ns(3600)});
     const requested=await call(customer,'request_scout_job',{token_id:'nfa-1',brief_hash:briefHash,
-      source_hash:sourceHash,deadline_ns:ns(3600),fee:'10000000000000000000000'},'10000000000000000000000');
+      source_hash:sourceHash,deadline_ns:ns(1500),fee:'10000000000000000000000'},'10000000000000000000000');
     const oldScoutId=(await until(()=>sdk.getAgentState('nfa-1'),a=>a?.pending_op!=null)).pending_op;
     const job=await until(()=>sdk.getJob('nfa-1',oldScoutId),j=>j?.status==='REQUESTED');
     await runScout({sdk,store,inputStore:inputs,tokenId:'nfa-1',jobId:oldScoutId,

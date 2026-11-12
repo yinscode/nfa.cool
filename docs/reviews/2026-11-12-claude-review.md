@@ -5,8 +5,9 @@ Baseline `dbba27f` (code `a4ba743`). Review only: nothing deployed, signed or fu
 Off-chain services were reviewed by a second pass, and its key claims were spot-checked.
 
 Re-run locally: `npm test` passes 70/70. Registry native tests pass 42/42. Vault native tests
-pass 15/15 (with `--features near-sdk/unit-testing`). The guest tests **did not run** offline:
-`wasi-http-client` was not in the cargo cache (see C2).
+pass 15/15 (with `--features near-sdk/unit-testing`). The six guest tests pass with the project's
+pinned cargo home (`CARGO_HOME=.deps/research-cargo rustup run 1.88.0 cargo test --offline`). My
+first attempt used the default cargo home, which is why C2 originally said they did not run.
 
 **Bottom line.** Authority handover is sound: epoch-scoped grants and sessions, listing freezes,
 the `nft_transfer_call` guard, exact-byte EVM replay and finalized-only unlock. Nothing found
@@ -68,9 +69,50 @@ B1–B3 are fixed in the working tree. Nothing has been deployed or committed.
 3. **Scout policy.** Confirm nfa-2 has an on-chain Scout policy; Scout checkout now requires one.
 4. **New ABI.** `mark_evm_broadcast` gained an optional `attempt` argument.
 
-### Residual (H2)
+### H1–H3 (fixed later the same day)
 
-A released job refunds the full fee even if OutLayer charged the vault.
+**Checks after the H fixes:**
+
+| Check | Result |
+| --- | --- |
+| Registry native tests | 72 |
+| Vault native tests | 20 |
+| Guest tests | 6 |
+| JS tests | 73 |
+| `sandbox-check`, `research-sandbox-check`, upgrade rehearsal | Pass |
+| `recovery-sandbox-check` | Covers H1–H3 with real receipts |
+
+- **H1.**
+  - Start window (legacy completion window): at most 30 minutes, down from 7 days.
+  - An unstarted job that expires returns only the execution deposit. The margin, net of
+    storage, goes to the agent, so holding the slot costs the requester.
+  - The owner can cancel an unstarted job with a full refund (`cancel_unstarted_job`).
+  - An expired legacy job no longer forces the agent into `Draining`.
+- **H2.**
+  - The guest reports who caused a failure (`fault`). The registry falls back to defaults for
+    older guests: Scout/Compare → customer; Research → customer only if the model ran.
+  - A customer-caused failure reimburses the vault for compute from the fee and refunds the
+    rest net of storage. The agent stays `Active`.
+  - An operator-caused failure refunds in full and drains the NFA for owner review.
+  - One requester must leave room in the daily Research allowance for one other requester's job.
+- **H3.**
+  - Job lifecycle events are no longer copied into on-chain audit rows.
+  - Audit keeps at most 64 recent rows per token.
+  - Each job pays a 0.008 NEAR storage fee (800 bytes; measured 571 completed / 495 expired,
+    down from about 1.9 KB unpaid).
+  - A liabilities counter blocks payouts that the balance cannot cover.
+  - A failed provisioning credits the creator, and that provisioning can no longer be minted
+    later.
+
+**Residual:**
+- A released job still refunds in full even if OutLayer charged the vault.
+- The liabilities counter starts at zero when deployed on the live registry, so earlier credits
+  are not counted.
+- The legacy worker path can still hold the slot for 30 minutes per job, now at a cost of
+  0.008 NEAR to the requester.
+- The changed guest source is not yet built, pinned or uploaded. Until it is, the registry's
+  fallback rules apply.
+- The registry is 1.44 MB, about 133 KB under the 1.5 MiB transaction limit.
 
 ---
 
@@ -346,7 +388,7 @@ payouts + replenishment)` holds after random operation sequences.
 | ID | Claim | Issue | Fix |
 | --- | --- | --- | --- |
 | C1 | `SUBMISSION.md` and `EVM-SETTLEMENT-RUNBOOK.md:33-36` say there is no new live Sepolia run | Contradicts M02 (passed) | Update both; agent judges will flag the inconsistency |
-| C2 | "Six guest tests pass" | They need rustup 1.88 and network crates (`build-outlayer-wasi.sh`); they fail under a plain `cargo test --offline` | Say so, or vendor the crates |
+| C2 | "Six guest tests pass" | Correct. They need `CARGO_HOME=.deps/research-cargo` and rustup 1.88 (`build-outlayer-wasi.sh`); a plain `cargo test --offline` fails | Document the guest test command |
 | C3 | Test counts | CI (`check.yml` → `npm run ci`) runs **no Rust**. The 42/15/6 counts are local only | Add a Rust job |
 | C4 | `README`: "S001–S022 … acceptance passed" | Research paid inference and research handover remain open (M06) | Lead with the evidence-level table instead |
 | C5 | "Maintain reproducible builds" | Release WASMs embed `/Users/user/...` paths, so hashes are machine-dependent and the local username leaks | Use `--remap-path-prefix` or a `cargo near` reproducible Docker build |

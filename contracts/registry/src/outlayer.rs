@@ -63,6 +63,18 @@ fn ledgers() -> LookupMap<u8, PaidLedger> { LookupMap::new(&b"OLL"[..]) }
 fn recalls() -> LookupMap<String, RecallRequest> { LookupMap::new(&b"OLR"[..]) }
 pub(super) fn recall_view(token_id:&str,id:u64)->Option<RecallRequest>{recalls().get(&op_key(token_id,id))}
 fn service_policies()->LookupMap<String,ServicePolicy>{LookupMap::new(&b"OLSP"[..])}
+/// Jobs that failed because of their input; settled like a completed job's compute.
+fn customer_failures()->LookupMap<String,bool>{LookupMap::new(&b"OLCF"[..])}
+/// Margins kept by agents when a requester reserved the slot but never started.
+fn forfeits()->LookupMap<String,u128>{LookupMap::new(&b"OLFF"[..])}
+/// Who caused a definite guest failure. An explicit guest `fault` wins. Older guests do
+/// not report one: Scout/Compare failures come from typed customer input, and Research
+/// failures are the operator's unless the model ran and its output failed validation.
+fn failure_fault(service:&str,output:&serde_json::Value)->&'static str{
+    match output.get("fault").and_then(|v|v.as_str()){Some("customer")=>return "customer",Some("operator")=>return "operator",_=>{}}
+    if service!="research"{return "customer"}
+    if output.get("inferenceOutcome").and_then(|v|v.as_str())==Some("succeeded"){"customer"}else{"operator"}
+}
 fn job_services()->LookupMap<String,JobService>{LookupMap::new(&b"OLJS"[..])}
 fn service_ledgers()->LookupMap<String,PaidLedger>{LookupMap::new(&b"OLSL"[..])}
 fn service_key(token_id:&str,service_id:&str)->String{format!("{token_id}:{service_id}")}
@@ -236,9 +248,11 @@ impl Registry {
             && replenish.0 >= deposit_cap.0 && fee.0 >= replenish.0.saturating_add(MIN_MARGIN)
             && env::attached_deposit().as_yoctonear() == fee.0,"Invalid paid job quote");
         require!(valid_limits(&limits),"Resource cap");
-        require!(deadline_ns > env::block_timestamp() && deadline_ns.saturating_sub(env::block_timestamp()) <= 604_800_000_000_000,"Deadline cap");
+        require!(deadline_ns > env::block_timestamp() && deadline_ns.saturating_sub(env::block_timestamp()) <= START_WINDOW_NS,"Start deadline must be within 30 minutes");
+        require!(fee.0-replenish.0>=job_storage_fee(),"Margin must cover job storage");
         let id = a.next_op_id;
-        if service_id=="research"{self.reserve_research(token_id,id,&p.version_key)}
+        if service_id=="research"{self.reserve_research(token_id,id,&p.version_key,&env::predecessor_account_id())}
+        add_liability(fee.0);
         a.next_op_id += 1; a.pending_op = Some(id); self.agents.insert(token_id,&a);
         paid_jobs().insert(&op_key(token_id,id),&PaidJob {id,epoch:a.epoch,requester:env::predecessor_account_id(),
             input_hash,fee,replenish,deposit_cap,version_key:p.version_key,limits,deadline_ns,
@@ -314,7 +328,15 @@ impl Registry {
             j.status="UNCERTAIN".into(); paid_jobs().insert(&op_key(&token_id,id),&j); return PromiseOrValue::Value(false);
         }
         if output.get("status").and_then(|x|x.as_str()) == Some("failed") {
-            if job_service(&token_id,id)=="research"{self.research_result(&token_id,id,&output)}
+            let service=job_service(&token_id,id);
+            if service=="research"{self.research_result(&token_id,id,&output)}
+            if failure_fault(&service,&output)=="customer" {
+                // The input caused the failure: the vault is reimbursed for compute from the
+                // fee, the rest is refunded at settlement, and the agent stays available.
+                customer_failures().insert(&op_key(&token_id,id),&true);
+                return self.reimburse_vault(&token_id,id,j,a.vault_id);
+            }
+            charge_storage_to_agent(&token_id);
             j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
             a.pending_op=None; a.lifecycle=Lifecycle::Draining; self.agents.insert(&token_id,&a);
             let mut payout = payouts().get(&j.requester).unwrap_or_default();
@@ -326,7 +348,7 @@ impl Registry {
                 s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
                 s.customer_refunds.0=s.customer_refunds.0.checked_add(j.fee.0).unwrap();
             });
-            event("service_job_failed",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":j.fee,"runtime_hash":j.version_key}));
+            event("service_job_failed",serde_json::json!({"token_id":token_id,"id":id,"fault":"operator","refund_credit":j.fee,"runtime_hash":j.version_key}));
             return PromiseOrValue::Promise(ol_call(a.vault_id,"ack_skill",serde_json::json!({"id":id}),15));
         }
         let hash = output.get("outputHash").and_then(|x|x.as_str()).unwrap_or("");
@@ -337,14 +359,18 @@ impl Registry {
         }
         j.output_hash=Some(hash.into()); j.output_uri=Some(uri.into());
         if job_service(&token_id,id)=="research"{self.research_result(&token_id,id,&output)}
+        self.reimburse_vault(&token_id,id,j,a.vault_id)
+    }
+
+    fn reimburse_vault(&mut self,token_id:&TokenId,id:u64,mut j:PaidJob,vault:AccountId)->PromiseOrValue<bool>{
         j.status="RECONCILING".into(); j.reimbursement_pending=true;
-        paid_jobs().insert(&op_key(&token_id,id),&j);
+        paid_jobs().insert(&op_key(token_id,id),&j);
         let mut ledger=ledgers().get(&0).unwrap_or_default();
         ledger.vault_replenishment_pending.0=ledger.vault_replenishment_pending.0.checked_add(j.replenish.0).unwrap(); save_ledger(&ledger);
-        update_service_ledger(&token_id,id,|s|s.vault_replenishment_pending.0=
+        update_service_ledger(token_id,id,|s|s.vault_replenishment_pending.0=
             s.vault_replenishment_pending.0.checked_add(j.replenish.0).unwrap());
-        PromiseOrValue::Promise(Promise::new(a.vault_id).transfer(NearToken::from_yoctonear(j.replenish.0))
-            .then(ol_callback("on_outlayer_replenished",&token_id,id)))
+        PromiseOrValue::Promise(Promise::new(vault).transfer(NearToken::from_yoctonear(j.replenish.0))
+            .then(ol_callback("on_outlayer_replenished",token_id,id)))
     }
 
     #[private]
@@ -359,22 +385,41 @@ impl Registry {
                 event("replenishment_failed",serde_json::json!({"token_id":token_id,"id":id,"liability":j.replenish}));return PromiseOrValue::Value(false)},
             Err(_) => return PromiseOrValue::Value(false),
         }
-        j.status="FINALIZED".into(); j.reimbursement_pending=false;
-        if job_service(&token_id,id)=="research"{self.research_finalized(&token_id,id,j.output_hash.as_deref().unwrap())}
-        paid_jobs().insert(&op_key(&token_id,id),&j);
+        j.reimbursement_pending=false;
+        release_liability(j.replenish.0);
+        let storage=job_storage_fee().min(j.fee.0-j.replenish.0);
+        collect_storage(storage);
+        let remainder=j.fee.0-j.replenish.0-storage;
+        let failed=customer_failures().get(&op_key(&token_id,id)).is_some();
+        if failed{customer_failures().remove(&op_key(&token_id,id));}
         let mut ledger=ledgers().get(&0).unwrap_or_default();
         ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
         ledger.vault_replenishment_pending.0=ledger.vault_replenishment_pending.0.checked_sub(j.replenish.0).unwrap();
-        ledger.gross_finalized_receipts.0=ledger.gross_finalized_receipts.0.checked_add(j.fee.0).unwrap(); save_ledger(&ledger);
+        if failed{ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(remainder).unwrap()}
+        else{ledger.gross_finalized_receipts.0=ledger.gross_finalized_receipts.0.checked_add(j.fee.0).unwrap()}
+        save_ledger(&ledger);
         update_service_ledger(&token_id,id,|s|{
             s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
             s.vault_replenishment_pending.0=s.vault_replenishment_pending.0.checked_sub(j.replenish.0).unwrap();
-            s.gross_finalized_receipts.0=s.gross_finalized_receipts.0.checked_add(j.fee.0).unwrap();
+            if failed{s.customer_refunds.0=s.customer_refunds.0.checked_add(remainder).unwrap()}
+            else{s.gross_finalized_receipts.0=s.gross_finalized_receipts.0.checked_add(j.fee.0).unwrap()}
         });
-        let income = incomes().get(&token_id).unwrap_or(0).checked_add(j.fee.0-j.replenish.0).unwrap();
-        incomes().insert(&token_id,&income); a.pending_op=None; self.agents.insert(&token_id,&a);
-        event("service_job_finalized",serde_json::json!({"token_id":token_id,"id":id,"output_hash":j.output_hash,
-            "runtime_hash":j.version_key,"fee":j.fee,"replenished":j.replenish}));
+        if failed{
+            j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
+            let mut payout=payouts().get(&j.requester).unwrap_or_default();
+            payout.available.0=payout.available.0.checked_add(remainder).unwrap(); payouts().insert(&j.requester,&payout);
+            event("service_job_failed",serde_json::json!({"token_id":token_id,"id":id,"fault":"customer",
+                "refund_credit":U128(remainder),"compute_charged":j.replenish,"storage_fee":U128(storage),"runtime_hash":j.version_key}));
+        }else{
+            j.status="FINALIZED".into();
+            if job_service(&token_id,id)=="research"{self.research_finalized(&token_id,id,j.output_hash.as_deref().unwrap())}
+            paid_jobs().insert(&op_key(&token_id,id),&j);
+            let income = incomes().get(&token_id).unwrap_or(0).checked_add(remainder).unwrap();
+            incomes().insert(&token_id,&income);
+            event("service_job_finalized",serde_json::json!({"token_id":token_id,"id":id,"output_hash":j.output_hash,
+                "runtime_hash":j.version_key,"fee":j.fee,"replenished":j.replenish,"storage_fee":U128(storage)}));
+        }
+        a.pending_op=None; self.agents.insert(&token_id,&a);
         PromiseOrValue::Promise(ol_call(a.vault_id,"ack_skill",serde_json::json!({"id":id}),15))
     }
 
@@ -409,6 +454,7 @@ impl Registry {
         if job_service(&token_id,id)=="research"{self.research_released(&token_id,id)}
         j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
         a.pending_op=None; self.agents.insert(&token_id,&a);
+        charge_storage_to_agent(&token_id);
         let mut payout=payouts().get(&j.requester).unwrap_or_default();
         payout.available.0=payout.available.0.checked_add(j.fee.0).unwrap(); payouts().insert(&j.requester,&payout);
         let mut ledger=ledgers().get(&0).unwrap_or_default();
@@ -450,17 +496,64 @@ impl Registry {
         require!(a.pending_op==Some(id) && j.status=="REQUESTED" && env::block_timestamp()>=j.deadline_ns,"Job already started or not expired");
         j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
         a.pending_op=None; self.agents.insert(&token_id,&a);
+        if job_service(&token_id,id)=="research"{self.research_not_started(&token_id,id)}
+        // The requester held the agent's only slot without starting: the execution deposit
+        // is refunded, storage is paid and the remaining margin compensates the agent.
+        let storage=job_storage_fee().min(j.fee.0-j.replenish.0);
+        let forfeit=j.fee.0-j.replenish.0-storage;
+        collect_storage(storage);
+        incomes().insert(&token_id,&incomes().get(&token_id).unwrap_or(0).checked_add(forfeit).unwrap());
+        let service=job_service(&token_id,id);
+        for key in ["all".to_string(),service]{forfeits().insert(&key,&forfeits().get(&key).unwrap_or(0).saturating_add(forfeit));}
+        let refund=j.replenish.0;
         let mut payout=payouts().get(&j.requester).unwrap_or_default();
-        payout.available.0=payout.available.0.checked_add(j.fee.0).unwrap();payouts().insert(&j.requester,&payout);
+        payout.available.0=payout.available.0.checked_add(refund).unwrap();payouts().insert(&j.requester,&payout);
         let mut ledger=ledgers().get(&0).unwrap_or_default();
         ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
-        ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(j.fee.0).unwrap();save_ledger(&ledger);
+        ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(refund).unwrap();save_ledger(&ledger);
         update_service_ledger(&token_id,id,|s|{
             s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
-            s.customer_refunds.0=s.customer_refunds.0.checked_add(j.fee.0).unwrap();
+            s.customer_refunds.0=s.customer_refunds.0.checked_add(refund).unwrap();
         });
-        event("service_job_expired",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":j.fee}));
+        event("service_job_expired",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":U128(refund),
+            "forfeit":U128(forfeit),"storage_fee":U128(storage)}));
     }
+
+    /// Owner: cancel a job that has not started (paid) or not completed (legacy), refunding
+    /// the customer in full. The agent pays the job's storage from its income.
+    #[payable]
+    pub fn cancel_unstarted_job(&mut self,token_id:TokenId,id:u64){
+        assert_one_yocto();
+        require!(self.owner(&token_id)==env::predecessor_account_id(),"Owner only");
+        let mut a=self.agents.get(&token_id).unwrap();
+        require!(a.pending_op==Some(id),"Job is not the pending operation");
+        let key=op_key(&token_id,id);
+        let (requester,fee)=if let Some(mut j)=paid_jobs().get(&key){
+            require!(j.status=="REQUESTED","Job already started");
+            j.status="FAILED".into(); paid_jobs().insert(&key,&j);
+            if job_service(&token_id,id)=="research"{self.research_not_started(&token_id,id)}
+            let mut ledger=ledgers().get(&0).unwrap_or_default();
+            ledger.customer_escrow.0=ledger.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+            ledger.customer_refunds.0=ledger.customer_refunds.0.checked_add(j.fee.0).unwrap();save_ledger(&ledger);
+            update_service_ledger(&token_id,id,|s|{
+                s.customer_escrow.0=s.customer_escrow.0.checked_sub(j.fee.0).unwrap();
+                s.customer_refunds.0=s.customer_refunds.0.checked_add(j.fee.0).unwrap();
+            });
+            (j.requester,j.fee.0)
+        }else{
+            let mut j=scout_jobs().get(&key).unwrap_or_else(||env::panic_str("Unknown job"));
+            require!(j.status=="REQUESTED","Job already settled");
+            j.status="FAILED".into(); scout_jobs().insert(&key,&j);
+            (j.requester,j.fee.0)
+        };
+        if let Some(mut op)=self.operations.get(&key){op.status=OpStatus::Failed;self.operations.insert(&key,&op);}
+        a.pending_op=None; self.agents.insert(&token_id,&a);
+        let storage=charge_storage_to_agent(&token_id);
+        let mut payout=payouts().get(&requester).unwrap_or_default();
+        payout.available.0=payout.available.0.checked_add(fee).unwrap();payouts().insert(&requester,&payout);
+        event("service_job_cancelled",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":U128(fee),"storage_fee":U128(storage)}));
+    }
+    pub fn service_forfeits(&self,service_id:String)->U128{U128(forfeits().get(&service_id).unwrap_or(0))}
     pub fn owner_memory_receipt(&self, token_id: TokenId, id: u64) -> Option<serde_json::Value> {
         // Views cannot authenticate a caller. This exposes only public commitments.
         let j = paid_jobs().get(&op_key(&token_id,id))?;
@@ -478,6 +571,7 @@ impl Registry {
         require!(j.status=="FINALIZED" && p.state=="READY" && deposit.0>0
             && deposit.0<=MAX_JOB_DEPOSIT && env::attached_deposit().as_yoctonear()==deposit.0,"Recall requires finalized memory and exact funding");
         let id=a.next_op_id;a.next_op_id+=1;a.pending_op=Some(id);self.agents.insert(&token_id,&a);
+        add_liability(deposit.0);
         recalls().insert(&op_key(&token_id,id),&RecallRequest{id,job_id,
             owner:env::predecessor_account_id(),deposit,output_hash:j.output_hash.clone().unwrap(),
             summary:None,state:"EXECUTING".into(),reimbursement_pending:false});
@@ -518,6 +612,7 @@ impl Registry {
             Err(_)=>return PromiseOrValue::Value(false),
         }
         recall.state="FINALIZED".into();recall.reimbursement_pending=false;recalls().insert(&op_key(&token_id,id),&recall);
+        release_liability(recall.deposit.0);
         event("memory_recalled",serde_json::json!({"token_id":token_id,"id":id,"job_id":recall.job_id,
             "output_hash":recall.output_hash}));
         a.pending_op=None;self.agents.insert(&token_id,&a);
@@ -540,3 +635,6 @@ impl Registry {
             "summary":recall.summary}))
     }
 }
+
+#[cfg(test)]
+pub(crate) mod tests_support{pub fn fault(service:&str,output:&serde_json::Value)->&'static str{super::failure_fault(service,output)}}

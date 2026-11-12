@@ -28,6 +28,7 @@ fn configs()->LookupMap<TokenId,ResearchConfig>{LookupMap::new(&b"research:confi
 fn usage()->LookupMap<String,ResearchUsage>{LookupMap::new(&b"research:usage:v1"[..])}
 fn budgets()->LookupMap<TokenId,DailyResearchBudget>{LookupMap::new(&b"research:budget:v1"[..])}
 fn finalized()->LookupMap<TokenId,Vec<(u64,String)>>{LookupMap::new(&b"research:finalized:v1"[..])}
+fn requester_budgets()->LookupMap<String,DailyResearchBudget>{LookupMap::new(&b"research:requester:v1"[..])}
 fn capable()->LookupMap<TokenId,bool>{LookupMap::new(&b"research:vault-capable:v1"[..])}
 pub(super) fn mark_capable(token_id:&TokenId){capable().insert(token_id,&true);}
 fn reservation(s:&ResearchSettings)->u64{u64::from(s.max_input_tokens).checked_mul(s.input_microusd_per_token).unwrap()
@@ -82,13 +83,20 @@ impl Registry {
     pub fn research_vault_capable(&self,token_id:TokenId)->bool{capable().get(&token_id).unwrap_or(false)}
 }
 impl Registry {
-    pub(super) fn reserve_research(&self,token_id:&TokenId,id:u64,version_key:&str){
+    pub(super) fn reserve_research(&self,token_id:&TokenId,id:u64,version_key:&str,requester:&AccountId){
         let c=configs().get(token_id).unwrap_or_else(||env::panic_str("Research is not configured"));
         require!(c.settings.version_key==version_key,"Research configuration/runtime mismatch");
         let day=env::block_timestamp()/86_400_000_000_000;
         let mut b=budgets().get(token_id).unwrap_or_default();if b.day!=day{b=DailyResearchBudget{day,reserved_microusd:0}}
         let amount=reservation(&c.settings);b.reserved_microusd=b.reserved_microusd.checked_add(amount).unwrap();
         require!(b.reserved_microusd<=c.settings.daily_budget_microusd,"Research daily allowance exhausted");
+        // One requester always leaves room for at least one other requester's job, so a single
+        // payer cannot exhaust the daily allowance for everyone else (one job is always allowed).
+        let key=format!("{token_id}:{requester}");
+        let mut mine=requester_budgets().get(&key).filter(|r|r.day==day).unwrap_or(DailyResearchBudget{day,reserved_microusd:0});
+        mine.reserved_microusd=mine.reserved_microusd.checked_add(amount).unwrap();
+        require!(mine.reserved_microusd<=amount.max(c.settings.daily_budget_microusd.saturating_sub(amount)),"Research requester daily share exhausted");
+        requester_budgets().insert(&key,&mine);
         require!(usage().get(&op_key(token_id,id)).is_none(),"Research already reserved");
         budgets().insert(token_id,&b);usage().insert(&op_key(token_id,id),&ResearchUsage{configuration_hash:c.configuration_hash,
             configuration_version:c.version,reserved_microusd:amount,priced_usage_microusd:None,state:"RESERVED".into(),day});
@@ -112,6 +120,10 @@ impl Registry {
     pub(super) fn research_released(&self,token_id:&TokenId,id:u64){
         let Some(mut u)=usage().get(&op_key(token_id,id)) else{return};
         if u.state=="RESERVED"{u.state="UNKNOWN".into();usage().insert(&op_key(token_id,id),&u);}
+    }
+    pub(super) fn research_not_started(&self,token_id:&TokenId,id:u64){
+        let Some(mut u)=usage().get(&op_key(token_id,id)) else{return};
+        if u.state=="RESERVED"{u.state="NOT_STARTED".into();usage().insert(&op_key(token_id,id),&u);}
     }
     pub(super) fn research_finalized(&self,token_id:&TokenId,id:u64,hash:&str){
         let mut rows=finalized().get(token_id).unwrap_or_default();rows.push((id,hash.into()));

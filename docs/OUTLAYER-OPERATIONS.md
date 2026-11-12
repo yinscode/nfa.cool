@@ -78,7 +78,7 @@ job ID. No process runs continuously inside the NFT.
 
 | State | Allowed response |
 | --- | --- |
-| `REQUESTED` past deadline | Permissionless `expire_unstarted_paid_scout` refunds the customer. |
+| `REQUESTED` past deadline (at most 30 minutes) | Permissionless `expire_unstarted_paid_scout` returns the execution deposit; the margin, net of storage, compensates the agent for the held slot. The owner can `cancel_unstarted_job` earlier with a full refund. |
 | Project `UNCERTAIN` | Inspect OutLayer `get_project`/`get_version`, then use `reconcile_outlayer_project`; retain NFT lock until identity matches. |
 | Job `UNCERTAIN`, or `EXECUTING` 15 minutes after start | Permissionless `release_service_job`. It succeeds only if the vault confirms its OutLayer callback has returned (or it never began). The customer is refunded, the job never becomes memory, and the NFA unlocks. A job is never re-executed. Requires vault code with `release_skill`. |
 | Settled job but vault still pending | Permissionless `retry_job_ack` re-sends the vault acknowledgement. |
@@ -86,7 +86,8 @@ job ID. No process runs continuously inside the NFT.
 | EVM request `Uncertain` | Signer timeout: owner or reporter `retry_evm_signature` (same digest). Vault never began: permissionless `recover_evm_operation`. Stuck in the mempool: owner `replace_evm_transfer` (same nonce, fees +10%, or `cancel`). |
 | `RECONCILING` with definite failed reimbursement | Permissionless `retry_outlayer_replenishment`; check registry balance first. |
 | Recall reimbursement failed | `retry_recall_replenishment`; result remains locked until paid. |
-| Definite guest failure | Full fee becomes customer credit. Owner resumes with `resume_failed_service` only after a callback proves the vault is clear; customer withdraws separately. |
+| Definite guest failure, customer fault | Vault reimbursed for compute from the fee; the rest, net of storage, is credited to the customer. The NFA stays Active. |
+| Definite guest failure, operator fault | Full fee becomes customer credit; storage is charged to agent income. Owner resumes with `resume_failed_service` only after a callback proves the vault is clear. |
 | Low vault runway | Pause new quotes at API/keeper and fund the same vault; project storage identity remains unchanged. |
 
 No automatic timeout resolves a submitted OutLayer execution. Release is explicit

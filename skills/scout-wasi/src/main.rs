@@ -216,7 +216,11 @@ fn main(){
         let id=parsed.as_ref().and_then(|v|v.get("jobId")).and_then(|v|v.as_u64());
         let operation=parsed.as_ref().and_then(|v|v.get("operation")).and_then(|v|v.as_str());
         if matches!(operation,Some("scout"|"run")) && id.unwrap_or(0)>0 {
-            println!("{}",serde_json::json!({"schemaVersion":1,"jobId":id,"status":"failed"}));
+            // Scout/Compare reject the customer's typed input; a Research error at this level
+            // is configuration, binding or storage, which the operator answers for.
+            let service=parsed.as_ref().and_then(|v|v.get("service")).and_then(|v|v.as_str());
+            let fault=if service==Some("research"){"operator"}else{"customer"};
+            println!("{}",serde_json::json!({"schemaVersion":1,"jobId":id,"status":"failed","fault":fault}));
         } else {eprintln!("Scout error: {message}");std::process::exit(1)}
     }}
 }

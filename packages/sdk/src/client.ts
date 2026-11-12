@@ -140,6 +140,9 @@ export class NfaSdk {
   reconcileNearOperation(id:string,operationId:number){return this.prepare('reconcile_near_operation',{token_id:token(id),id:op(operationId)},'0')}
   releaseServiceJob(id:string,jobId:number){return this.prepare('release_service_job',{token_id:token(id),id:op(jobId)},'0')}
   retryJobAck(id:string,jobId:number){return this.prepare('retry_job_ack',{token_id:token(id),id:op(jobId)},'0')}
+  /** Owner: cancel a job that has not started, refunding the customer in full. */
+  cancelUnstartedJob(id:string,jobId:number){return this.prepare('cancel_unstarted_job',{token_id:token(id),id:op(jobId)})}
+  getRegistryLedger(){return this.view<{liabilities:string;storage_fees:string;job_storage_fee:string;start_window_ns:string}>(this.registryAccountId,'registry_ledger')}
   deriveWallet(id:string){return this.prepare('derive_wallet',{token_id:token(id)},'0')}
   runJob(id:string,briefHash:string,sourceHash:string,fee:string,deadlineNs:number){
     return this.prepare('request_scout_job',{token_id:token(id),brief_hash:hash(briefHash),

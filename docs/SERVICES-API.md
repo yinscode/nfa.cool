@@ -87,8 +87,22 @@ reservation; there is no server-issued billing quote ID.
 3. Poll `GET .../jobs/:jobId`. `REQUESTED`, `EXECUTING`, `RECONCILING`,
    `FINALIZED`, `FAILED`, and `UNCERTAIN` are distinct outcomes. `FINALIZED`
    contains the output commitment/URI; owner memory is recalled separately.
-   A definite failure credits a customer refund. `UNCERTAIN` stays locked
-   until reconciliation; REST must not synthesize a refund or a success.
+   `UNCERTAIN` stays locked until reconciliation or `release_service_job`;
+   REST must not synthesize a refund or a success.
+
+Settlement rules (all amounts in NEAR, credited to the payer's `payout`):
+
+| Outcome | Customer gets | Vault gets | Agent income |
+| --- | --- | --- | --- |
+| Finalized | — | execution deposit | margin − job storage fee |
+| Failed because of the input (`fault: customer`; Scout/Compare default; Research when the model ran) | margin − job storage fee | execution deposit | — |
+| Failed because of the operator (`fault: operator`; Research not started or unknown) | full fee | — | − job storage fee; NFA drains for owner review |
+| Released (`release_service_job`) or cancelled by the owner | full fee | — | − job storage fee |
+| Not started within the window | execution deposit | — | margin − job storage fee |
+
+The start deadline is at most 30 minutes after the request; quotes use 15. The job
+storage fee (800 bytes of NEAR storage, 0.008 NEAR, `registry_ledger`) pays for the
+registry records a job leaves behind. The owner's margin must cover it.
 
 The API never takes a wallet private key. Scout commits to
 `{question,sources}`; Compare commits to `{question,criteria,sources}` before

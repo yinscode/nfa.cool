@@ -12,6 +12,14 @@ use sha3::{Digest, Keccak256};
 const MIN_PROVISION: u128 = 6_000_000_000_000_000_000_000_000;
 const REGISTRY_STORAGE: u128 = 200_000_000_000_000_000_000_000;
 const VAULT_CODE: &[u8] = include_bytes!(env!("NFA_EMBEDDED_VAULT_WASM"));
+/// A job must be started (or, for legacy jobs, completed) within this window. Holding the
+/// single operation slot longer is not possible, and an unused slot costs its requester.
+pub(crate) const START_WINDOW_NS: u64 = 1_800_000_000_000;
+/// Measured upper bound of the registry storage one job leaves behind (job record, service
+/// binding, payout row). Charged to the job at settlement so customers and owners, not the
+/// pooled liabilities, pay for it. `job_storage_is_covered_by_fee` checks this bound.
+pub(crate) const JOB_STORAGE_BYTES: u128 = 800;
+pub(crate) fn job_storage_fee() -> u128 { JOB_STORAGE_BYTES * env::storage_byte_cost().as_yoctonear() }
 mod outlayer;
 mod studio;
 mod research;
@@ -184,6 +192,7 @@ impl Registry {
         let vault_id: AccountId = format!("{}.{}", token_id, env::current_account_id()).parse().unwrap();
         let deposit = env::attached_deposit().as_yoctonear() - REGISTRY_STORAGE;
         self.client_requests.insert(&key, &token_id);
+        provision_deposits().insert(&token_id, &deposit);
         self.provisions.insert(&token_id, &Provision { owner: owner.clone(), vault_id: vault_id.clone(),
             manifest_hash, manifest_uri, code_hash: env::sha256(VAULT_CODE), failed: false });
         event("provision_requested", serde_json::json!({"token_id":token_id,"vault_id":vault_id,"owner_id":owner}));
@@ -203,8 +212,16 @@ impl Registry {
         if env::promise_result_checked(0, 1024).is_err() {
             provision.failed = true;
             self.provisions.insert(&token_id, &provision);
-            event("provision_failed", serde_json::json!({"token_id":token_id,"vault_id":provision.vault_id}));
-            // The ID remains reserved. The admin must inspect any partial account before recovery.
+            // The create/deploy/init batch is atomic: no vault exists and its funding was
+            // refunded to this registry. Credit it to the creator instead of pooling it.
+            let refund = provision_deposits().remove(&token_id).unwrap_or(0);
+            if refund > 0 {
+                let mut credit = payouts().get(&provision.owner).unwrap_or_default();
+                credit.available.0 = credit.available.0.checked_add(refund).unwrap();
+                payouts().insert(&provision.owner, &credit);
+                add_liability(refund);
+            }
+            event("provision_failed", serde_json::json!({"token_id":token_id,"vault_id":provision.vault_id,"refund_credit":U128(refund)}));
             return false;
         }
         self.finalize_provision(token_id, provision);
@@ -226,7 +243,7 @@ impl Registry {
     #[private]
     pub fn on_recover_provision(&mut self, token_id: TokenId) -> bool {
         let provision = self.provisions.get(&token_id).unwrap_or_else(|| env::panic_str("No reserved provision"));
-        require!(self.agents.get(&token_id).is_none(), "Already minted");
+        require!(self.agents.get(&token_id).is_none() && !provision.failed, "Already minted or refunded");
         let Ok(bytes) = env::promise_result_checked(0, 4096) else { return false };
         let Ok(status) = serde_json::from_slice::<serde_json::Value>(&bytes) else { return false };
         require!(status["controller"] == env::current_account_id().as_str()
@@ -254,6 +271,7 @@ impl Registry {
         }), None);
         NftMint { owner_id: &minted.owner_id, token_ids: &[&minted.token_id], memo: None }.emit();
         self.provisions.remove(&token_id);
+        provision_deposits().remove(&token_id);
         event("provision_finalized", serde_json::json!({"token_id":token_id}));
     }
 
@@ -525,12 +543,13 @@ impl Registry {
         require!(fee.0 >= 10_000_000_000_000_000_000_000
             && env::attached_deposit().as_yoctonear() == fee.0, "Exact job fee required");
         require!(deadline_ns > env::block_timestamp() &&
-            deadline_ns.saturating_sub(env::block_timestamp()) <= 604_800_000_000_000,
-            "Job deadline must be within a week");
+            deadline_ns.saturating_sub(env::block_timestamp()) <= START_WINDOW_NS,
+            "Job deadline must be within 30 minutes");
         let id = agent.next_op_id;
         agent.next_op_id = agent.next_op_id.checked_add(1).unwrap();
         agent.pending_op = Some(id);
         self.agents.insert(&token_id, &agent);
+        add_liability(fee.0);
         scout_jobs().insert(&op_key(&token_id,id), &ScoutJob {
             id, epoch: agent.epoch, requester: env::predecessor_account_id(),
             brief_hash, source_hash, fee, deadline_ns, status: "REQUESTED".into(),
@@ -564,7 +583,9 @@ impl Registry {
         agent.pending_op = None; self.agents.insert(&token_id, &agent);
         let mut op = self.operations.get(&op_key(&token_id,id)).unwrap();
         op.status = OpStatus::Finalized; self.operations.insert(&op_key(&token_id,id), &op);
-        let income = incomes().get(&token_id).unwrap_or(0).checked_add(job.fee.0).unwrap();
+        let storage = job_storage_fee().min(job.fee.0);
+        collect_storage(storage);
+        let income = incomes().get(&token_id).unwrap_or(0).checked_add(job.fee.0 - storage).unwrap();
         incomes().insert(&token_id, &income);
         event("job_finalized", serde_json::json!({"token_id":token_id,"id":id,"epoch":agent.epoch,
             "output_hash":output_hash,"output_uri":output_uri,"income":job.fee}));
@@ -576,14 +597,18 @@ impl Registry {
         require!(agent.pending_op == Some(id) && job.status == "REQUESTED"
             && env::block_timestamp() >= job.deadline_ns, "Job not expired");
         job.status = "FAILED".into(); scout_jobs().insert(&op_key(&token_id,id), &job);
-        agent.pending_op = None; agent.lifecycle = Lifecycle::Draining;
+        // The NFA stays usable: an expired legacy job no longer forces an owner resume.
+        agent.pending_op = None;
         self.agents.insert(&token_id, &agent);
         let mut op = self.operations.get(&op_key(&token_id,id)).unwrap();
         op.status = OpStatus::Failed; self.operations.insert(&op_key(&token_id,id), &op);
+        let storage = job_storage_fee().min(job.fee.0);
+        collect_storage(storage);
         let mut credit = payouts().get(&job.requester).unwrap_or_default();
-        credit.available.0 = credit.available.0.checked_add(job.fee.0).unwrap();
+        credit.available.0 = credit.available.0.checked_add(job.fee.0 - storage).unwrap();
         payouts().insert(&job.requester, &credit);
-        event("job_refunded", serde_json::json!({"token_id":token_id,"id":id,"requester":job.requester}));
+        event("job_refunded", serde_json::json!({"token_id":token_id,"id":id,"requester":job.requester,
+            "refund_credit":U128(job.fee.0 - storage),"storage_fee":U128(storage)}));
     }
 
     #[payable]
@@ -603,6 +628,13 @@ impl Registry {
         scout_jobs().get(&op_key(&token_id,id))
     }
     pub fn agent_income(&self, token_id: TokenId) -> U128 { U128(incomes().get(&token_id).unwrap_or(0)) }
+    /// Registry-level accounting: tracked liabilities, collected job storage fees and the
+    /// storage fee each job pays.
+    pub fn registry_ledger(&self) -> serde_json::Value {
+        serde_json::json!({"liabilities":U128(liability()),
+            "storage_fees":U128(ledger_totals().get(&"storage_fees".to_string()).unwrap_or(0)),
+            "job_storage_fee":U128(job_storage_fee()),"start_window_ns":START_WINDOW_NS.to_string()})
+    }
 
     #[payable]
     pub fn update_manifest(&mut self, token_id: TokenId, manifest_hash: String, manifest_uri: String) {
@@ -687,6 +719,7 @@ impl Registry {
         let mut credit = payouts().get(&listing.seller).unwrap_or_default();
         credit.available.0 = credit.available.0.checked_add(listing.price.0).unwrap();
         payouts().insert(&listing.seller, &credit);
+        add_liability(listing.price.0);
         event("sold", serde_json::json!({"token_id":token_id,"seller":listing.seller,
             "buyer":buyer,"price":listing.price,"nonce":listing.nonce,"epoch":agent.epoch}));
     }
@@ -700,7 +733,9 @@ impl Registry {
         let mut credit = payouts().get(&seller).unwrap_or_default();
         require!(amount.0 > 0 && amount.0 <= credit.available.0 && credit.pending.is_none(), "No available payout");
         let storage = u128::from(env::storage_usage()) * env::storage_byte_cost().as_yoctonear();
-        require!(env::account_balance().as_yoctonear() >= storage.saturating_add(amount.0)
+        // Every credited payout, escrowed fee and unclaimed income must stay covered after
+        // storage; a shortfall blocks payouts instead of paying early claimants first.
+        require!(env::account_balance().as_yoctonear() >= storage.saturating_add(amount.0.max(liability()))
             .saturating_add(100_000_000_000_000_000_000_000), "Registry reserve");
         credit.available.0 -= amount.0;
         credit.next_id = credit.next_id.checked_add(1).unwrap();
@@ -725,6 +760,7 @@ impl Registry {
             Err(_) => return false, // Unknown result: leave pending and prohibit another payout.
         };
         if !success { credit.available.0 = credit.available.0.checked_add(amount.0).unwrap(); }
+        else { release_liability(amount.0); }
         credit.pending = None;
         payouts().insert(&seller, &credit);
         event(if success { "payout_finalized" } else { "payout_failed" },
@@ -873,6 +909,32 @@ fn evm_nonces() -> LookupMap<TokenId, u64> { LookupMap::new(b"N") }
 fn scout_jobs() -> LookupMap<String, ScoutJob> { LookupMap::new(b"J") }
 fn incomes() -> LookupMap<TokenId, u128> { LookupMap::new(b"I") }
 fn wallets() -> LookupMap<TokenId, DerivedWallet> { LookupMap::new(b"W") }
+fn provision_deposits() -> LookupMap<TokenId, u128> { LookupMap::new(&b"provision:deposit:v1"[..]) }
+fn ledger_totals() -> LookupMap<String, u128> { LookupMap::new(&b"ledger:totals:v1"[..]) }
+/// NEAR this registry holds on behalf of others: escrowed job fees, unclaimed agent
+/// income, refund and seller credits, recall deposits and failed-provision refunds.
+/// Counting starts at deployment of this code; earlier balances are not included.
+pub(crate) fn liability() -> u128 { ledger_totals().get(&"liabilities".to_string()).unwrap_or(0) }
+pub(crate) fn add_liability(amount: u128) {
+    ledger_totals().insert(&"liabilities".to_string(), &liability().saturating_add(amount));
+}
+pub(crate) fn release_liability(amount: u128) {
+    ledger_totals().insert(&"liabilities".to_string(), &liability().saturating_sub(amount));
+}
+/// Moves a job's storage fee from liabilities to the registry's own storage funds.
+pub(crate) fn collect_storage(amount: u128) {
+    release_liability(amount);
+    let key = "storage_fees".to_string();
+    ledger_totals().insert(&key, &ledger_totals().get(&key).unwrap_or(0).saturating_add(amount));
+}
+/// Charges a job's storage to the agent when the customer is refunded in full.
+pub(crate) fn charge_storage_to_agent(token_id: &TokenId) -> u128 {
+    let income = incomes().get(token_id).unwrap_or(0);
+    let charged = job_storage_fee().min(income);
+    incomes().insert(token_id, &(income - charged));
+    collect_storage(charged);
+    charged
+}
 fn chain_keys()->LookupMap<String,ChainKeyRecord>{LookupMap::new(&b"chain:key:v1"[..])}
 fn chain_key_id(token_id:&str,chain:&str)->String{format!("{token_id}:{chain}")}
 fn chain_key_record(wallet:&DerivedWallet)->ChainKeyRecord{
@@ -981,12 +1043,13 @@ mod tests {
     #[test]
     fn research_daily_allowance_is_conservative_and_rolls_over(){
         let (r,_,_,_)=research_setup();let token="nfa-1".to_string();
-        r.reserve_research(&token,100,&"a".repeat(64));r.reserve_research(&token,101,&"a".repeat(64));
+        let (c1,c2,c3)=(id("c1.testnet"),id("c2.testnet"),id("c3.testnet"));
+        r.reserve_research(&token,100,&"a".repeat(64),&c1);r.reserve_research(&token,101,&"a".repeat(64),&c2);
         assert_eq!(r.research_budget(token.clone()).reserved_microusd,50_048);
-        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.reserve_research(&token,102,&"a".repeat(64)))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.reserve_research(&token,102,&"a".repeat(64),&c3))).is_err());
         assert!(r.research_usage(token.clone(),102).is_none());
         testing_env!(context("keeper.testnet",0).block_timestamp(86_400_000_000_001).build());
-        r.reserve_research(&token,102,&"a".repeat(64));assert_eq!(r.research_budget(token).reserved_microusd,25_024);
+        r.reserve_research(&token,102,&"a".repeat(64),&c3);assert_eq!(r.research_budget(token).reserved_microusd,25_024);
     }
     #[test]
     fn research_unknown_cost_is_reserved_once_and_does_not_enter_finalized_memory(){
@@ -1070,7 +1133,8 @@ mod tests {
         let id=r.request_service_job("nfa-1".into(),"compare".into(),input_hash,500,
             U128(fee),U128(deposit),U128(deposit),policy.limits.clone());
         assert_eq!(r.service_ledger("compare".into()).customer_escrow,U128(fee));
-        assert_eq!(r.service_ledger("scout".into()).customer_refunds,U128(fee));
+        // The unstarted Scout job returned its execution deposit; its margin paid storage and the agent.
+        assert_eq!(r.service_ledger("scout".into()).customer_refunds,U128(deposit));
         assert_eq!(r.service_job("nfa-1".into(),id).unwrap()["service_id"],"compare");
         assert_eq!(r.service_job("nfa-1".into(),id).unwrap()["policy_version"],1);
         assert_eq!(r.outlayer_project("nfa-1".into()).unwrap().project_uuid,"p0001");
@@ -1138,7 +1202,7 @@ mod tests {
             Default::default(),vec![PromiseResult::Successful(vec![])]);
         assert!(matches!(r.on_outlayer_replenished("nfa-1".into(),job_id),PromiseOrValue::Promise(_)));
         assert_eq!(r.paid_scout_job("nfa-1".into(),job_id).unwrap().status,"FINALIZED");
-        assert_eq!(r.agent_income("nfa-1".into()),U128(fee-deposit));
+        assert_eq!(r.agent_income("nfa-1".into()),U128(fee-deposit-job_storage_fee()));
         assert_eq!(r.paid_scout_ledger().customer_escrow,U128(0));
         testing_env!(context("alice.testnet",1).build());
         r.nft_transfer(id("bob.testnet"),"nfa-1".into(),None,None);
@@ -1162,19 +1226,54 @@ mod tests {
         testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
             Default::default(),vec![PromiseResult::Successful(vec![])]);
         let _=r.on_outlayer_replenished("nfa-1".into(),job_id);
-        assert_eq!(r.agent_income("nfa-1".into()),U128(fee-deposit));
+        assert_eq!(r.agent_income("nfa-1".into()),U128(fee-deposit-job_storage_fee()));
     }
 
     #[test]
-    fn definite_guest_failure_refunds_customer() {
+    fn operator_fault_failure_refunds_customer_in_full_and_drains() {
         let (mut r,job_id,input,fee,_)=paid_setup();
         testing_env!(context("keeper.testnet",0).build());let _=r.start_paid_scout("nfa-1".into(),job_id,input);
-        let result=serde_json::json!({"schemaVersion":1,"jobId":job_id,"status":"failed"});
+        let result=serde_json::json!({"schemaVersion":1,"jobId":job_id,"status":"failed","fault":"operator"});
         testing_env!(context("nfa-1.registry.testnet",0).build());
         assert!(matches!(r.on_outlayer_job("nfa-1".into(),job_id,Some(result)),PromiseOrValue::Promise(_)));
         assert_eq!(r.payout(id("customer.testnet")).available,U128(fee));
         assert_eq!(r.paid_scout_ledger().customer_refunds,U128(fee));
         assert_eq!(r.agent_income("nfa-1".into()),U128(0));
+        assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Draining);
+    }
+
+    // ---- H2: a failure caused by the customer's input pays for the compute it used ----
+    #[test]
+    fn customer_fault_failure_reimburses_vault_and_keeps_agent_available() {
+        let (mut r,job_id,input,fee,deposit)=paid_setup();
+        testing_env!(context("keeper.testnet",0).build());let _=r.start_paid_scout("nfa-1".into(),job_id,input);
+        // Older guests report no fault; a Scout failure comes from typed customer input.
+        let result=serde_json::json!({"schemaVersion":1,"jobId":job_id,"status":"failed"});
+        testing_env!(context("nfa-1.registry.testnet",0).build());
+        assert!(matches!(r.on_outlayer_job("nfa-1".into(),job_id,Some(result)),PromiseOrValue::Promise(_)));
+        assert_eq!(r.paid_scout_job("nfa-1".into(),job_id).unwrap().status,"RECONCILING");
+        assert_eq!(r.payout(id("customer.testnet")).available,U128(0),"No refund before the vault is reimbursed");
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(vec![])]);
+        let _=r.on_outlayer_replenished("nfa-1".into(),job_id);
+        let refund=fee-deposit-job_storage_fee();
+        assert_eq!(r.paid_scout_job("nfa-1".into(),job_id).unwrap().status,"FAILED");
+        assert_eq!(r.payout(id("customer.testnet")).available,U128(refund));
+        assert_eq!(r.paid_scout_ledger().customer_refunds,U128(refund));
+        assert_eq!(r.paid_scout_ledger().customer_escrow,U128(0));
+        assert_eq!(r.agent_income("nfa-1".into()),U128(0));
+        let a=r.agent("nfa-1".into()).unwrap();assert!(a.pending_op.is_none());assert_eq!(a.lifecycle,Lifecycle::Active);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.owner_memory_receipt("nfa-1".into(),job_id))).is_err());
+    }
+    #[test]
+    fn research_fault_defaults_follow_inference_outcome(){
+        use outlayer::tests_support::fault;
+        for (service,outcome,expected) in [("research","not_started","operator"),("research","unknown","operator"),
+            ("research","succeeded","customer"),("scout","","customer"),("compare","","customer")]{
+            assert_eq!(fault(service,&serde_json::json!({"status":"failed","inferenceOutcome":outcome})),expected,"{service}/{outcome}");
+        }
+        assert_eq!(fault("research",&serde_json::json!({"inferenceOutcome":"succeeded","fault":"operator"})),"operator");
+        assert_eq!(fault("scout",&serde_json::json!({"fault":"operator"})),"operator");
     }
 
     #[test]
@@ -1539,13 +1638,14 @@ mod tests {
         testing_env!(context("worker.testnet", 0).build());
         r.complete_scout_job("nfa-1".into(), 1, 0, hash, "nfa://work/1".into());
         assert_eq!(r.scout_job("nfa-1".into(), 1).unwrap().status, "FINALIZED");
-        assert_eq!(r.agent_income("nfa-1".into()), U128(fee));
+        let net = fee - job_storage_fee();
+        assert_eq!(r.agent_income("nfa-1".into()), U128(net));
         testing_env!(context("alice.testnet", 1).build());
         r.nft_transfer(id("bob.testnet"), "nfa-1".into(), None, None);
         testing_env!(context("bob.testnet", 1).build());
-        r.claim_income("nfa-1".into(), U128(fee));
+        r.claim_income("nfa-1".into(), U128(net));
         assert_eq!(r.agent_income("nfa-1".into()), U128(0));
-        assert_eq!(r.payout(id("bob.testnet")).available, U128(fee));
+        assert_eq!(r.payout(id("bob.testnet")).available, U128(net));
         assert_eq!(r.payout(id("alice.testnet")).available, U128(0));
     }
 
@@ -1562,9 +1662,10 @@ mod tests {
         let mut later = context("keeper.testnet", 0); later.block_timestamp(500);
         testing_env!(later.build());
         r.abort_scout_job("nfa-1".into(), 1);
-        assert_eq!(r.payout(id("customer.testnet")).available, U128(fee));
+        assert_eq!(r.payout(id("customer.testnet")).available, U128(fee - job_storage_fee()));
         assert_eq!(r.agent_income("nfa-1".into()), U128(0));
-        assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle, Lifecycle::Draining);
+        // An expired legacy job no longer forces an owner resume.
+        assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle, Lifecycle::Active);
         assert_eq!(r.scout_job("nfa-1".into(), 1).unwrap().status, "FAILED");
     }
 
@@ -1609,7 +1710,7 @@ mod tests {
         let (mut r,job_id,input,_,_)=paid_setup();
         testing_env!(context("keeper.testnet",0).build());let _=r.start_paid_scout("nfa-1".into(),job_id,input);
         testing_env!(context("nfa-1.registry.testnet",0).build());
-        let _=r.on_outlayer_job("nfa-1".into(),job_id,Some(serde_json::json!({"schemaVersion":1,"jobId":job_id,"status":"failed"})));
+        let _=r.on_outlayer_job("nfa-1".into(),job_id,Some(serde_json::json!({"schemaVersion":1,"jobId":job_id,"status":"failed","fault":"operator"})));
         testing_env!(context("alice.testnet",1).build());let _=r.resume_failed_service("nfa-1".into(),job_id);
         let id=r.agent("nfa-1".into()).unwrap().pending_op.unwrap();
         testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),
@@ -1675,7 +1776,7 @@ mod tests {
         let (mut r,input,fee,deposit)=scout_ready();
         let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
         testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
-        let id=r.request_paid_scout("nfa-1".into(),h,10_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        let id=r.request_paid_scout("nfa-1".into(),h,1_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
         testing_env!(context("customer.testnet",0).block_timestamp(700).build());
         let _=r.start_paid_scout("nfa-1".into(),id,input);
         // OutLayer rejected or trapped: the vault reports no parseable result.
@@ -1715,7 +1816,7 @@ mod tests {
         let (mut r,input,fee,deposit)=scout_ready();
         let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
         testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
-        let id=r.request_paid_scout("nfa-1".into(),h,10_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        let id=r.request_paid_scout("nfa-1".into(),h,1_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
         testing_env!(context("customer.testnet",0).block_timestamp(700).build());
         let _=r.start_paid_scout("nfa-1".into(),id,input);
         testing_env!(context("customer.testnet",0).block_timestamp(700+899_000_000_000).build());
@@ -1726,7 +1827,7 @@ mod tests {
         let (mut r,input,fee,deposit)=scout_ready();
         let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
         testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
-        let id=r.request_paid_scout("nfa-1".into(),h,10_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        let id=r.request_paid_scout("nfa-1".into(),h,1_000_000_000_000,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
         testing_env!(context("customer.testnet",0).block_timestamp(700).build());
         let _=r.start_paid_scout("nfa-1".into(),id,input);
         testing_env!(context("registry.testnet",0).block_timestamp(700+900_000_000_000).build(),test_vm_config(),RuntimeFeesConfig::test(),
@@ -1898,5 +1999,149 @@ mod tests {
         assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Draining);
         assert!(reconcile_with(&mut r,id,&a));
         assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Active);
+    }
+
+    // ---- H1: the operation slot cannot be held for long or for free ----
+    fn requested_scout(deadline_offset:u64)->(Registry,u64,String,u128,u128){
+        let (mut r,input,fee,deposit)=scout_ready();
+        let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let id=r.request_paid_scout("nfa-1".into(),h,600+deadline_offset,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        (r,id,input,fee,deposit)
+    }
+    #[test]
+    #[should_panic(expected="Start deadline must be within 30 minutes")]
+    fn paid_job_start_window_is_thirty_minutes(){ requested_scout(START_WINDOW_NS+1); }
+    #[test]
+    #[should_panic(expected="Job deadline must be within 30 minutes")]
+    fn legacy_job_window_is_thirty_minutes(){
+        let mut r=minted();let hash=format!("sha256:{}","a".repeat(64));
+        let fee=NearToken::from_millinear(10).as_yoctonear();
+        testing_env!(context("customer.testnet",fee).block_timestamp(1).build());
+        r.request_scout_job("nfa-1".into(),hash.clone(),hash,START_WINDOW_NS+2,U128(fee));
+    }
+    #[test]
+    fn unstarted_expiry_returns_deposit_and_pays_the_agent_for_the_slot(){
+        let (mut r,id,_,fee,deposit)=requested_scout(START_WINDOW_NS);
+        let before=r.payout(id_("customer.testnet")).available.0;let income=r.agent_income("nfa-1".into()).0;
+        testing_env!(context("stranger.testnet",0).block_timestamp(600+START_WINDOW_NS).build());
+        r.expire_unstarted_paid_scout("nfa-1".into(),id);
+        let forfeit=fee-deposit-job_storage_fee();
+        assert_eq!(r.payout(id_("customer.testnet")).available.0-before,deposit);
+        assert_eq!(r.agent_income("nfa-1".into()).0-income,forfeit);
+        assert!(r.service_forfeits("scout".into()).0>=forfeit);
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+    }
+    #[test]
+    fn owner_can_cancel_an_unstarted_job_with_full_refund(){
+        let (mut r,id,input,fee,_)=requested_scout(START_WINDOW_NS);
+        let before=r.payout(id_("customer.testnet")).available.0;
+        testing_env!(context("customer.testnet",1).block_timestamp(700).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.cancel_unstarted_job("nfa-1".into(),id))).is_err());
+        testing_env!(context("alice.testnet",1).block_timestamp(700).build());
+        r.cancel_unstarted_job("nfa-1".into(),id);
+        assert_eq!(r.payout(id_("customer.testnet")).available.0-before,fee);
+        assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
+        assert_eq!(r.paid_scout_job("nfa-1".into(),id).unwrap().status,"FAILED");
+        // The customer cannot start a cancelled job.
+        testing_env!(context("customer.testnet",0).block_timestamp(800).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.start_paid_scout("nfa-1".into(),id,input))).is_err());
+    }
+    #[test]
+    #[should_panic(expected="Job already started")]
+    fn owner_cannot_cancel_a_started_job(){
+        let (mut r,id,input,_,_)=requested_scout(START_WINDOW_NS);
+        testing_env!(context("customer.testnet",0).block_timestamp(700).build());let _=r.start_paid_scout("nfa-1".into(),id,input);
+        testing_env!(context("alice.testnet",1).block_timestamp(800).build());r.cancel_unstarted_job("nfa-1".into(),id);
+    }
+
+    // ---- H3: storage and liabilities ----
+    // Job storage bound: request growth (new requester) plus the larger of settlement or expiry.
+    const REQUEST_BYTES_BOUND:u64=500;
+    #[test]
+    fn job_storage_is_covered_by_fee(){
+        assert!(job_storage_fee()<=MIN_MARGIN_FOR_TESTS,"Minimum margin must cover job storage");
+        assert!(u128::from(REQUEST_BYTES_BOUND+300)<=JOB_STORAGE_BYTES);
+        let (mut r,input,fee,deposit)=scout_ready();
+        let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        let before=env::storage_usage();
+        testing_env!(context("newcustomer.testnet",fee).block_timestamp(600).storage_usage(before).build());
+        let id=r.request_paid_scout("nfa-1".into(),h,600+START_WINDOW_NS,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        let requested=env::storage_usage()-before;
+        assert!(requested<=REQUEST_BYTES_BOUND,"request grew {requested} bytes");
+        let start=env::storage_usage();
+        testing_env!(context("customer.testnet",0).block_timestamp(700).storage_usage(start).build());
+        let _=r.start_paid_scout("nfa-1".into(),id,input);
+        let out=serde_json::json!({"schemaVersion":1,"jobId":id,"status":"ok","outputHash":format!("sha256:{}","f".repeat(64)),"outputUri":format!("nfa://work/{}","f".repeat(64))});
+        let s=env::storage_usage();testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(800).storage_usage(s).build());
+        let _=r.on_outlayer_job("nfa-1".into(),id,Some(out));
+        let s=env::storage_usage();testing_env!(context("registry.testnet",0).storage_usage(s).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Successful(vec![])]);
+        let _=r.on_outlayer_replenished("nfa-1".into(),id);
+        let settled=env::storage_usage()-start;
+        assert!(u128::from(requested+settled)<=JOB_STORAGE_BYTES,"job storage {} bytes (request {requested}, settle {settled})",requested+settled);
+    }
+    #[test]
+    fn expired_job_storage_is_covered_by_fee(){
+        let (mut r,input,fee,deposit)=scout_ready();
+        let h=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        let before=env::storage_usage();
+        testing_env!(context("newcustomer.testnet",fee).block_timestamp(600).storage_usage(before).build());
+        let id=r.request_paid_scout("nfa-1".into(),h,600+START_WINDOW_NS,U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+        let s=env::storage_usage();
+        testing_env!(context("stranger.testnet",0).block_timestamp(600+START_WINDOW_NS).storage_usage(s).build());
+        r.expire_unstarted_paid_scout("nfa-1".into(),id);
+        let total=env::storage_usage()-before;
+        assert!(u128::from(total)<=JOB_STORAGE_BYTES,"expired job storage {total} bytes");
+    }
+    #[test]
+    #[should_panic(expected="Registry reserve")]
+    fn payouts_stop_when_tracked_liabilities_exceed_the_balance(){
+        let mut r=minted();
+        testing_env!(context("alice.testnet",1).build());r.list_agent("nfa-1".into(),U128(NearToken::from_near(50).as_yoctonear()));
+        // The mocked account balance (20 NEAR) cannot cover the 50 NEAR credited to the seller.
+        testing_env!(context("bob.testnet",NearToken::from_near(50).as_yoctonear()).build());r.buy("nfa-1".into(),1);
+        assert_eq!(r.registry_ledger()["liabilities"],NearToken::from_near(50).as_yoctonear().to_string());
+        testing_env!(context("alice.testnet",1).build());let _=r.withdraw_proceeds(U128(NearToken::from_near(1).as_yoctonear()));
+    }
+    #[test]
+    fn failed_provision_credits_the_creator_and_cannot_mint_later(){
+        let mut r=registry();
+        testing_env!(context("alice.testnet",NearToken::from_near(6).as_yoctonear()).build());
+        let token=r.create_agent("req".into(),format!("sha256:{}","a".repeat(64)),"nfa://m".into());
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Failed]);
+        assert!(!r.on_provision(token.clone()));
+        let refund=NearToken::from_near(6).as_yoctonear()-REGISTRY_STORAGE;
+        assert_eq!(r.payout(id_("alice.testnet")).available.0,refund);
+        assert_eq!(r.registry_ledger()["liabilities"],refund.to_string());
+        let status=serde_json::json!({"controller":"registry.testnet","reporter":"reporter.testnet","guardian":"guardian.testnet","pending":null,"next_operation_id":1});
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Successful(status.to_string().into_bytes())]);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.on_recover_provision(token.clone()))).is_err());
+        assert!(r.agent(token).is_none());
+    }
+    #[test]
+    fn audit_keeps_bounded_recent_rows(){
+        let mut r=minted();
+        testing_env!(context("alice.testnet",1).build());
+        for i in 0..70u32{r.update_manifest("nfa-1".into(),format!("sha256:{:064x}",i),"nfa://m".into());}
+        let audit=r.studio_audit("nfa-1".into(),1,50);
+        assert_eq!(audit["count"],70);
+        let rows=audit["rows"].as_array().unwrap();
+        assert!(!rows.is_empty()&&rows.iter().all(|row|row["id"].as_u64().unwrap()>70-studio::AUDIT_ROWS));
+    }
+    #[test]
+    fn audit_skips_job_events_already_in_job_records(){
+        let (r,_,_,_)=scout_ready();
+        let rows=r.studio_audit("nfa-1".into(),1,50);
+        let events:Vec<_>=rows["rows"].as_array().unwrap().iter().map(|row|row["event"].as_str().unwrap().to_string()).collect();
+        assert!(events.iter().any(|e|e=="service_policy_updated"));
+        assert!(events.iter().all(|e|!e.starts_with("service_job_")),"{events:?}");
+    }
+    #[test]
+    fn one_requester_cannot_take_the_whole_research_allowance(){
+        let (r,_,_,_)=research_setup();let token="nfa-1".to_string();let me=id_("c1.testnet");
+        testing_env!(context("keeper.testnet",0).block_timestamp(600).build());
+        r.reserve_research(&token,200,&"a".repeat(64),&me);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.reserve_research(&token,201,&"a".repeat(64),&me))).is_err());
+        r.reserve_research(&token,201,&"a".repeat(64),&id_("c2.testnet"));
     }
 }

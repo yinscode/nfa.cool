@@ -9,9 +9,9 @@
     <div id="create-stepper" class="wizard-steps" aria-label="Creation steps"></div>
     <div class="wizard-layout"><div class="card wizard-main">
       <div data-create-step="0"><h2>What should it do?</h2><div class="purpose-options">
-        <label class="purpose-card"><input type="radio" name="purpose" value="scout" checked><b>Research</b><span>Scout extracts cited findings from documents you supply.</span></label>
+        <label class="purpose-card"><input type="radio" name="purpose" value="scout" checked><b>Document Scout</b><span>Scout extracts cited findings from documents you supply.</span></label>
         <label class="purpose-card"><input type="radio" name="purpose" value="compare"><b>Compare</b><span>Rank options by how well the supplied evidence covers your criteria.</span></label>
-        <label class="purpose-card"><input type="radio" name="purpose" value="both"><b>Research + Compare</b><span>Two priced services, one agent account and memory Project.</span></label>
+        <label class="purpose-card"><input type="radio" name="purpose" value="both"><b>Scout + Compare</b><span>Two priced services, one agent account and memory Project.</span></label>
       </div><p class="small">These reviewed services process supplied text. They do not browse websites or run an LLM.</p></div>
       <div data-create-step="1" class="hidden"><h2>Give it an identity</h2><label>Name<input id="name" maxlength="64" value="Scout One"></label><label>Short description<textarea id="create-description" maxlength="240" rows="2" placeholder="What your agent helps people do"></textarea></label>
         <div class="actions"><button id="randomize" class="secondary">Randomize character</button><button id="preview-button" class="secondary">Update preview</button></div>
@@ -28,7 +28,7 @@
         <button id="launch-open-studio" class="secondary hidden">Open agent workspace</button><button id="launch-new" class="secondary hidden">Create another NFA</button>
       </div>
       <p id="create-status" class="status" role="status"></p><div class="wizard-navigation"><button id="create-back" class="secondary">Back</button><button id="create-next">Continue</button></div>
-    </div><aside class="card wizard-preview"><div id="art" class="art"><span>Creating your character…</span></div><h2 id="create-preview-name">Scout One</h2><p id="create-preview-purpose">Research agent</p><div id="traits" class="small"></div></aside></div>
+    </div><aside class="card wizard-preview"><div id="art" class="art"><span>Creating your character…</span></div><h2 id="create-preview-name">Scout One</h2><p id="create-preview-purpose">Document Scout</p><div id="traits" class="small"></div></aside></div>
   </section>
   <section id="studio" class="panel"><div class="intro"><p class="eyebrow">02 / STUDIO</p><h1>Your agents, ready for work.</h1><p>Create an agent or pick one below to manage its services, account and work history.</p></div>
     <div class="studio-top card"><div><h2>My NFAs</h2><p id="studio-wallet-note" class="small">Connect a testnet wallet to see your NFAs.</p><div id="studio-owned" class="studio-owned"></div></div><div><label>Token ID<input id="studio-token" placeholder="nfa-1" autocomplete="off"></label><div class="actions"><button id="studio-load">Open NFA</button><button id="studio-new" class="secondary">Create an NFA</button></div><p id="studio-status" class="status" role="status"></p><button id="studio-clear-intent" class="secondary hidden">I inspected the transaction</button></div></div>
@@ -48,7 +48,7 @@
     <div class="search"><input id="token-id" value="nfa-1" aria-label="NFA token ID"><button id="load-passport">Load profile</button></div>
     <p id="profile-status" class="status" role="status"></p><div id="passport-content" class="grid"></div>
     <div class="card"><h2>Hire this NFA</h2><p class="small">Source text is public transaction data. Prices include the NFA’s margin and a quoted execution reserve.</p>
-      <label>Service<select id="profile-service"><option value="scout">Scout · research</option><option value="compare">Compare · evidence coverage</option></select></label>
+      <label>Service<select id="profile-service"><option value="scout">Scout · supplied text</option><option value="compare">Compare · evidence coverage</option></select></label>
       <div id="profile-service-description"></div>
       <label>Question<input id="profile-question" maxlength="240"></label>
       <label>Source / option title<input id="profile-title" maxlength="120"></label><label>Citation URL<input id="profile-url" type="url"></label><label>Source text<textarea id="profile-text" rows="4"></textarea></label>

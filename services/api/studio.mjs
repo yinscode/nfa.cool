@@ -7,6 +7,7 @@ import {studioPages,finances,recoveryActions,studioAudit} from './studio-state.m
 import {listServices} from './service-runtime.mjs';
 import {publishedManifest} from './published-artifacts.mjs';
 import {businessSummary,buyerInventory} from './business.mjs';
+import {snapshotSdk} from './snapshot-sdk.mjs';
 
 const run=promisify(execFile);
 const generator=fileURLToPath(new URL('../../generate.cjs',import.meta.url));
@@ -54,6 +55,7 @@ export async function ownedNfas(sdk,accountId){
 
 export async function studioNfa(sdk,id,{servicePolicy=null}={}){
   if(!TOKEN.test(id))throw Error('Invalid NFA token ID');
+  sdk=snapshotSdk(sdk);
   let identity,complete=true;
   try{identity=await sdk.get(id)}catch(error){
     const [nft,agent]=await Promise.all([

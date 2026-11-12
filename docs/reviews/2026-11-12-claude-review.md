@@ -19,9 +19,9 @@ or at least disclose them.
 
 ---
 
-## Fix status (same day, uncommitted, not deployed)
+## Historical fix status (initial same-day working tree; subsequently committed)
 
-B1–B3 are fixed in the working tree. Nothing has been deployed or committed.
+At this initial checkpoint, B1–B3 were fixed in the working tree but not committed or deployed. The changes below were subsequently committed; deployment remains pending.
 
 | Check | Result |
 | --- | --- |
@@ -548,3 +548,36 @@ Many agents will stop at the first failure. Suggestions, in priority order:
 8. **A calibrated security section.** List the trusted parties (admin key, guardian, reporter, RPC,
    OutLayer) and the open liveness issues above, with status. Agent judges penalise overclaiming
    more than disclosed limits.
+
+
+## Codex follow-up — 2026-11-13: refund loop and stale upgrade approval
+
+Two independently reproduced gaps from this review are addressed in the local source
+and rebuilt judge WASMs. These changes are not deployed to testnet.
+
+- **Unresolved execution pricing:** permissionless release reimburses the quoted execution
+  reserve to the vault, charges registry storage from the fee, and credits only the
+  remainder to the requester. Agent income and pooled liabilities do not subsidize the
+  release. A failed reserve transfer retains escrow/the operation slot for the existing
+  permissionless reimbursement retry. Released work cannot become memory. Definite
+  operator failures and explicit owner cancellation retain their separate refund policies.
+- **Ownership-bound upgrades:** approval carries the NFT ownership epoch. The vault asks
+  the registry to validate that epoch and establish a transfer barrier before deploying.
+  Direct transfer, transfer-call and listing/sale cannot cross an in-flight deployment.
+  The barrier clears on deployment success or failure. Legacy timestamp-only approvals
+  cannot grant immediate upgrades. The guardian's public seven-day path remains available.
+- **Regression coverage:** native tests cover zero-income repeat releases, failed
+  reimbursement/retry, stale transfer/sale approval, both transfer-vs-authorization
+  orderings, deployment failure and legacy approval rejection. The recovery sandbox
+  repeats underfund → release → withdraw three times and checks retained storage,
+  reserve reimbursement and unchanged agent income. It also checks stale approval after
+  transfer and paid sale, followed by successful deployment with fresh buyer approval.
+
+Existing liability-counter migration and hosted guest build/model acceptance remain
+separate deployment prerequisites.
+
+Validation: `npm run build` and all ten steps of `npm run judge` passed locally
+(84 JavaScript tests, 81 registry tests, 25 vault tests; recovery sandbox 10 checks).
+The sandbox also passed memory/billing, handover, prior-bytecode upgrade and MCP
+create/hire/sell acceptance. Updated judge WASMs were built from this source.
+No testnet transactions were sent for this follow-up.

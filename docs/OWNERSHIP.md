@@ -86,7 +86,14 @@ the MVP is not immutable or free of operator trust.
   or delayed withdrawals? Exclude those asset types until separately audited.
 - Upgrade powers (review M4). Vault code changes only by a guardian proposal that the
   current owner approves through the registry (`approve_vault_upgrade`, valid one day,
-  not while listed) or after a public seven-day delay shown in vault `status`. The
+  not while listed) or after a public seven-day delay shown in vault `status`.
+  Approval is bound to the ownership epoch: transfer or sale invalidates it, including
+  approval messages delivered after the handover. Before deployment the vault asks the
+  registry to validate the epoch and lock handovers until deployment settles. The delayed
+  recovery path can upgrade a stuck or listed agent, but cannot race a transfer-call;
+  buyers cannot buy across deployment. Use 300 TGas for `emergency_upgrade` to cover
+  the authorization/deployment/callback chain. Deploy the compatible registry before
+  upgrading vaults; legacy timestamp-only approvals need fresh owner approval. The
   registry can upgrade itself through `propose_registry_upgrade` and, two days later,
   `apply_registry_upgrade`; that bound is only real once the operator deletes the
   registry's full-access key. `node scripts/authority-inventory.mjs` lists every key,

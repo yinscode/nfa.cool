@@ -68,7 +68,9 @@ try{
   results.push('customer cannot choose 1-yocto deposit or 1-instruction limits');
 
   // B1b: an execution OutLayer rejects (deposit at the floor, below the mock's cost) used to
-  // freeze the NFA forever. It is now released and refunded without any owner action.
+  // freeze the NFA forever. Release now reimburses its reserve and charges storage
+  // before refunding the remainder, without any owner action.
+  const storageFee=BigInt((await sdk.view(registryId,'registry_ledger')).job_storage_fee);
   const refundsBefore=BigInt((await sdk.view(registryId,'payout',{seller:customer.accountId})).available);
   assert.ok(!(await request(MOCK_COST)).failed);
   const jobId=(await agent()).pending_op;assert.ok(jobId);
@@ -80,7 +82,7 @@ try{
   assert.ok(!(await call(stranger,'release_service_job',{token_id:tokenId,id:jobId})).failed);
   assert.equal((await sdk.getPaidJob(tokenId,jobId)).status,'FAILED');
   assert.equal((await agent()).pending_op,null);
-  assert.equal(BigInt((await sdk.view(registryId,'payout',{seller:customer.accountId})).available)-refundsBefore,MOCK_COST+10n**22n);
+  assert.equal(BigInt((await sdk.view(registryId,'payout',{seller:customer.accountId})).available)-refundsBefore,10n**22n-storageFee);
   assert.equal((await sdk.view(`${tokenId}.${registryId}`,'status')).pending,null,'Vault pending cleared');
   results.push('OutLayer-rejected job released permissionlessly, customer refunded, vault clear');
 
@@ -94,7 +96,7 @@ try{
 
   // H1: the single operation slot cannot be held long or for free.
   const ledger=()=>sdk.view(registryId,'registry_ledger');
-  const storageFee=BigInt((await ledger()).job_storage_fee),deposit=3n*MOCK_COST,fee=deposit+10n**22n;
+  const deposit=3n*MOCK_COST,fee=deposit+10n**22n;
   const payout=async who=>BigInt((await sdk.view(registryId,'payout',{seller:who})).available);
   const income=async()=>BigInt(await sdk.view(registryId,'agent_income',{token_id:tokenId}));
   const at=offsetMs=>Number((BigInt(Date.now())+BigInt(offsetMs))*1_000_000n);
@@ -131,6 +133,60 @@ try{
   // H3: tracked liabilities equal what the registry owes: customer credits plus agent income.
   assert.equal(BigInt((await ledger()).liabilities),await payout(customer.accountId)+await income());
   results.push('tracked liabilities equal customer credits plus unclaimed income');
+
+  // Regression: repeat underfund -> release -> withdraw. Neither zero nor nonzero
+  // earnings may subsidize compute or retained rows, and no refund can be withdrawn twice.
+  const storageBefore=BigInt((await ledger()).storage_fees),incomeBefore=await income();
+  const bytesBefore=(await registry.state()).storage_usage;
+  const vaultId=`${tokenId}.${registryId}`;
+  for(let i=0;i<3;i++){
+    const before=await payout(customer.accountId);
+    assert.ok(!(await request(MOCK_COST)).failed);
+    const id=(await agent()).pending_op;
+    await call(customer,'start_service_job',{token_id:tokenId,id,input_data:input});
+    assert.equal((await sdk.getPaidJob(tokenId,id)).status,'UNCERTAIN');
+    const balanceBefore=BigInt((await (await node.account(vaultId)).state()).amount);
+    assert.ok(!(await call(stranger,'release_service_job',{token_id:tokenId,id})).failed);
+    assert.equal((await sdk.getPaidJob(tokenId,id)).status,'FAILED');
+    const balanceAfter=BigInt((await (await node.account(vaultId)).state()).amount);
+    // Vault pays callback gas, but receives its execution reserve back.
+    assert.ok(balanceAfter>balanceBefore,'Reserve reimbursement reached the vault');
+    assert.equal(await payout(customer.accountId)-before,10n**22n-storageFee);
+    assert.ok(!(await call(customer,'withdraw_proceeds',{amount:(await payout(customer.accountId)).toString()},1n)).failed);
+    assert.equal(await payout(customer.accountId),0n);
+    assert.ok((await call(stranger,'release_service_job',{token_id:tokenId,id})).failed,'Cannot release twice');
+  }
+  assert.equal(BigInt((await ledger()).storage_fees)-storageBefore,3n*storageFee);
+  assert.equal(await income(),incomeBefore,'Releases never charge agent earnings');
+  assert.ok((await registry.state()).storage_usage-bytesBefore<=3*800,'Collected storage fees cover retained rows');
+  assert.equal(BigInt((await ledger()).liabilities),await income());
+  results.push('repeated underfunded jobs reimburse vault, pay storage and withdraw only net refunds');
+
+  // Regression: Alice approval -> NFT transfer -> guardian cannot use stale approval.
+  // Test the paid-sale path too, then demonstrate a fresh buyer approval succeeds.
+  assert.ok(!(await call(alice,'create_agent',{request_id:'upgrade-regression',manifest_hash:hash('upgrade'),manifest_uri:'nfa://upgrade'},6n*NEAR)).failed);
+  const upgradeToken='nfa-2',upgradeVault=`${upgradeToken}.${registryId}`;
+  const code=await readFile(process.env.NFA_NEW_VAULT_WASM||'judge/wasm/vault.wasm');
+  const codeHash=createHash('sha256').update(code).digest('hex');
+  const upgrade=()=>raw(registry,upgradeVault,'emergency_upgrade',{code:code.toString('base64')});
+  const value=tx=>JSON.parse(Buffer.from(tx.status.SuccessValue,'base64').toString());
+  await raw(registry,upgradeVault,'propose_upgrade',{code_hash:codeHash});
+  assert.ok(!(await call(alice,'approve_vault_upgrade',{token_id:upgradeToken,code_hash:codeHash},1n)).failed);
+  await call(alice,'nft_transfer',{receiver_id:stranger.accountId,token_id:upgradeToken},1n);
+  assert.equal(value(await upgrade()),false,'Alice approval does not authorize after transfer');
+  assert.ok((await sdk.view(upgradeVault,'upgrade_proposal')),'Rejected authorization preserved proposal');
+  assert.ok(!(await call(stranger,'approve_vault_upgrade',{token_id:upgradeToken,code_hash:codeHash},1n)).failed);
+  await call(stranger,'create_listing',{token_id:upgradeToken,price:NEAR.toString(),expires_at_ns:deadline()},1n);
+  const listing=await sdk.view(registryId,'listing',{token_id:upgradeToken});
+  assert.ok(!(await call(alice,'buy',{token_id:upgradeToken,expected_nonce:listing.nonce},NEAR)).failed);
+  assert.equal(value(await upgrade()),false,'Seller approval does not authorize after paid sale');
+  assert.ok(!(await call(alice,'approve_vault_upgrade',{token_id:upgradeToken,code_hash:codeHash},1n)).failed);
+  const deployed=await upgrade();
+  assert.equal(value(deployed),true,'Fresh buyer approval authorizes deployment: '+JSON.stringify(
+    deployed.receipts_outcome?.filter(r=>r.outcome.status.Failure).map(r=>({executor:r.outcome.executor_id,status:r.outcome.status}))));
+  assert.equal(await sdk.view(upgradeVault,'upgrade_proposal'),null);
+  assert.ok(!(await call(alice,'nft_transfer',{receiver_id:stranger.accountId,token_id:upgradeToken},1n)).failed,'Deployment barrier cleared');
+  results.push('upgrade approval invalid after transfer and paid sale; fresh buyer approval deploys and unlocks');
 
   // The NFA is sellable again.
   assert.ok(!(await call(alice,'create_listing',{token_id:tokenId,price:NEAR.toString(),expires_at_ns:deadline()},1n)).failed);

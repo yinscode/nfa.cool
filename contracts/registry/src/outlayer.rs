@@ -70,6 +70,8 @@ pub(super) fn recall_view(token_id:&str,id:u64)->Option<RecallRequest>{recalls()
 fn service_policies()->LookupMap<String,ServicePolicy>{LookupMap::new(&b"OLSP"[..])}
 /// Jobs that failed because of their input; settled like a completed job's compute.
 fn customer_failures()->LookupMap<String,bool>{LookupMap::new(&b"OLCF"[..])}
+/// Released executions have no trusted result: reserve and storage remain customer-funded.
+fn released_jobs()->LookupMap<String,bool>{LookupMap::new(&b"OLREL"[..])}
 /// Margins kept by agents when a requester reserved the slot but never started.
 fn forfeits()->LookupMap<String,u128>{LookupMap::new(&b"OLFF"[..])}
 /// Who caused a definite guest failure. An explicit guest `fault` wins. Older guests do
@@ -385,8 +387,10 @@ impl Registry {
         let storage=job_storage_fee().min(j.fee.0-j.replenish.0);
         collect_storage(storage);
         let remainder=j.fee.0-j.replenish.0-storage;
-        let failed=customer_failures().get(&op_key(&token_id,id)).is_some();
+        let released=released_jobs().get(&op_key(&token_id,id)).is_some();
+        let failed=released || customer_failures().get(&op_key(&token_id,id)).is_some();
         if failed{customer_failures().remove(&op_key(&token_id,id));}
+        if released{released_jobs().remove(&op_key(&token_id,id));}
         let mut ledger=ledgers().get(&0).unwrap_or_default();
         ledger.customer_escrow.0=ledger.customer_escrow.0.saturating_sub(j.fee.0);
         ledger.vault_replenishment_pending.0=ledger.vault_replenishment_pending.0.saturating_sub(j.replenish.0);
@@ -403,7 +407,7 @@ impl Registry {
             j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
             let mut payout=payouts().get(&j.requester).unwrap_or_default();
             payout.available.0=payout.available.0.checked_add(remainder).unwrap(); payouts().insert(&j.requester,&payout);
-            event("service_job_failed",serde_json::json!({"token_id":token_id,"id":id,"fault":"customer",
+            event("service_job_failed",serde_json::json!({"token_id":token_id,"id":id,"fault":if released{"unresolved"}else{"customer"},
                 "refund_credit":U128(remainder),"compute_charged":j.replenish,"storage_fee":U128(storage),"runtime_hash":j.version_key}));
         }else{
             j.status="FINALIZED".into();
@@ -415,7 +419,9 @@ impl Registry {
                 "runtime_hash":j.version_key,"fee":j.fee,"replenished":j.replenish,"storage_fee":U128(storage)}));
         }
         a.pending_op=None; self.agents.insert(&token_id,&a);
-        PromiseOrValue::Promise(ol_call(a.vault_id,"ack_skill",serde_json::json!({"id":id}),15))
+        // release_skill already cleared the vault; do not send a stale acknowledgement.
+        if released { PromiseOrValue::Value(true) }
+        else { PromiseOrValue::Promise(ol_call(a.vault_id,"ack_skill",serde_json::json!({"id":id}),15)) }
     }
 
     pub fn retry_outlayer_replenishment(&mut self, token_id: TokenId, id: u64) -> Promise {
@@ -429,7 +435,8 @@ impl Registry {
 
     /// Permissionless. Ends a started job whose result can no longer arrive: the vault's
     /// OutLayer callback has returned (or the vault never began), but the registry has
-    /// no definite result. The customer is refunded, the work never enters memory and
+    /// no definite result. The customer pays the quoted reserve and storage, receives
+    /// the remainder as a refund, the work never enters memory and
     /// the NFA is usable again. Any late OutLayer storage write stays unreachable because
     /// recall and prior-work context require FINALIZED jobs.
     pub fn release_service_job(&mut self,token_id:TokenId,id:u64)->Promise{
@@ -437,30 +444,25 @@ impl Registry {
         let j=paid_jobs().get(&op_key(&token_id,id)).unwrap_or_else(||env::panic_str("Unknown job"));
         require!(releasable(&a,&j,id),"Job is not releasable");
         ol_call(a.vault_id,"release_skill",serde_json::json!({"id":id}),15)
-            .then(ol_callback("on_service_job_released",&token_id,id))
+            .then(ol_call(env::current_account_id(),"on_service_job_released",
+                serde_json::json!({"token_id":token_id,"id":id}),90))
     }
 
     #[private]
-    pub fn on_service_job_released(&mut self,token_id:TokenId,id:u64)->bool{
-        let mut a=self.agents.get(&token_id).unwrap();
-        let mut j=paid_jobs().get(&op_key(&token_id,id)).unwrap();
-        if !releasable(&a,&j,id){return false}
-        if !matches!(env::promise_result_checked(0,16),Ok(ref b) if b==b"true"){return false}
+    pub fn on_service_job_released(&mut self,token_id:TokenId,id:u64)->PromiseOrValue<bool>{
+        let a=self.agents.get(&token_id).unwrap();
+        let j=paid_jobs().get(&op_key(&token_id,id)).unwrap();
+        if !releasable(&a,&j,id){return PromiseOrValue::Value(false)}
+        if !matches!(env::promise_result_checked(0,16),Ok(ref b) if b==b"true"){return PromiseOrValue::Value(false)}
         if job_service(&token_id,id)=="research"{self.research_released(&token_id,id)}
-        j.status="FAILED".into(); paid_jobs().insert(&op_key(&token_id,id),&j);
-        a.pending_op=None; self.agents.insert(&token_id,&a);
-        charge_storage_to_agent(&token_id);
-        let mut payout=payouts().get(&j.requester).unwrap_or_default();
-        payout.available.0=payout.available.0.checked_add(j.fee.0).unwrap(); payouts().insert(&j.requester,&payout);
-        let mut ledger=ledgers().get(&0).unwrap_or_default();
-        ledger.customer_escrow.0=ledger.customer_escrow.0.saturating_sub(j.fee.0);
-        ledger.customer_refunds.0=ledger.customer_refunds.0.saturating_add(j.fee.0); save_ledger(&ledger);
-        update_service_ledger(&token_id,id,|s|{
-            s.customer_escrow.0=s.customer_escrow.0.saturating_sub(j.fee.0);
-            s.customer_refunds.0=s.customer_refunds.0.saturating_add(j.fee.0);
-        });
-        event("service_job_released",serde_json::json!({"token_id":token_id,"id":id,"refund_credit":j.fee,"runtime_hash":j.version_key}));
-        true
+        // An unparseable/rejected result does not establish zero execution cost. Never
+        // insure a customer-chosen underfunded deposit from agent income or pooled funds.
+        // Reimburse the quoted reserve, charge storage, then refund only the remainder.
+        // Keep the slot until the transfer settles; the usual retry path handles failure.
+        released_jobs().insert(&op_key(&token_id,id),&true);
+        event("service_job_released",serde_json::json!({"token_id":token_id,"id":id,
+            "reimbursement_pending":j.replenish,"runtime_hash":j.version_key}));
+        self.reimburse_vault(&token_id,id,j,a.vault_id)
     }
 
     /// Permissionless. Re-sends the vault acknowledgement for a settled job if the

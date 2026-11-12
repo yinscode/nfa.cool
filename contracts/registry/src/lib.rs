@@ -708,6 +708,7 @@ impl Registry {
 
     #[payable]
     pub fn buy(&mut self, token_id: TokenId, expected_nonce: u64) {
+        require!(!governance::vault_upgrade_locked(&token_id), "Vault upgrade in flight");
         let buyer = env::predecessor_account_id();
         let listing = listings().get(&token_id).unwrap_or_else(|| env::panic_str("No listing"));
         let mut agent = self.agents.get(&token_id).unwrap();
@@ -809,6 +810,7 @@ impl Registry {
         self.nft.owner_by_id.get(token_id).unwrap_or_else(|| env::panic_str("Token not minted"))
     }
     fn transferable(&self, token_id: &TokenId) -> Agent {
+        require!(!governance::vault_upgrade_locked(token_id), "Vault upgrade in flight");
         let a = self.agents.get(token_id).unwrap_or_else(|| env::panic_str("Unknown agent"));
         require!(a.lifecycle == Lifecycle::Active && a.pending_op.is_none(), "Agent not transferable"); a
     }
@@ -1801,16 +1803,20 @@ mod tests {
         // Vault still has the OutLayer callback outstanding.
         testing_env!(context("registry.testnet",0).block_timestamp(900).build(),test_vm_config(),RuntimeFeesConfig::test(),
             Default::default(),vec![PromiseResult::Successful(b"false".to_vec())]);
-        assert!(!r.on_service_job_released("nfa-1".into(),id));
+        assert!(matches!(r.on_service_job_released("nfa-1".into(),id),PromiseOrValue::Value(false)));
         assert_eq!(r.agent("nfa-1".into()).unwrap().pending_op,Some(id));
         testing_env!(context("registry.testnet",0).block_timestamp(900).build(),test_vm_config(),RuntimeFeesConfig::test(),
             Default::default(),vec![PromiseResult::Successful(b"true".to_vec())]);
-        assert!(r.on_service_job_released("nfa-1".into(),id));
+        assert!(matches!(r.on_service_job_released("nfa-1".into(),id),PromiseOrValue::Promise(_)));
+        assert_eq!(r.agent("nfa-1".into()).unwrap().pending_op,Some(id),"retain slot through reimbursement");
+        testing_env!(context("registry.testnet",0).block_timestamp(900).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(vec![])]);
+        assert!(matches!(r.on_outlayer_replenished("nfa-1".into(),id),PromiseOrValue::Value(true)));
         assert!(r.agent("nfa-1".into()).unwrap().pending_op.is_none());
         assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Active);
         assert_eq!(r.paid_scout_job("nfa-1".into(),id).unwrap().status,"FAILED");
         assert_eq!(r.paid_scout_ledger().customer_escrow.0,escrow-fee);
-        assert_eq!(r.payout(id_("customer.testnet")).available.0,refunds+fee);
+        assert_eq!(r.payout(id_("customer.testnet")).available.0,refunds+fee-r.paid_scout_job("nfa-1".into(),id).unwrap().replenish.0-job_storage_fee());
         assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.owner_memory_receipt("nfa-1".into(),id))).is_err());
         // Released jobs never become memory and the NFA can be sold again.
         testing_env!(context("alice.testnet",1).block_timestamp(900).build());
@@ -1839,11 +1845,51 @@ mod tests {
         let _=r.start_paid_scout("nfa-1".into(),id,input);
         testing_env!(context("registry.testnet",0).block_timestamp(700+900_000_000_000).build(),test_vm_config(),RuntimeFeesConfig::test(),
             Default::default(),vec![PromiseResult::Successful(b"true".to_vec())]);
-        assert!(r.on_service_job_released("nfa-1".into(),id));
+        assert!(matches!(r.on_service_job_released("nfa-1".into(),id),PromiseOrValue::Promise(_)));
+        assert_eq!(r.agent("nfa-1".into()).unwrap().pending_op,Some(id),"retain slot through reimbursement");
+        testing_env!(context("registry.testnet",0).block_timestamp(900).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(vec![])]);
+        assert!(matches!(r.on_outlayer_replenished("nfa-1".into(),id),PromiseOrValue::Value(true)));
         // A result arriving afterwards is rejected and cannot finalize memory.
         testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(800+900_000_000_000).build());
         assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.on_outlayer_job("nfa-1".into(),id,
             Some(serde_json::json!({"schemaVersion":1,"jobId":id,"status":"ok"}))))).is_err());
+    }
+
+    #[test]
+    fn repeated_unresolved_jobs_pay_storage_and_compute_without_agent_income(){
+        let (mut r,input,_,_)=scout_ready();let token="nfa-1".to_string();
+        let deposit=NearToken::from_millinear(1).as_yoctonear();let fee=deposit+MIN_MARGIN_FOR_TESTS;
+        // The fixture expired an earlier job. Start this attack with no earnings/credits,
+        // as if those balances had already been withdrawn.
+        release_liability(incomes().remove(&token).unwrap_or(0));
+        release_liability(payouts().remove(&id_("customer.testnet")).unwrap_or_default().available.0);
+        let storage_fees_before=ledger_totals().get(&"storage_fees".into()).unwrap_or(0);
+        for cycle in 0..3 {
+            testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+            let id=r.request_paid_scout(token.clone(),format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,
+                U128(fee),U128(deposit),U128(deposit),limits(1_000_000));
+            let _=r.start_paid_scout(token.clone(),id,input.clone());
+            testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(700).build());
+            let _=r.on_outlayer_job(token.clone(),id,None);
+            testing_env!(context("registry.testnet",0).block_timestamp(800).build(),test_vm_config(),RuntimeFeesConfig::test(),
+                Default::default(),vec![PromiseResult::Successful(b"true".to_vec())]);
+            let _=r.on_service_job_released(token.clone(),id);
+            // A failed transfer gives no credit and cannot trigger a second release.
+            testing_env!(context("registry.testnet",0).block_timestamp(800).build(),test_vm_config(),RuntimeFeesConfig::test(),
+                Default::default(),vec![PromiseResult::Failed]);
+            let _=r.on_outlayer_replenished(token.clone(),id);
+            assert!(matches!(r.on_service_job_released(token.clone(),id),PromiseOrValue::Value(false)));
+            let _=r.retry_outlayer_replenishment(token.clone(),id);
+            testing_env!(context("registry.testnet",0).block_timestamp(800).build(),test_vm_config(),RuntimeFeesConfig::test(),
+                Default::default(),vec![PromiseResult::Successful(vec![])]);
+            assert!(matches!(r.on_outlayer_replenished(token.clone(),id),PromiseOrValue::Value(true)));
+            assert_eq!(r.payout(id_("customer.testnet")).available.0,(cycle+1)*(fee-deposit-job_storage_fee()));
+            assert_eq!(r.agent_income(token.clone()).0,0,"agent earnings do not subsidize releases");
+            assert_eq!(r.paid_scout_job(token.clone(),id).unwrap().status,"FAILED");
+            assert_eq!(liability(),r.payout(id_("customer.testnet")).available.0);
+        }
+        assert_eq!(ledger_totals().get(&"storage_fees".into()).unwrap_or(0)-storage_fees_before,3*job_storage_fee());
     }
 
     // ---- B2: definite vault rejection and reconciliation of NEAR transfers ----
@@ -2178,6 +2224,59 @@ mod tests {
         assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.approve_vault_upgrade("nfa-1".into(),hash.clone()))).is_err(),"listed");
         r.unlist_agent("nfa-1".into());
         let _=r.approve_vault_upgrade("nfa-1".into(),hash);
+    }
+
+    #[test]
+    fn upgrade_approval_cannot_cross_transfer_or_sale_and_deployment_blocks_handover(){
+        let mut r=minted();let token="nfa-1".to_string();let code=vec![0,97,115,109,1,0,0,0];let hash=hex(&env::sha256(&code));
+        testing_env!(context("alice.testnet",1).build());
+        let _=r.approve_vault_upgrade(token.clone(),hash.clone());
+        r.nft_transfer(id_("bob.testnet"),token.clone(),None,None);
+        testing_env!(context("nfa-1.registry.testnet",0).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.authorize_vault_upgrade(token.clone(),hash.clone(),Some(0),near_sdk::json_types::Base64VecU8(code.clone())))).is_err(),"seller approval is stale");
+        // Same bytes are authorized only with the buyer's epoch; a stranger cannot authorize.
+        testing_env!(context("stranger.testnet",0).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.authorize_vault_upgrade(token.clone(),hash.clone(),Some(1),near_sdk::json_types::Base64VecU8(code.clone())))).is_err());
+        testing_env!(context("nfa-1.registry.testnet",0).build());
+        let _=r.authorize_vault_upgrade(token.clone(),hash.clone(),Some(1),near_sdk::json_types::Base64VecU8(code.clone()));
+        testing_env!(context("bob.testnet",1).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.nft_transfer(id_("alice.testnet"),token.clone(),None,None))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.nft_transfer_call(id_("alice.testnet"),token.clone(),None,None,"x".into()))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.list_agent(token.clone(),U128(10)))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.approve_vault_upgrade(token.clone(),hash.clone()))).is_err());
+        // Even failed deployment releases the barrier, without a timeout that could race it.
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Failed]);
+        assert!(!r.on_vault_upgrade_applied(token.clone(),hash.clone()));
+        testing_env!(context("bob.testnet",1).block_timestamp(10).build());
+        r.create_listing(token.clone(),U128(10),1000);
+        testing_env!(context("alice.testnet",10).block_timestamp(11).build());r.buy(token.clone(),1);
+        testing_env!(context("nfa-1.registry.testnet",0).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.authorize_vault_upgrade(token.clone(),hash.clone(),Some(1),near_sdk::json_types::Base64VecU8(code.clone())))).is_err(),"paid sale invalidates approval too");
+        // Public-delay upgrades still serialize with a transfer, but need no owner approval.
+        let _=r.authorize_vault_upgrade(token.clone(),hash.clone(),None,near_sdk::json_types::Base64VecU8(code));
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Successful(vec![])]);
+        assert!(r.on_vault_upgrade_applied(token.clone(),hash));
+        testing_env!(context("alice.testnet",1).build());r.nft_transfer(id_("bob.testnet"),token,None,None);
+    }
+
+    #[test]
+    fn delayed_vault_upgrade_can_recover_busy_or_listed_agents_but_blocks_sales(){
+        let mut r=minted();let token="nfa-1".to_string();let code=vec![0,97,115,109,1,0,0,0];let hash=hex(&env::sha256(&code));
+        let mut a=r.agents.get(&token).unwrap();a.pending_op=Some(9);a.lifecycle=Lifecycle::Draining;r.agents.insert(&token,&a);
+        testing_env!(context("nfa-1.registry.testnet",0).build());
+        let _=r.authorize_vault_upgrade(token.clone(),hash.clone(),None,near_sdk::json_types::Base64VecU8(code.clone()));
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Failed]);
+        assert!(!r.on_vault_upgrade_applied(token.clone(),hash.clone()));
+        assert_eq!(r.agents.get(&token).unwrap().pending_op,Some(9));
+        a.pending_op=None;a.lifecycle=Lifecycle::Active;r.agents.insert(&token,&a);
+        testing_env!(context("alice.testnet",1).block_timestamp(1).build());r.create_listing(token.clone(),U128(10),1000);
+        testing_env!(context("nfa-1.registry.testnet",0).build());
+        let _=r.authorize_vault_upgrade(token.clone(),hash.clone(),None,near_sdk::json_types::Base64VecU8(code));
+        testing_env!(context("bob.testnet",10).block_timestamp(2).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.buy(token.clone(),1))).is_err(),"buyer cannot cross deployment");
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),vec![PromiseResult::Successful(vec![])]);
+        assert!(r.on_vault_upgrade_applied(token.clone(),hash));
+        testing_env!(context("bob.testnet",10).block_timestamp(2).build());r.buy(token,1);
     }
 
     // ---- M2/M5 ----

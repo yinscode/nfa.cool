@@ -48,13 +48,17 @@ fn candidate_store() -> LookupMap<u64, Vec<EvmCandidate>> { LookupMap::new(&b"ev
 const MAX_EVM_CANDIDATES: usize = 8;
 /// A guardian upgrade without the owner's approval waits this long after its proposal.
 const UPGRADE_DELAY_NS: u64 = 7 * DAY_NS;
-/// An owner approval of a proposed upgrade expires, so it cannot outlive a quick sale.
+/// Owner approval expires even without a transfer; the registry also checks its epoch.
 const APPROVAL_TTL_NS: u64 = DAY_NS;
 /// A proposed vault code hash, visible in `status` to owners and buyers.
 #[near(serializers = [borsh, json])]
 #[derive(Clone)]
 pub struct UpgradeProposal { pub code_hash: String, pub proposed_at_ns: u64, pub approved_at_ns: Option<u64> }
 fn upgrade_store() -> LookupMap<u8, UpgradeProposal> { LookupMap::new(&b"upgrade:proposal:v1"[..]) }
+// Separate keys preserve old proposal/root Borsh layouts. Legacy timestamp-only approvals
+// never grant early execution: they have no owner epoch.
+fn upgrade_approval_epoch() -> LookupMap<u8,u64> { LookupMap::new(&b"upgrade:approval-epoch:v1"[..]) }
+fn upgrade_execution() -> LookupMap<u8,String> { LookupMap::new(&b"upgrade:execution:v1"[..]) }
 fn rejected<T>() -> PromiseOrValue<T> where T: Default { PromiseOrValue::Value(T::default()) }
 fn rejection() -> PromiseOrValue<serde_json::Value> { PromiseOrValue::Value(serde_json::json!("rejected")) }
 fn valid_hash(hash: &str) -> bool { hash.len() == 64 && hash.bytes().all(|b| b.is_ascii_hexdigit()) }
@@ -458,22 +462,28 @@ impl Vault {
     /// through the registry, or after a seven-day delay that owners and buyers can see.
     pub fn propose_upgrade(&mut self, code_hash: String) {
         require!(env::predecessor_account_id() == self.guardian, "Guardian only");
+        require!(upgrade_execution().get(&0).is_none(), "Upgrade in flight");
         require!(valid_hash(&code_hash), "Invalid code hash");
+        upgrade_approval_epoch().remove(&0);
         let proposal = UpgradeProposal { code_hash: code_hash.to_ascii_lowercase(), proposed_at_ns: env::block_timestamp(), approved_at_ns: None };
         upgrade_store().insert(&0, &proposal);
         env::log_str(&format!("NFA_VAULT_UPGRADE_PROPOSED:{}", proposal.code_hash));
     }
     /// Registry relays the current NFT owner's approval of the proposed hash.
-    pub fn approve_upgrade(&mut self, code_hash: String) {
+    pub fn approve_upgrade(&mut self, code_hash: String, expected_epoch: u64) {
         self.assert_controller();
+        require!(upgrade_execution().get(&0).is_none(), "Upgrade in flight");
         let mut proposal = upgrade_store().get(&0).unwrap_or_else(|| env::panic_str("No proposed upgrade"));
         require!(proposal.code_hash.eq_ignore_ascii_case(&code_hash), "Different proposed code");
+        upgrade_approval_epoch().insert(&0,&expected_epoch);
         proposal.approved_at_ns = Some(env::block_timestamp());
         upgrade_store().insert(&0, &proposal);
     }
     pub fn cancel_upgrade(&mut self) {
         let caller = env::predecessor_account_id();
         require!(caller == self.guardian || caller == self.controller, "Guardian or controller only");
+        require!(upgrade_execution().get(&0).is_none(), "Upgrade in flight");
+        upgrade_approval_epoch().remove(&0);
         upgrade_store().remove(&0);
     }
     pub fn upgrade_proposal(&self) -> Option<UpgradeProposal> { upgrade_store().get(&0) }
@@ -485,10 +495,35 @@ impl Vault {
         let proposal = upgrade_store().get(&0).unwrap_or_else(|| env::panic_str("Propose the code hash first"));
         require!(hex(&env::sha256(&code.0)) == proposal.code_hash, "Code differs from proposal");
         let now = env::block_timestamp();
-        let approved = proposal.approved_at_ns.is_some_and(|t| now <= t.saturating_add(APPROVAL_TTL_NS));
-        require!(approved || now >= proposal.proposed_at_ns.saturating_add(UPGRADE_DELAY_NS), "Upgrade needs owner approval or the delay");
+        let epoch=upgrade_approval_epoch().get(&0);
+        let approved = epoch.is_some() && proposal.approved_at_ns.is_some_and(|t| now <= t.saturating_add(APPROVAL_TTL_NS));
+        let delayed=now >= proposal.proposed_at_ns.saturating_add(UPGRADE_DELAY_NS);
+        require!(approved || delayed, "Upgrade needs owner approval or the delay");
+        require!(upgrade_execution().get(&0).is_none(), "Upgrade in flight");
+        upgrade_execution().insert(&0,&proposal.code_hash);
+        // Registry rejects stale epochs and locks every handover path until deployment
+        // settles. A view-then-deploy check would race a transfer between receipts.
+        self.call_registry("authorize_vault_upgrade",serde_json::json!({"token_id":self.token_id(),
+            "code_hash":proposal.code_hash,"expected_epoch":if delayed{None}else{epoch},"code":code}),200)
+            .then(Promise::new(env::current_account_id()).function_call("on_emergency_upgrade".to_string(),
+                vec![],NearToken::from_yoctonear(0),Gas::from_tgas(10)))
+    }
+
+    /// Only the registry may execute the deployment after setting its handover barrier.
+    pub fn apply_authorized_upgrade(&mut self,code:Base64VecU8)->Promise {
+        self.assert_controller();
+        let hash=upgrade_execution().get(&0).unwrap_or_else(||env::panic_str("No upgrade in flight"));
+        let proposal=upgrade_store().get(&0).unwrap();
+        require!(hash==proposal.code_hash && hex(&env::sha256(&code.0))==hash,"Upgrade changed");
         upgrade_store().remove(&0);
+        upgrade_approval_epoch().remove(&0);
         Promise::new(env::current_account_id()).deploy_contract(code.0)
+    }
+
+    #[private]
+    pub fn on_emergency_upgrade(&mut self)->bool {
+        upgrade_execution().remove(&0);
+        matches!(env::promise_result_checked(0,32),Ok(ref b) if b==b"true")
     }
 
     pub fn status(&self) -> serde_json::Value {
@@ -760,14 +795,50 @@ mod tests {
         testing_env!(context("guardian.testnet").block_timestamp(UPGRADE_DELAY_NS).build());
         assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.emergency_upgrade(Base64VecU8(vec![1,2,3])))).is_err(),"different code");
         let _=v.emergency_upgrade(Base64VecU8(code.clone()));
-        assert!(v.upgrade_proposal().is_none(),"proposal consumed");
+        assert!(v.upgrade_proposal().is_some(),"authorization must precede deployment");
+        testing_env!(context("controller.testnet").build());
+        let _=v.apply_authorized_upgrade(Base64VecU8(code.clone()));
+        assert!(v.upgrade_proposal().is_none(),"proposal consumed by authorized deployment");
+        testing_env!(context("vault.testnet").build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(b"true".to_vec())]);
+        assert!(v.on_emergency_upgrade());
         // Owner approval (relayed by the registry) allows an immediate upgrade.
         testing_env!(context("guardian.testnet").block_timestamp(UPGRADE_DELAY_NS+1).build());v.propose_upgrade(hash.clone());
         testing_env!(context("alice.testnet").build());
-        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.approve_upgrade(hash.clone()))).is_err(),"only the registry relays approval");
-        testing_env!(context("controller.testnet").block_timestamp(UPGRADE_DELAY_NS+2).build());v.approve_upgrade(hash.clone());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.approve_upgrade(hash.clone(),0))).is_err(),"only the registry relays approval");
+        testing_env!(context("controller.testnet").block_timestamp(UPGRADE_DELAY_NS+2).build());v.approve_upgrade(hash.clone(),0);
         testing_env!(context("guardian.testnet").block_timestamp(UPGRADE_DELAY_NS+3).build());
         let _=v.emergency_upgrade(Base64VecU8(code));
+    }
+
+    #[test]
+    fn legacy_approval_does_not_bypass_the_delay_and_failed_authorization_can_retry(){
+        let mut v=vault();let code=vec![0,97,115,109,1];let hash=hex(&env::sha256(&code));
+        testing_env!(context("guardian.testnet").block_timestamp(10).build());
+        v.propose_upgrade(hash.clone());
+        let mut p=v.upgrade_proposal().unwrap();p.approved_at_ns=Some(10);upgrade_store().insert(&0,&p);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.emergency_upgrade(Base64VecU8(code.clone())))).is_err(),"no epoch on legacy approval");
+        testing_env!(context("controller.testnet").block_timestamp(11).build());v.approve_upgrade(hash.clone(),0);
+        testing_env!(context("guardian.testnet").block_timestamp(12).build());
+        let _=v.emergency_upgrade(Base64VecU8(code.clone()));
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.propose_upgrade(hash.clone()))).is_err(),"cannot change in-flight proposal");
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||v.apply_authorized_upgrade(Base64VecU8(code.clone())))).is_err(),"guardian cannot bypass registry");
+        testing_env!(context("vault.testnet").build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Failed]);
+        assert!(!v.on_emergency_upgrade());
+        testing_env!(context("guardian.testnet").block_timestamp(13).build());
+        let _=v.emergency_upgrade(Base64VecU8(code)); // rejected authorization did not strand the vault
+    }
+
+    #[test]
+    fn delayed_recovery_upgrade_preserves_a_stuck_operation(){
+        let mut v=vault();let code=vec![0,97,115,109,1];let hash=hex(&env::sha256(&code));
+        v.pending=Some(Pending::Near{id:9,recipient:id("alice.testnet"),amount:1});
+        testing_env!(context("guardian.testnet").block_timestamp(1).build());v.propose_upgrade(hash);
+        testing_env!(context("guardian.testnet").block_timestamp(1+UPGRADE_DELAY_NS).build());
+        let _=v.emergency_upgrade(Base64VecU8(code.clone()));
+        testing_env!(context("controller.testnet").build());let _=v.apply_authorized_upgrade(Base64VecU8(code));
+        assert!(matches!(v.pending,Some(Pending::Near{id:9,..})),"recovery code receives the unresolved operation");
     }
 
     #[test]

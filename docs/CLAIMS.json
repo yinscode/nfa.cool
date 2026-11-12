@@ -257,6 +257,7 @@
       ],
       "judge": [
         "recovery:tracked liabilities equal customer credits plus unclaimed income",
+        "recovery:repeated underfunded jobs reimburse vault, pay storage and withdraw only net refunds",
         "research:no customer escrow or replenishment remains"
       ],
       "limits": "The counter starts at zero on an upgraded registry."

@@ -80,7 +80,7 @@ job ID. No process runs continuously inside the NFT.
 | --- | --- |
 | `REQUESTED` past deadline (at most 30 minutes) | Permissionless `expire_unstarted_paid_scout` returns the execution deposit; the margin, net of storage, compensates the agent for the held slot. The owner can `cancel_unstarted_job` earlier with a full refund. |
 | Project `UNCERTAIN` | Inspect OutLayer `get_project`/`get_version`, then use `reconcile_outlayer_project`; retain NFT lock until identity matches. |
-| Job `UNCERTAIN`, or `EXECUTING` 15 minutes after start | Permissionless `release_service_job`. It succeeds only if the vault confirms its OutLayer callback has returned (or it never began). The customer is refunded, the job never becomes memory, and the NFA unlocks. A job is never re-executed. Requires vault code with `release_skill`. |
+| Job `UNCERTAIN`, or `EXECUTING` 15 minutes after start | Permissionless `release_service_job`. It succeeds only if the vault confirms its OutLayer callback has returned (or it never began). The quoted execution reserve is reimbursed to the vault and registry storage is charged from the customer fee; only the remainder becomes refund credit. The slot stays locked until reimbursement settles. The job never becomes memory, and the NFA then unlocks. A job is never re-executed. Requires vault code with `release_skill`. |
 | Settled job but vault still pending | Permissionless `retry_job_ack` re-sends the vault acknowledgement. |
 | NEAR transfer `Uncertain` | Permissionless `reconcile_near_operation` resolves from vault status: never began → Failed; recorded `last_near` outcome → applied. Works with old vaults for the never-began case. |
 | EVM request `Uncertain` | Signer timeout: owner or reporter `retry_evm_signature` (same digest). Vault never began: permissionless `recover_evm_operation`. Stuck in the mempool: owner `replace_evm_transfer` (same nonce, fees +10%, or `cancel`). |
@@ -93,7 +93,9 @@ job ID. No process runs continuously inside the NFT.
 
 No automatic timeout resolves a submitted OutLayer execution. Release is explicit
 and only proves that no result can still reach the registry. OutLayer may still
-have charged the vault deposit or written storage for that job ID. That storage
+have charged the vault deposit or written storage for that job ID. Release therefore
+charges the quoted reserve rather than assuming zero compute cost; it is not a
+full-refund guarantee. A failed reimbursement retains escrow and can be retried. That storage
 is unreachable, because recall and prior-work context require `FINALIZED` jobs.
 OutLayer attestation binds an execution to code/input/output. Scout's cited
 source claims still require separate evaluation; execution does not prove an

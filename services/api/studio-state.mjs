@@ -40,7 +40,7 @@ export function recoveryActions({registryAccountId,tokenId,project,agent,rows,re
   // that no result or signature can still arrive; otherwise it fails without changing state.
   const RELEASE_NS=900_000_000_000n,nowNs=BigInt(now)*1_000_000n;
   if(job?.status==='UNCERTAIN'||job?.status==='EXECUTING'&&job.started_at_ns!=null&&BigInt(job.started_at_ns)+RELEASE_NS<=nowNs)
-    add('release_service_job',{id:pending.id},'Release a job whose result can no longer arrive (customer refunded)');
+    add('release_service_job',{id:pending.id},'Release an unresolved job (reserve and storage charged; remainder refunded)');
   if(job?.status==='REQUESTED'&&BigInt(job.deadline_ns)>nowNs){
     add('cancel_unstarted_job',{id:pending.id},'Cancel the unstarted job and refund the customer');
     actions.at(-1).ownerRequired=true;actions.at(-1).unsignedAction.deposit='1';

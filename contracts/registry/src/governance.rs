@@ -9,6 +9,8 @@ pub(crate) const REGISTRY_UPGRADE_DELAY_NS: u64 = 2 * 86_400_000_000_000;
 #[near(serializers = [borsh, json])]
 #[derive(Clone)]
 pub struct RegistryUpgrade { pub code_hash: String, pub proposed_at_ns: u64 }
+pub(super) fn vault_upgrade_locked(token_id: &TokenId) -> bool { vault_upgrades().get(token_id).is_some() }
+fn vault_upgrades() -> LookupMap<TokenId, String> { LookupMap::new(&b"governance:vault-inflight:v1"[..]) }
 fn registry_upgrade() -> LookupMap<u8, RegistryUpgrade> { LookupMap::new(&b"governance:registry-upgrade:v1"[..]) }
 
 #[near]
@@ -22,10 +24,45 @@ impl Registry {
         require!(self.owner(&token_id) == env::predecessor_account_id(), "Owner only");
         let a = self.agents.get(&token_id).unwrap();
         require!(matches!(a.lifecycle, Lifecycle::Active | Lifecycle::Draining), "Not while listed or transferring");
+        require!(!vault_upgrade_locked(&token_id), "Vault upgrade in flight");
         require!(code_hash.len() == 64 && code_hash.bytes().all(|b| b.is_ascii_hexdigit()), "Invalid code hash");
         event("vault_upgrade_approved", serde_json::json!({"token_id":token_id,"code_hash":code_hash,"epoch":a.epoch}));
         Promise::new(a.vault_id).function_call("approve_upgrade".to_string(),
-            serde_json::json!({"code_hash":code_hash}).to_string().into_bytes(), NearToken::from_yoctonear(0), Gas::from_tgas(10))
+            serde_json::json!({"code_hash":code_hash,"expected_epoch":a.epoch}).to_string().into_bytes(), NearToken::from_yoctonear(0), Gas::from_tgas(10))
+    }
+
+    /// Called only by this NFA's vault, after it checks the proposal and approval TTL
+    /// (or public delay). Epoch validation and the handover barrier are one receipt.
+    /// Returning the deployment promise keeps the barrier until deployment succeeds/fails.
+    pub fn authorize_vault_upgrade(&mut self, token_id: TokenId, code_hash: String,
+        expected_epoch: Option<u64>, code: near_sdk::json_types::Base64VecU8) -> Promise {
+        let a=self.agents.get(&token_id).unwrap();
+        require!(env::predecessor_account_id()==a.vault_id,"Vault only");
+        require!(a.lifecycle!=Lifecycle::TransferCallPending && !vault_upgrade_locked(&token_id),"Agent transferring or upgrading");
+        if let Some(epoch)=expected_epoch {
+            require!(matches!(a.lifecycle,Lifecycle::Active|Lifecycle::Draining)
+                && a.pending_op.is_none(),"Agent busy or listed");
+            require!(epoch==a.epoch,"Upgrade approval owner changed");
+        }
+        // The vault enforces the seven-day delay when no approval epoch is supplied.
+        // Keep that recovery path usable for stuck operations and listed agents; the
+        // deployment barrier still prevents a buy/transfer from racing the code change.
+        require!(code_hash.len()==64 && hex(&env::sha256(&code.0))==code_hash,"Invalid upgrade code");
+        vault_upgrades().insert(&token_id,&code_hash);
+        Promise::new(a.vault_id).function_call("apply_authorized_upgrade".to_string(),
+            serde_json::json!({"code":code}).to_string().into_bytes(),NearToken::from_yoctonear(0),Gas::from_tgas(80))
+            .then(Promise::new(env::current_account_id()).function_call("on_vault_upgrade_applied".to_string(),
+                serde_json::json!({"token_id":token_id,"code_hash":code_hash}).to_string().into_bytes(),
+                NearToken::from_yoctonear(0),Gas::from_tgas(15)))
+    }
+
+    #[private]
+    pub fn on_vault_upgrade_applied(&mut self,token_id:TokenId,code_hash:String)->bool {
+        require!(vault_upgrades().get(&token_id)==Some(code_hash.clone()),"Wrong upgrade callback");
+        let success=env::promise_results_count()==1 && env::promise_result_checked(0,32).is_ok();
+        vault_upgrades().remove(&token_id);
+        event("vault_upgrade_settled",serde_json::json!({"token_id":token_id,"code_hash":code_hash,"success":success}));
+        success
     }
 
     pub fn propose_registry_upgrade(&mut self, code_hash: String) {

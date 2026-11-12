@@ -14,12 +14,14 @@ The preflight is read-only and does not claim live transfer acceptance.
 
 Evidence: [m01-preflight.json](evidence/m01-preflight.json).
 
-## M02 — live acceptance in progress
+## M02 — live acceptance passed
 
-The first bounded self-transfer mined successfully and pending sale was rejected.
-The worker retains the lock until the trusted RPC finalized head includes it.
-Both demo transfers return ETH to the same funded NFA; only gas leaves it.
-Handover and buyer repeat transfer follow settlement.
+Both bounded self-transfers finalized on Sepolia and reconciled on NEAR testnet.
+Pending sale was rejected, Alice purchased the NFT, the vault/address/Project
+remained identical, and the old seller command failed. Nonce advanced twice and
+no pending authority remained. Both transfers returned ETH to the same funded
+NFA; only gas left it. Exact reporter transactions and finalized observations:
+[evidence/m02-handover.json](evidence/m02-handover.json).
 
 ## M03 — implemented and rehearsed
 

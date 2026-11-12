@@ -1,0 +1,128 @@
+{
+  "checkedAt": "2026-11-12T11:45:50.315Z",
+  "milestone": "M02",
+  "complete": true,
+  "mode": "real NEAR testnet and Sepolia",
+  "initial": {
+    "tokenId": "nfa-2",
+    "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "epoch": 1,
+    "seller": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+    "buyer": "nfagent-alice-fe53d8.testnet",
+    "recipient": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "recipientMode": "self-transfer; ETH remains in the approved NFA address",
+    "startingNonce": 0,
+    "projectUuid": "p0000000000000163"
+  },
+  "afterSale": {
+    "owner": "nfagent-alice-fe53d8.testnet",
+    "epoch": 2,
+    "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "vault": "nfa-2.nfagent-registry-0e9b2a.testnet"
+  },
+  "first": {
+    "nonce": 0,
+    "recipient_hex": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "value_wei": "1000000000000",
+    "priority_fee": 1000000000,
+    "max_fee": 10000000000,
+    "tx_hash": "0x28c2a3188e2e3ce30f53c5bf0f87d86efd9f821a5bad2e2ce07f6e9ebe586c17",
+    "observed_block": 12118352,
+    "success": true
+  },
+  "second": {
+    "nonce": 1,
+    "recipient_hex": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "value_wei": "1000000000000",
+    "priority_fee": 1000000000,
+    "max_fee": 10000000000,
+    "tx_hash": "0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+    "observed_block": 12118521,
+    "success": true
+  },
+  "reporterTransactions": {
+    "12-mark": {
+      "hash": "79jnEjtXQK3DjsAWkS1vYThwx19BGhEBGWjPckg2vojP",
+      "sender": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8"
+    },
+    "12-report": {
+      "hash": "7Ck8PRGXydnNWw4dm8vYzwqXuz5SM2n7MhQG9fNwCnwJ",
+      "sender": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8"
+    },
+    "12-reconcile": {
+      "hash": "45N2AWQFwW5vjdXfxnK9qi3ZhfVogeQE9pXaWWNYPhTi",
+      "sender": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8"
+    },
+    "13-mark": {
+      "hash": "F1WC84EE3mdPj4qkBvK8iehS7sJ119VadCvA74p4sWzS",
+      "sender": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8"
+    },
+    "13-report": {
+      "hash": "C8iHbsUCwkxiawJJPDNrHXkmwkbGESudKqibzBCW8Xjc",
+      "sender": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8"
+    },
+    "13-reconcile": {
+      "hash": "A2yskjTm8A6sGEzFy9j2PE6rwSxaCsrvk8jZgUbs178h",
+      "sender": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8"
+    }
+  },
+  "observations": [
+    {
+      "id": 12,
+      "state": "CONFIRMED",
+      "txHash": "0x28c2a3188e2e3ce30f53c5bf0f87d86efd9f821a5bad2e2ce07f6e9ebe586c17",
+      "nonce": 0,
+      "blockNumber": 12118352,
+      "success": true,
+      "confirmations": 120,
+      "finality": "trusted_rpc_finalized"
+    },
+    {
+      "id": 13,
+      "state": "CONFIRMED",
+      "txHash": "0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+      "nonce": 1,
+      "blockNumber": 12118521,
+      "success": true,
+      "confirmations": 86,
+      "finality": "trusted_rpc_finalized"
+    }
+  ],
+  "nearTransactions": {
+    "firstRequest": {
+      "hash": "AboPePrjgNWri35L8oCcDcyPwAASEFzaKcBg5DT5CXxR",
+      "failed": false
+    },
+    "pendingSaleDenied": {
+      "hash": "7kVoq2eDnzyJJCWwaTxwNe5oAcFSjsx53AdN5HeA2omt",
+      "failed": true
+    },
+    "listAfterSettlement": {
+      "hash": "8QZZq42ndrcXYEgxmJHi27JQeG9T7tP5hJSkBsj48qLj",
+      "failed": false
+    },
+    "buyNfa": {
+      "hash": "8LDa9C5CEisYdS2WmvZk3Jz5EeHHqPXhD6XdFhLbtY9q",
+      "failed": false
+    },
+    "oldSellerDenied": {
+      "hash": "HF11bisQeBQP6ydHKY9oZQkcjyzTT4vj7E2HXAfn7d16",
+      "failed": true
+    },
+    "buyerRequest": {
+      "hash": "AC11ivKd9SdvBPohewZPztDinnNu8X6k6Wp8CuwqwAa",
+      "failed": false
+    }
+  },
+  "checks": [
+    "pending sale rejected",
+    "first typed transfer finalized",
+    "NFT purchase finalized",
+    "same vault/address/Project",
+    "old seller rejected",
+    "buyer typed transfer finalized",
+    "nonce advanced twice",
+    "no pending authority"
+  ]
+}

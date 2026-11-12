@@ -40,11 +40,11 @@ export class EvmJournal {
   }
 }
 
-export async function submitAndObserve({journal,tokenId,id,signed,rpcUrl,fetchImpl=fetch,minConfirmations=3n}){
+export async function submitAndObserve({journal,tokenId,id,signed,rpcUrl,fetchImpl=fetch,minConfirmations=3n,timeoutMs=8000}){
   const record=await journal.saveSigned(tokenId,id,signed); // durable before network side effect
   if(record.state==='CONFIRMED')return record.observation;
   const rpc=async(method,params)=>{const response=await fetchImpl(rpcUrl,{method:'POST',headers:{'content-type':'application/json'},
-    body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error(`RPC HTTP ${response.status}`);
+    body:JSON.stringify({jsonrpc:'2.0',id:1,method,params}),signal:AbortSignal.timeout(timeoutMs)});if(!response.ok)throw Error(`RPC HTTP ${response.status}`);
     const result=await response.json();if(result.error)throw Error(result.error.message);return result.result};
   try{
     if(await rpc('eth_chainId',[])!=='0xaa36a7')return {state:'UNCERTAIN',reason:'wrong_chain',hash:record.hash};
@@ -54,7 +54,7 @@ export async function submitAndObserve({journal,tokenId,id,signed,rpcUrl,fetchIm
     await journal.write(tokenId,id,{...record,state:'BROADCAST'});
   }catch(error){return {state:'UNCERTAIN',reason:'broadcast_unknown',hash:record.hash,detail:String(error)}}
   const observation=await observeSettlement({rpcUrl,txHash:record.hash,expectedSender:record.sender,
-    expectedNonce:record.nonce,minConfirmations,fetchImpl});
+    expectedNonce:record.nonce,minConfirmations,timeoutMs,fetchImpl});
   if(observation.state==='CONFIRMED')await journal.write(tokenId,id,{...record,state:'CONFIRMED',observation});
   return observation;
 }

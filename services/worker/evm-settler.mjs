@@ -3,7 +3,7 @@ import {submitAndObserve} from './evm-journal.mjs';
 import {observeSettlement,reportArgs} from './settlement.mjs';
 
 /** Only the configured reporter can complete these typed zero-deposit actions. */
-export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUrl,fetchImpl=fetch,assemble=assembleEvmTransfer}){
+export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUrl,fetchImpl=fetch,assemble=assembleEvmTransfer,rpcTimeoutMs=8000}){
   const identity=await sdk.get(tokenId),agent=await sdk.getAgentState(tokenId),id=agent.pending_op;
   if(id==null)return {state:'IDLE'};
   const [op,evm,vault]=await Promise.all([
@@ -22,14 +22,14 @@ export async function settleEvmTick({sdk,journal,wallet,reporterId,tokenId,rpcUr
     const signed=assemble({pending:vault.pending,derivedPublicKey:pinned.public_key,
       expectedAddress:pinned.address,expectedId:id,expectedNonce:evm.nonce});
     record=await journal.saveSigned(tokenId,id,signed);
-    const sent=await submitAndObserve({journal,tokenId,id,signed,rpcUrl,fetchImpl});
+    const sent=await submitAndObserve({journal,tokenId,id,signed,rpcUrl,fetchImpl,timeoutMs:rpcTimeoutMs});
     if(sent.state!=='CONFIRMED')return {state:'UNCERTAIN',reason:sent.reason,hash:record.hash};
   }
   if(!record||record.sender.toLowerCase()!==pinned.address.toLowerCase()||record.nonce!==evm.nonce)
     throw Error('Missing or mismatched durable EVM journal; recovery required');
   // Reobserve even a previously confirmed journal before making any authority change.
   const observed=await observeSettlement({rpcUrl,txHash:record.hash,expectedSender:record.sender,
-    expectedNonce:record.nonce,fetchImpl});
+    expectedNonce:record.nonce,fetchImpl,timeoutMs:rpcTimeoutMs});
   if(observed.state!=='CONFIRMED')return {state:'UNCERTAIN',reason:observed.reason,hash:record.hash};
   const send=(stage,receiverId,methodName,args)=>wallet.send(`${tokenId}-${id}-${stage}`,
     {receiverId,methodName,args,gas:'100000000000000',deposit:'0'});

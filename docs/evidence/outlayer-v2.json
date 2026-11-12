@@ -1,0 +1,1055 @@
+{
+  "steps": {
+    "uploadRuntimeV2": {
+      "hash": "736k55pjEYLdJhRjvjjiunnm5Eg3rkeSZouTeRZosxcN",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "outlayer.testnet",
+      "state": "FINAL",
+      "at": "2026-11-12T05:38:38.999Z",
+      "outcome": {
+        "hash": "736k55pjEYLdJhRjvjjiunnm5Eg3rkeSZouTeRZosxcN",
+        "failed": true,
+        "failure": {
+          "ActionError": {
+            "index": 0,
+            "kind": {
+              "FunctionCallError": {
+                "ExecutionError": "Exceeded the prepaid gas."
+              }
+            }
+          }
+        },
+        "value": null,
+        "finality": "FINAL",
+        "events": [],
+        "receipts": [
+          {
+            "id": "Gc8LcnRxS8Qk1gbRg3Z6Kqo6Mr56UtGFavBRpUbvqyVv",
+            "executor": "outlayer.testnet",
+            "gas": 1803084186425,
+            "status": {
+              "Failure": {
+                "ActionError": {
+                  "index": 0,
+                  "kind": {
+                    "FunctionCallError": {
+                      "ExecutionError": "Exceeded the prepaid gas."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "8Q5yw9Dwdov54JR64y9nGRHWgq4dqxddEhG41Lpw3UqL",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "addProbeVersion": {
+      "hash": "3QqzzSxVGcxw4TvK6YqRMnrKNhFruba52k8RhjHaY8dR",
+      "sender": "nfagent-alice-fe53d8.testnet",
+      "receiver": "outlayer.testnet",
+      "state": "SUBMITTED",
+      "at": "2026-11-12T05:39:07.961Z"
+    },
+    "addProbeVersionReconciled": {
+      "hash": "5mdDHAesvcGGhNKMD82b4zgg7rqWaAG9b62Txw59d7xs",
+      "sender": "nfagent-alice-fe53d8.testnet",
+      "receiver": "outlayer.testnet",
+      "state": "FINAL",
+      "nonce": "277118311000044",
+      "blockHash": "28cjmwVzBh2GGpJ5vSqnX5NQi7CWJgDcyrGn3rzr3KaW",
+      "at": "2026-11-12T05:50:40.924Z",
+      "submissionError": "{\"name\":\"HANDLER_ERROR\",\"cause\":{\"info\":{},\"name\":\"INVALID_TRANSACTION\"},\"code\":-32000,\"message\":\"Server error\",\"data\":{\"TxExecutionError\":{\"InvalidTxError\":{\"NotEnoughBalance\":{\"balance\":\"273829265604843799999996\",\"cost\":\"300921239909564500000000\",\"signer_id\":\"nfagent-alice-fe53d8.testnet\"}}}}}",
+      "outcome": {
+        "hash": "5mdDHAesvcGGhNKMD82b4zgg7rqWaAG9b62Txw59d7xs",
+        "failed": false,
+        "failure": null,
+        "value": null,
+        "finality": "FINAL",
+        "events": [],
+        "receipts": [
+          {
+            "id": "Et2qk6GyU2Xs63NsNwgkdXk87cFAWRizChgqhX1Suva",
+            "executor": "outlayer.testnet",
+            "gas": 3338489303426,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "88S876ZUKq7L82oyGpRBCjUUPsm4ot5pKyMxfVS7fHWm",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "BUk1jMtxUDg9BKpVB4N6Z83VfgsHjoqrKzkhSbS8K9TF",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "7zumXuykRxte4SgZZjK79YW6PkPwnEp2d2iim1hSoTnr",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "fundProbeSigner": {
+      "hash": "BnwDfCSkPLCabH9EEQa1DnyR12hw9vXMP8NzMd5vz6Qv",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-alice-fe53d8.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000028",
+      "blockHash": "8rL7F7964ZythkUSo5LGX3SxC1yoyeoNmD8sN3xRLd3o",
+      "at": "2026-11-12T05:53:37.786Z",
+      "outcome": {
+        "hash": "BnwDfCSkPLCabH9EEQa1DnyR12hw9vXMP8NzMd5vz6Qv",
+        "failed": false,
+        "failure": null,
+        "value": null,
+        "finality": "FINAL",
+        "events": [],
+        "receipts": [
+          {
+            "id": "5UTwwBbiS7yDbLjREuoJ6LncpHMUVQYESorw4vVqreZp",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "HZjGXKcthcWpXBkiVN9bwNJqDc7Gk49AgU3HzY6zViGZ",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "warmV2": {
+      "hash": "9eF9AXLDJdkWBnEFtoKcbZndAHZ928TBxruAH5nM75yt",
+      "sender": "nfagent-alice-fe53d8.testnet",
+      "receiver": "outlayer.testnet",
+      "state": "FINAL",
+      "nonce": "277118311000046",
+      "blockHash": "Go18j4z3ntW89dVesv4TtETV644z9LEyKX18NnfhrA2n",
+      "at": "2026-11-12T05:54:02.306Z",
+      "outcome": {
+        "hash": "9eF9AXLDJdkWBnEFtoKcbZndAHZ928TBxruAH5nM75yt",
+        "failed": false,
+        "failure": null,
+        "value": {
+          "jobId": 10002,
+          "outputHash": "sha256:951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+          "outputUri": "nfa://work/951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+          "schemaVersion": 1,
+          "status": "ok",
+          "summary": "An NFA vault retains the same account and treasury after its NFT transfers to a new owner."
+        },
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_requested",
+              "data": [
+                {
+                  "request_data": "{\"request_id\":29095,\"sender_id\":\"nfagent-alice-fe53d8.testnet\",\"predecessor_id\":\"nfagent-alice-fe53d8.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"recall\\\",\\\"service\\\":\\\"scout\\\",\\\"jobId\\\":10002,\\\"expectedHash\\\":\\\"sha256:951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507\\\"}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"5000000000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794462843205575677,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p000000000000015f\",\"project_id\":\"nfagent-alice-fe53d8.testnet/nfa-probe\"}",
+                  "data_id": [
+                    71,
+                    179,
+                    210,
+                    142,
+                    1,
+                    189,
+                    44,
+                    145,
+                    224,
+                    142,
+                    167,
+                    86,
+                    0,
+                    137,
+                    200,
+                    64,
+                    251,
+                    223,
+                    207,
+                    238,
+                    239,
+                    149,
+                    20,
+                    185,
+                    70,
+                    239,
+                    213,
+                    82,
+                    98,
+                    178,
+                    139,
+                    235
+                  ],
+                  "timestamp": 1794462843205575700
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_completed",
+              "data": [
+                {
+                  "sender_id": "nfagent-alice-fe53d8.testnet",
+                  "code_source": {
+                    "WasmUrl": {
+                      "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                      "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                      "build_target": "wasm32-wasip2"
+                    }
+                  },
+                  "resources_used": {
+                    "instructions": 87835,
+                    "time_ms": 1322,
+                    "compile_time_ms": 1347
+                  },
+                  "success": true,
+                  "error_message": null,
+                  "payment_charged": "1266900000000000000000",
+                  "payment_refunded": "3733100000000000000000",
+                  "compilation_note": "Freshly compiled",
+                  "timestamp": 1794462851708213800
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "9SrzM4m1RELEiJXpDYbXHkhLpnPNMGhtT6aLdsZFa3zp",
+            "executor": "outlayer.testnet",
+            "gas": 4212967810115,
+            "status": {
+              "SuccessReceiptId": "CV2T8hwDaMsbuTUTzDxG9WeJMyEr1fmWXEVEBrZbJQVk"
+            }
+          },
+          {
+            "id": "CV2T8hwDaMsbuTUTzDxG9WeJMyEr1fmWXEVEBrZbJQVk",
+            "executor": "outlayer.testnet",
+            "gas": 3097860025625,
+            "status": {
+              "SuccessValue": "eyJqb2JJZCI6MTAwMDIsIm91dHB1dEhhc2giOiJzaGEyNTY6OTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsIm91dHB1dFVyaSI6Im5mYTovL3dvcmsvOTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsInNjaGVtYVZlcnNpb24iOjEsInN0YXR1cyI6Im9rIiwic3VtbWFyeSI6IkFuIE5GQSB2YXVsdCByZXRhaW5zIHRoZSBzYW1lIGFjY291bnQgYW5kIHRyZWFzdXJ5IGFmdGVyIGl0cyBORlQgdHJhbnNmZXJzIHRvIGEgbmV3IG93bmVyLiJ9"
+            }
+          },
+          {
+            "id": "9eCyRUTtdeUyoUyo9mGp7ngeZdfkMwih4h1jBMo712UN",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "5KfpUKeWJDgGwWskw8VTmeKfmqcfyeDkxiUzZoFJ1bGq",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "5Mjf9xfqhVxLB2jrC8Rx7ZJJY5vWndWP2qV17LC1sGSd",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "HKF7AiWJ55ZZjebjagbYdtbGVhiNjHfmhawxUBEumY3C",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "verifyV2scout": {
+      "hash": "AFRSq3zMnfnNYkMfNg1dde4veBGLeUyYHBSUNLEousMw",
+      "sender": "nfagent-alice-fe53d8.testnet",
+      "receiver": "outlayer.testnet",
+      "state": "FINAL",
+      "nonce": "277118311000048",
+      "blockHash": "6vFEvuvDEJP5nuQ4yJFKKUKtqkBj7R73pMQN3Hxwz2Tz",
+      "at": "2026-11-12T05:54:15.427Z",
+      "outcome": {
+        "hash": "AFRSq3zMnfnNYkMfNg1dde4veBGLeUyYHBSUNLEousMw",
+        "failed": false,
+        "failure": null,
+        "value": {
+          "jobId": 20004,
+          "outputHash": "sha256:951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+          "outputUri": "nfa://work/951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+          "schemaVersion": 1,
+          "status": "ok"
+        },
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_requested",
+              "data": [
+                {
+                  "request_data": "{\"request_id\":29097,\"sender_id\":\"nfagent-alice-fe53d8.testnet\",\"predecessor_id\":\"nfagent-alice-fe53d8.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"scout\\\",\\\"jobId\\\":20004,\\\"question\\\":\\\"How does an NFA retain its treasury?\\\",\\\"sources\\\":[{\\\"title\\\":\\\"Vault account\\\",\\\"url\\\":\\\"https://example.org/vault\\\",\\\"text\\\":\\\"An NFA vault retains the same account and treasury after its NFT transfers to a new owner. The registry gives the current owner control while the vault account remains unchanged.\\\"}]}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"5000000000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794462856698171224,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p000000000000015f\",\"project_id\":\"nfagent-alice-fe53d8.testnet/nfa-probe\"}",
+                  "data_id": [
+                    116,
+                    239,
+                    9,
+                    192,
+                    27,
+                    115,
+                    224,
+                    159,
+                    137,
+                    235,
+                    229,
+                    86,
+                    76,
+                    239,
+                    220,
+                    240,
+                    234,
+                    234,
+                    185,
+                    208,
+                    131,
+                    148,
+                    233,
+                    174,
+                    90,
+                    238,
+                    160,
+                    114,
+                    219,
+                    83,
+                    127,
+                    128
+                  ],
+                  "timestamp": 1794462856698171100
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_completed",
+              "data": [
+                {
+                  "sender_id": "nfagent-alice-fe53d8.testnet",
+                  "code_source": {
+                    "WasmUrl": {
+                      "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                      "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                      "build_target": "wasm32-wasip2"
+                    }
+                  },
+                  "resources_used": {
+                    "instructions": 336542,
+                    "time_ms": 812,
+                    "compile_time_ms": null
+                  },
+                  "success": true,
+                  "error_message": null,
+                  "payment_charged": "1081200000000000000000",
+                  "payment_refunded": "3918800000000000000000",
+                  "compilation_note": "Cached WASM from 2026-11-12T05:54:07.701443+00:00",
+                  "timestamp": 1794462862141860900
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "98bPEDRpiLB1rcxEQKoECsqwxgSsmMKJUeSZvoe56XWN",
+            "executor": "outlayer.testnet",
+            "gas": 4345510018654,
+            "status": {
+              "SuccessReceiptId": "EwUJdz6hKz31EDcPbQBuqkFUFTcUJxyRGNLVKp4D6LAo"
+            }
+          },
+          {
+            "id": "EwUJdz6hKz31EDcPbQBuqkFUFTcUJxyRGNLVKp4D6LAo",
+            "executor": "outlayer.testnet",
+            "gas": 3122327097400,
+            "status": {
+              "SuccessValue": "eyJqb2JJZCI6MjAwMDQsIm91dHB1dEhhc2giOiJzaGEyNTY6OTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsIm91dHB1dFVyaSI6Im5mYTovL3dvcmsvOTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsInNjaGVtYVZlcnNpb24iOjEsInN0YXR1cyI6Im9rIn0="
+            }
+          },
+          {
+            "id": "7kFshbJGFEwUqrpz2j2Fi1dbUzWE446psQp4a1LAByuC",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "6HWLEMwFrvpyNtE6emZr1Pxc1SDBmnnfdybMDbBEHcDf",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "2P67qtZHA5NEQKiM543SLD9t6fZKSdBzBsQjoyQvTimw",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "Eg1NhoRTRtWRiF6SYq81PMZsVLQ3B6DwtUZnP5odeo4W",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "verifyV2compare": {
+      "hash": "ABhXoe6TfEbMzmnaNTGPLtdsQ3jsLX5GBqJ4iJ6ff5e7",
+      "sender": "nfagent-alice-fe53d8.testnet",
+      "receiver": "outlayer.testnet",
+      "state": "FINAL",
+      "nonce": "277118311000050",
+      "blockHash": "HepHpMcUwQqLa8kHpFNXG2X9iVYFjSrVDnjiHaXqqJa2",
+      "at": "2026-11-12T05:54:25.776Z",
+      "outcome": {
+        "hash": "ABhXoe6TfEbMzmnaNTGPLtdsQ3jsLX5GBqJ4iJ6ff5e7",
+        "failed": false,
+        "failure": null,
+        "value": {
+          "jobId": 20005,
+          "outputHash": "sha256:718410844d91521e76520a1041222eb766e1d17973076ae59f380d358f0d893f",
+          "outputUri": "nfa://work/718410844d91521e76520a1041222eb766e1d17973076ae59f380d358f0d893f",
+          "schemaVersion": 1,
+          "status": "ok"
+        },
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_requested",
+              "data": [
+                {
+                  "request_data": "{\"request_id\":29100,\"sender_id\":\"nfagent-alice-fe53d8.testnet\",\"predecessor_id\":\"nfagent-alice-fe53d8.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"run\\\",\\\"service\\\":\\\"compare\\\",\\\"jobId\\\":20005,\\\"question\\\":\\\"Which option has cost and speed evidence?\\\",\\\"criteria\\\":[\\\"cost\\\",\\\"speed\\\"],\\\"sources\\\":[{\\\"title\\\":\\\"Option A\\\",\\\"url\\\":\\\"https://example.org/a\\\",\\\"text\\\":\\\"The cost of option A is five units per run. The speed of option A is two seconds per run.\\\"},{\\\"title\\\":\\\"Option B\\\",\\\"url\\\":\\\"https://example.org/b\\\",\\\"text\\\":\\\"The cost of option B is seven units for a single run.\\\"}]}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"5000000000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794462866776797963,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p000000000000015f\",\"project_id\":\"nfagent-alice-fe53d8.testnet/nfa-probe\"}",
+                  "data_id": [
+                    27,
+                    230,
+                    62,
+                    151,
+                    111,
+                    209,
+                    173,
+                    202,
+                    165,
+                    62,
+                    244,
+                    154,
+                    68,
+                    207,
+                    214,
+                    235,
+                    75,
+                    32,
+                    86,
+                    78,
+                    26,
+                    25,
+                    13,
+                    8,
+                    3,
+                    2,
+                    53,
+                    101,
+                    134,
+                    163,
+                    171,
+                    142
+                  ],
+                  "timestamp": 1794462866776798000
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_completed",
+              "data": [
+                {
+                  "sender_id": "nfagent-alice-fe53d8.testnet",
+                  "code_source": {
+                    "WasmUrl": {
+                      "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                      "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                      "build_target": "wasm32-wasip2"
+                    }
+                  },
+                  "resources_used": {
+                    "instructions": 574075,
+                    "time_ms": 1272,
+                    "compile_time_ms": null
+                  },
+                  "success": true,
+                  "error_message": null,
+                  "payment_charged": "1127200000000000000000",
+                  "payment_refunded": "3872800000000000000000",
+                  "compilation_note": "Cached WASM from 2026-11-12T05:54:07.701443+00:00",
+                  "timestamp": 1794462872068715800
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "Dgbzbfy8ErCfqMbZXTkhegeJMYw5WFqoJhyxcrWyfHUR",
+            "executor": "outlayer.testnet",
+            "gas": 4435924597131,
+            "status": {
+              "SuccessReceiptId": "73tKnKnGDzYHEJ2g1S6Wu5cRWyvjQX6MhBFM3aJbhhYi"
+            }
+          },
+          {
+            "id": "73tKnKnGDzYHEJ2g1S6Wu5cRWyvjQX6MhBFM3aJbhhYi",
+            "executor": "outlayer.testnet",
+            "gas": 3129374971182,
+            "status": {
+              "SuccessValue": "eyJqb2JJZCI6MjAwMDUsIm91dHB1dEhhc2giOiJzaGEyNTY6NzE4NDEwODQ0ZDkxNTIxZTc2NTIwYTEwNDEyMjJlYjc2NmUxZDE3OTczMDc2YWU1OWYzODBkMzU4ZjBkODkzZiIsIm91dHB1dFVyaSI6Im5mYTovL3dvcmsvNzE4NDEwODQ0ZDkxNTIxZTc2NTIwYTEwNDEyMjJlYjc2NmUxZDE3OTczMDc2YWU1OWYzODBkMzU4ZjBkODkzZiIsInNjaGVtYVZlcnNpb24iOjEsInN0YXR1cyI6Im9rIn0="
+            }
+          },
+          {
+            "id": "14oU4rePAmCZtNTybBENKWM9DpsRDRWe41a2b4VwEKrg",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "obmzYUGUJUtz9irYzSKf8tmsoyxRQSzjedbLCeebjb4",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "Cy7QLwMctRqRdHb2vF98q56hE3WAxTNaEn9qFbpoo834",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "C2ktshFogGARFJnCJcEFWhVxphGL5rZ2B5XqZvDCZCYC",
+            "executor": "nfagent-alice-fe53d8.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    }
+  },
+  "release": {
+    "revision": "studio-continuity-v2",
+    "baseSha256": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+    "change": "Release metadata only; executable logic unchanged",
+    "versionKey": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+    "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+    "bytes": 409113
+  },
+  "addVersionReconciliation": {
+    "at": "2026-11-12T05:53:57.459Z",
+    "versionPresent": false,
+    "note": "Original async broadcast is unknown to RPC. A version hash is unique within the Project; a duplicate add is rejected with its deposit refunded."
+  },
+  "verifiedRecall": {
+    "hash": "9eF9AXLDJdkWBnEFtoKcbZndAHZ928TBxruAH5nM75yt",
+    "failed": false,
+    "failure": null,
+    "value": {
+      "jobId": 10002,
+      "outputHash": "sha256:951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+      "outputUri": "nfa://work/951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+      "schemaVersion": 1,
+      "status": "ok",
+      "summary": "An NFA vault retains the same account and treasury after its NFT transfers to a new owner."
+    },
+    "finality": "FINAL",
+    "events": [
+      {
+        "executor": "outlayer.testnet",
+        "event": {
+          "standard": "near-outlayer",
+          "version": "1.0.0",
+          "event": "execution_requested",
+          "data": [
+            {
+              "request_data": "{\"request_id\":29095,\"sender_id\":\"nfagent-alice-fe53d8.testnet\",\"predecessor_id\":\"nfagent-alice-fe53d8.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"recall\\\",\\\"service\\\":\\\"scout\\\",\\\"jobId\\\":10002,\\\"expectedHash\\\":\\\"sha256:951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507\\\"}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"5000000000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794462843205575677,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p000000000000015f\",\"project_id\":\"nfagent-alice-fe53d8.testnet/nfa-probe\"}",
+              "data_id": [
+                71,
+                179,
+                210,
+                142,
+                1,
+                189,
+                44,
+                145,
+                224,
+                142,
+                167,
+                86,
+                0,
+                137,
+                200,
+                64,
+                251,
+                223,
+                207,
+                238,
+                239,
+                149,
+                20,
+                185,
+                70,
+                239,
+                213,
+                82,
+                98,
+                178,
+                139,
+                235
+              ],
+              "timestamp": 1794462843205575700
+            }
+          ]
+        }
+      },
+      {
+        "executor": "outlayer.testnet",
+        "event": {
+          "standard": "near-outlayer",
+          "version": "1.0.0",
+          "event": "execution_completed",
+          "data": [
+            {
+              "sender_id": "nfagent-alice-fe53d8.testnet",
+              "code_source": {
+                "WasmUrl": {
+                  "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                  "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                  "build_target": "wasm32-wasip2"
+                }
+              },
+              "resources_used": {
+                "instructions": 87835,
+                "time_ms": 1322,
+                "compile_time_ms": 1347
+              },
+              "success": true,
+              "error_message": null,
+              "payment_charged": "1266900000000000000000",
+              "payment_refunded": "3733100000000000000000",
+              "compilation_note": "Freshly compiled",
+              "timestamp": 1794462851708213800
+            }
+          ]
+        }
+      }
+    ],
+    "receipts": [
+      {
+        "id": "9SrzM4m1RELEiJXpDYbXHkhLpnPNMGhtT6aLdsZFa3zp",
+        "executor": "outlayer.testnet",
+        "gas": 4212967810115,
+        "status": {
+          "SuccessReceiptId": "CV2T8hwDaMsbuTUTzDxG9WeJMyEr1fmWXEVEBrZbJQVk"
+        }
+      },
+      {
+        "id": "CV2T8hwDaMsbuTUTzDxG9WeJMyEr1fmWXEVEBrZbJQVk",
+        "executor": "outlayer.testnet",
+        "gas": 3097860025625,
+        "status": {
+          "SuccessValue": "eyJqb2JJZCI6MTAwMDIsIm91dHB1dEhhc2giOiJzaGEyNTY6OTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsIm91dHB1dFVyaSI6Im5mYTovL3dvcmsvOTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsInNjaGVtYVZlcnNpb24iOjEsInN0YXR1cyI6Im9rIiwic3VtbWFyeSI6IkFuIE5GQSB2YXVsdCByZXRhaW5zIHRoZSBzYW1lIGFjY291bnQgYW5kIHRyZWFzdXJ5IGFmdGVyIGl0cyBORlQgdHJhbnNmZXJzIHRvIGEgbmV3IG93bmVyLiJ9"
+        }
+      },
+      {
+        "id": "9eCyRUTtdeUyoUyo9mGp7ngeZdfkMwih4h1jBMo712UN",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "5KfpUKeWJDgGwWskw8VTmeKfmqcfyeDkxiUzZoFJ1bGq",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "5Mjf9xfqhVxLB2jrC8Rx7ZJJY5vWndWP2qV17LC1sGSd",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "HKF7AiWJ55ZZjebjagbYdtbGVhiNjHfmhawxUBEumY3C",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      }
+    ]
+  },
+  "scout": {
+    "hash": "AFRSq3zMnfnNYkMfNg1dde4veBGLeUyYHBSUNLEousMw",
+    "failed": false,
+    "failure": null,
+    "value": {
+      "jobId": 20004,
+      "outputHash": "sha256:951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+      "outputUri": "nfa://work/951091da7ab8abc017e02f5f674a1bd20818211ffe7d15d2ff5efef777766507",
+      "schemaVersion": 1,
+      "status": "ok"
+    },
+    "finality": "FINAL",
+    "events": [
+      {
+        "executor": "outlayer.testnet",
+        "event": {
+          "standard": "near-outlayer",
+          "version": "1.0.0",
+          "event": "execution_requested",
+          "data": [
+            {
+              "request_data": "{\"request_id\":29097,\"sender_id\":\"nfagent-alice-fe53d8.testnet\",\"predecessor_id\":\"nfagent-alice-fe53d8.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"scout\\\",\\\"jobId\\\":20004,\\\"question\\\":\\\"How does an NFA retain its treasury?\\\",\\\"sources\\\":[{\\\"title\\\":\\\"Vault account\\\",\\\"url\\\":\\\"https://example.org/vault\\\",\\\"text\\\":\\\"An NFA vault retains the same account and treasury after its NFT transfers to a new owner. The registry gives the current owner control while the vault account remains unchanged.\\\"}]}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"5000000000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794462856698171224,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p000000000000015f\",\"project_id\":\"nfagent-alice-fe53d8.testnet/nfa-probe\"}",
+              "data_id": [
+                116,
+                239,
+                9,
+                192,
+                27,
+                115,
+                224,
+                159,
+                137,
+                235,
+                229,
+                86,
+                76,
+                239,
+                220,
+                240,
+                234,
+                234,
+                185,
+                208,
+                131,
+                148,
+                233,
+                174,
+                90,
+                238,
+                160,
+                114,
+                219,
+                83,
+                127,
+                128
+              ],
+              "timestamp": 1794462856698171100
+            }
+          ]
+        }
+      },
+      {
+        "executor": "outlayer.testnet",
+        "event": {
+          "standard": "near-outlayer",
+          "version": "1.0.0",
+          "event": "execution_completed",
+          "data": [
+            {
+              "sender_id": "nfagent-alice-fe53d8.testnet",
+              "code_source": {
+                "WasmUrl": {
+                  "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                  "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                  "build_target": "wasm32-wasip2"
+                }
+              },
+              "resources_used": {
+                "instructions": 336542,
+                "time_ms": 812,
+                "compile_time_ms": null
+              },
+              "success": true,
+              "error_message": null,
+              "payment_charged": "1081200000000000000000",
+              "payment_refunded": "3918800000000000000000",
+              "compilation_note": "Cached WASM from 2026-11-12T05:54:07.701443+00:00",
+              "timestamp": 1794462862141860900
+            }
+          ]
+        }
+      }
+    ],
+    "receipts": [
+      {
+        "id": "98bPEDRpiLB1rcxEQKoECsqwxgSsmMKJUeSZvoe56XWN",
+        "executor": "outlayer.testnet",
+        "gas": 4345510018654,
+        "status": {
+          "SuccessReceiptId": "EwUJdz6hKz31EDcPbQBuqkFUFTcUJxyRGNLVKp4D6LAo"
+        }
+      },
+      {
+        "id": "EwUJdz6hKz31EDcPbQBuqkFUFTcUJxyRGNLVKp4D6LAo",
+        "executor": "outlayer.testnet",
+        "gas": 3122327097400,
+        "status": {
+          "SuccessValue": "eyJqb2JJZCI6MjAwMDQsIm91dHB1dEhhc2giOiJzaGEyNTY6OTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsIm91dHB1dFVyaSI6Im5mYTovL3dvcmsvOTUxMDkxZGE3YWI4YWJjMDE3ZTAyZjVmNjc0YTFiZDIwODE4MjExZmZlN2QxNWQyZmY1ZWZlZjc3Nzc2NjUwNyIsInNjaGVtYVZlcnNpb24iOjEsInN0YXR1cyI6Im9rIn0="
+        }
+      },
+      {
+        "id": "7kFshbJGFEwUqrpz2j2Fi1dbUzWE446psQp4a1LAByuC",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "6HWLEMwFrvpyNtE6emZr1Pxc1SDBmnnfdybMDbBEHcDf",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "2P67qtZHA5NEQKiM543SLD9t6fZKSdBzBsQjoyQvTimw",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "Eg1NhoRTRtWRiF6SYq81PMZsVLQ3B6DwtUZnP5odeo4W",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      }
+    ]
+  },
+  "compare": {
+    "hash": "ABhXoe6TfEbMzmnaNTGPLtdsQ3jsLX5GBqJ4iJ6ff5e7",
+    "failed": false,
+    "failure": null,
+    "value": {
+      "jobId": 20005,
+      "outputHash": "sha256:718410844d91521e76520a1041222eb766e1d17973076ae59f380d358f0d893f",
+      "outputUri": "nfa://work/718410844d91521e76520a1041222eb766e1d17973076ae59f380d358f0d893f",
+      "schemaVersion": 1,
+      "status": "ok"
+    },
+    "finality": "FINAL",
+    "events": [
+      {
+        "executor": "outlayer.testnet",
+        "event": {
+          "standard": "near-outlayer",
+          "version": "1.0.0",
+          "event": "execution_requested",
+          "data": [
+            {
+              "request_data": "{\"request_id\":29100,\"sender_id\":\"nfagent-alice-fe53d8.testnet\",\"predecessor_id\":\"nfagent-alice-fe53d8.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"run\\\",\\\"service\\\":\\\"compare\\\",\\\"jobId\\\":20005,\\\"question\\\":\\\"Which option has cost and speed evidence?\\\",\\\"criteria\\\":[\\\"cost\\\",\\\"speed\\\"],\\\"sources\\\":[{\\\"title\\\":\\\"Option A\\\",\\\"url\\\":\\\"https://example.org/a\\\",\\\"text\\\":\\\"The cost of option A is five units per run. The speed of option A is two seconds per run.\\\"},{\\\"title\\\":\\\"Option B\\\",\\\"url\\\":\\\"https://example.org/b\\\",\\\"text\\\":\\\"The cost of option B is seven units for a single run.\\\"}]}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"5000000000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794462866776797963,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p000000000000015f\",\"project_id\":\"nfagent-alice-fe53d8.testnet/nfa-probe\"}",
+              "data_id": [
+                27,
+                230,
+                62,
+                151,
+                111,
+                209,
+                173,
+                202,
+                165,
+                62,
+                244,
+                154,
+                68,
+                207,
+                214,
+                235,
+                75,
+                32,
+                86,
+                78,
+                26,
+                25,
+                13,
+                8,
+                3,
+                2,
+                53,
+                101,
+                134,
+                163,
+                171,
+                142
+              ],
+              "timestamp": 1794462866776798000
+            }
+          ]
+        }
+      },
+      {
+        "executor": "outlayer.testnet",
+        "event": {
+          "standard": "near-outlayer",
+          "version": "1.0.0",
+          "event": "execution_completed",
+          "data": [
+            {
+              "sender_id": "nfagent-alice-fe53d8.testnet",
+              "code_source": {
+                "WasmUrl": {
+                  "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                  "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                  "build_target": "wasm32-wasip2"
+                }
+              },
+              "resources_used": {
+                "instructions": 574075,
+                "time_ms": 1272,
+                "compile_time_ms": null
+              },
+              "success": true,
+              "error_message": null,
+              "payment_charged": "1127200000000000000000",
+              "payment_refunded": "3872800000000000000000",
+              "compilation_note": "Cached WASM from 2026-11-12T05:54:07.701443+00:00",
+              "timestamp": 1794462872068715800
+            }
+          ]
+        }
+      }
+    ],
+    "receipts": [
+      {
+        "id": "Dgbzbfy8ErCfqMbZXTkhegeJMYw5WFqoJhyxcrWyfHUR",
+        "executor": "outlayer.testnet",
+        "gas": 4435924597131,
+        "status": {
+          "SuccessReceiptId": "73tKnKnGDzYHEJ2g1S6Wu5cRWyvjQX6MhBFM3aJbhhYi"
+        }
+      },
+      {
+        "id": "73tKnKnGDzYHEJ2g1S6Wu5cRWyvjQX6MhBFM3aJbhhYi",
+        "executor": "outlayer.testnet",
+        "gas": 3129374971182,
+        "status": {
+          "SuccessValue": "eyJqb2JJZCI6MjAwMDUsIm91dHB1dEhhc2giOiJzaGEyNTY6NzE4NDEwODQ0ZDkxNTIxZTc2NTIwYTEwNDEyMjJlYjc2NmUxZDE3OTczMDc2YWU1OWYzODBkMzU4ZjBkODkzZiIsIm91dHB1dFVyaSI6Im5mYTovL3dvcmsvNzE4NDEwODQ0ZDkxNTIxZTc2NTIwYTEwNDEyMjJlYjc2NmUxZDE3OTczMDc2YWU1OWYzODBkMzU4ZjBkODkzZiIsInNjaGVtYVZlcnNpb24iOjEsInN0YXR1cyI6Im9rIn0="
+        }
+      },
+      {
+        "id": "14oU4rePAmCZtNTybBENKWM9DpsRDRWe41a2b4VwEKrg",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "obmzYUGUJUtz9irYzSKf8tmsoyxRQSzjedbLCeebjb4",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "Cy7QLwMctRqRdHb2vF98q56hE3WAxTNaEn9qFbpoo834",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      },
+      {
+        "id": "C2ktshFogGARFJnCJcEFWhVxphGL5rZ2B5XqZvDCZCYC",
+        "executor": "nfagent-alice-fe53d8.testnet",
+        "gas": 223182562500,
+        "status": {
+          "SuccessValue": ""
+        }
+      }
+    ]
+  }
+}

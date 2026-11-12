@@ -1,0 +1,563 @@
+{
+  "steps": {
+    "staleRuntimeRejected": {
+      "hash": "E2eBswtDR1L3ZfBEpWDBgkxhYz18zLRgJ2RNcAUNwUBw",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000040",
+      "blockHash": "2qz8qn7hPx46JTUkGDyCPrAsP3cBMbpw6RiWCf1o7uZN",
+      "at": "2026-11-12T06:18:35.278Z",
+      "outcome": {
+        "hash": "E2eBswtDR1L3ZfBEpWDBgkxhYz18zLRgJ2RNcAUNwUBw",
+        "failed": true,
+        "failure": {
+          "ActionError": {
+            "index": 0,
+            "kind": {
+              "FunctionCallError": {
+                "ExecutionError": "WebAssembly trap: An `unreachable` opcode was executed."
+              }
+            }
+          }
+        },
+        "value": null,
+        "finality": "FINAL",
+        "events": [],
+        "receipts": [
+          {
+            "id": "8y49kdzvRm5BUCcc8K2a1BBsZprvHHKUgAHReQGgC84V",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 2497216086297,
+            "status": {
+              "Failure": {
+                "ActionError": {
+                  "index": 0,
+                  "kind": {
+                    "FunctionCallError": {
+                      "ExecutionError": "WebAssembly trap: An `unreachable` opcode was executed."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "HKot8A3bzNb1stSsJWig7MBxEXQRqTSCnWAyPghw61Fw",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "6d4Racu2CKGYSsrPZGdMioDGXPuyKztc13WqT7UVMmft",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "stalePolicyRejected": {
+      "hash": "Hfn1L5nPd69xGzksvcwbZzoDANspXHAZkp1vhR54iARm",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000042",
+      "blockHash": "GgpQ3145ivysnuFu2vHneQBWyiHuz68RwdSM5tYLSj2S",
+      "at": "2026-11-12T06:18:39.438Z",
+      "outcome": {
+        "hash": "Hfn1L5nPd69xGzksvcwbZzoDANspXHAZkp1vhR54iARm",
+        "failed": true,
+        "failure": {
+          "ActionError": {
+            "index": 0,
+            "kind": {
+              "FunctionCallError": {
+                "ExecutionError": "WebAssembly trap: An `unreachable` opcode was executed."
+              }
+            }
+          }
+        },
+        "value": null,
+        "finality": "FINAL",
+        "events": [],
+        "receipts": [
+          {
+            "id": "5wURU5meMiu9ohfhfn3wXYVz82M32JJhBsgcBYJjAu8p",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 2498575065113,
+            "status": {
+              "Failure": {
+                "ActionError": {
+                  "index": 0,
+                  "kind": {
+                    "FunctionCallError": {
+                      "ExecutionError": "WebAssembly trap: An `unreachable` opcode was executed."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "31Z6VLkmMQNYVFDhgAmZK9abdJ1oA6oF2KH4PKgEH7QC",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "4Yt6GnseGq91CAgxJjFqT5mdp3GnJUMZ131eRN5NNyLZ",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "payReviewedQuote": {
+      "hash": "83Hc2ZLukeumsbbEqnngg8ASdqFyQV1GVh47FE6XaN2t",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000044",
+      "blockHash": "88KhHkhdXitWaeAAa17Z2dqW8iJhfnFD84DUzEQWayQ1",
+      "at": "2026-11-12T06:18:44.082Z",
+      "outcome": {
+        "hash": "83Hc2ZLukeumsbbEqnngg8ASdqFyQV1GVh47FE6XaN2t",
+        "failed": false,
+        "failure": null,
+        "value": 11,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "service_job_requested",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 11,
+                  "service_id": "scout",
+                  "input_hash": "sha256:a994703412d2841cfa0bcf1f44d52d4b893e5b21f8ecfbb46252c4fe547f4885",
+                  "fee": "12400120000000000000000",
+                  "replenish": "2400120000000000000000",
+                  "deposit_cap": "2400120000000000000000",
+                  "epoch": 1
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "mXaVrcNvKqqg3XvbtXmsyEwRAwthTNQu5WaKqKvquXm",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 4347495001860,
+            "status": {
+              "SuccessValue": "MTE="
+            }
+          },
+          {
+            "id": "8vscRFPrENt7ktatCknw8XHdX1Q5b6RTRtzfn98X8z4o",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "startReviewedQuote": {
+      "hash": "4H8wxVPWYZzaL9TLgEwCZhsHtPZH58tZBW2vU77LjnjM",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000046",
+      "blockHash": "EUQ13NgxAYQqLSq9UpPK7Cjp6X8Cpej96MCPMPymtFjF",
+      "at": "2026-11-12T06:18:48.937Z",
+      "outcome": {
+        "hash": "4H8wxVPWYZzaL9TLgEwCZhsHtPZH58tZBW2vU77LjnjM",
+        "failed": false,
+        "failure": null,
+        "value": null,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "service_job_started",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 11,
+                  "service_id": "scout",
+                  "input_hash": "sha256:a994703412d2841cfa0bcf1f44d52d4b893e5b21f8ecfbb46252c4fe547f4885",
+                  "runtime_hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e"
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_requested",
+              "data": [
+                {
+                  "request_data": "{\"request_id\":29197,\"sender_id\":\"nfa-studio-mwd3mksx.testnet\",\"predecessor_id\":\"nfa-2.nfagent-registry-0e9b2a.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"scout\\\",\\\"jobId\\\":11,\\\"question\\\":\\\"How does an NFA retain its treasury?\\\",\\\"sources\\\":[{\\\"title\\\":\\\"Vault\\\",\\\"url\\\":\\\"https://example.org/vault\\\",\\\"text\\\":\\\"An NFA retains its treasury in the same NEAR vault after its NFT transfers to a new owner. The registry gives the current owner control while the vault account remains unchanged.\\\"}]}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"2400120000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794464331375239169,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p0000000000000163\",\"project_id\":\"nfa-2.nfagent-registry-0e9b2a.testnet/scout\"}",
+                  "data_id": [
+                    137,
+                    16,
+                    43,
+                    124,
+                    187,
+                    201,
+                    87,
+                    41,
+                    183,
+                    55,
+                    216,
+                    235,
+                    191,
+                    176,
+                    253,
+                    152,
+                    48,
+                    118,
+                    236,
+                    46,
+                    206,
+                    81,
+                    55,
+                    255,
+                    4,
+                    66,
+                    127,
+                    27,
+                    137,
+                    67,
+                    158,
+                    178
+                  ],
+                  "timestamp": 1794464331375239200
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_completed",
+              "data": [
+                {
+                  "sender_id": "nfa-studio-mwd3mksx.testnet",
+                  "code_source": {
+                    "WasmUrl": {
+                      "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                      "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                      "build_target": "wasm32-wasip2"
+                    }
+                  },
+                  "resources_used": {
+                    "instructions": 335611,
+                    "time_ms": 910,
+                    "compile_time_ms": null
+                  },
+                  "success": true,
+                  "error_message": null,
+                  "payment_charged": "1091000000000000000000",
+                  "payment_refunded": "1309120000000000000000",
+                  "compilation_note": "Cached WASM from 2026-11-12T05:54:07.701443+00:00",
+                  "timestamp": 1794464339889274000
+                }
+              ]
+            }
+          },
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "service_job_finalized",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 11,
+                  "output_hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0",
+                  "runtime_hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                  "fee": "12400120000000000000000",
+                  "replenished": "2400120000000000000000"
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "6GvvcdU1by97mo3omX73ToJHzNWkoEnBZWAv2N2qzjW9",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 4275718350243,
+            "status": {
+              "SuccessReceiptId": "ATha26o8AQoBCGcNTjMmhWo3BDuXD1JHHMG5eeijYxWV"
+            }
+          },
+          {
+            "id": "E66DrpPJjWqdw995qp9u1LYptWmNjFpmRxveZtBh8D97",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2729804047517,
+            "status": {
+              "SuccessReceiptId": "HtaEftDMsQTUJinHvmra3FR4ygGFyk2qkC7xmbf1DapT"
+            }
+          },
+          {
+            "id": "6fFBA2znC5yiC6FFZVByLLHKSG34mpv7c4XAvXJqtTkC",
+            "executor": "outlayer.testnet",
+            "gas": 4350942828230,
+            "status": {
+              "SuccessReceiptId": "AR3w5bZ7npeY1mw4zpEkKAfUAit9nzHth6U5MoStHF8q"
+            }
+          },
+          {
+            "id": "AR3w5bZ7npeY1mw4zpEkKAfUAit9nzHth6U5MoStHF8q",
+            "executor": "outlayer.testnet",
+            "gas": 3140027561122,
+            "status": {
+              "SuccessValue": "eyJqb2JJZCI6MTEsIm91dHB1dEhhc2giOiJzaGEyNTY6MDQ3NmNlODg2MDg1M2MxMmVkMTBiYTExNGI4OGIwYTcwMzM5MTQ4ZjJhNmM4YWRhZDk4OTQwZDQ2OGNiYzJiMCIsIm91dHB1dFVyaSI6Im5mYTovL3dvcmsvMDQ3NmNlODg2MDg1M2MxMmVkMTBiYTExNGI4OGIwYTcwMzM5MTQ4ZjJhNmM4YWRhZDk4OTQwZDQ2OGNiYzJiMCIsInNjaGVtYVZlcnNpb24iOjEsInN0YXR1cyI6Im9rIn0="
+            }
+          },
+          {
+            "id": "7rTwGVLSHWrtoq2DHGj2oGoBK29c8mPxPGHELgx4qWBc",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "7VX2QbrTqaDday5WeubcC3EBBZ6Wsh6bUhuKPoigxmAH",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "CHwWHTtZyMDD1rRWwrbHdotvn1QUPGBDYpc2YVsMLSGj",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "F7qzhjU8ZgkZeCNCD1MKLjZ1gFutaK6y7NGbzdCPpBhp",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "HtaEftDMsQTUJinHvmra3FR4ygGFyk2qkC7xmbf1DapT",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1993250337578,
+            "status": {
+              "SuccessReceiptId": "64uL2UADGTNfWSC2ZKiHKvCMrhjS3fi7pdr2WZW2GuKp"
+            }
+          },
+          {
+            "id": "64uL2UADGTNfWSC2ZKiHKvCMrhjS3fi7pdr2WZW2GuKp",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3954500191343,
+            "status": {
+              "SuccessReceiptId": "9xvadA2XzvdShVMSFkYgnFnBVYVtEf4KShJYqJprpE3j"
+            }
+          },
+          {
+            "id": "BZRTUAYfG8WQprpPVbNSBTuujbM8WBo5G44hrW9A7uHw",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "EEy5jFSWqoVNtABbf4uijxuNF461QYw3WggtnArNczcU",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "9xvadA2XzvdShVMSFkYgnFnBVYVtEf4KShJYqJprpE3j",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 4493927160062,
+            "status": {
+              "SuccessReceiptId": "DEUWFP6ZjYDFZhvr5tjSR5uySGvFKoPnnqxgMwUAdxAF"
+            }
+          },
+          {
+            "id": "DEUWFP6ZjYDFZhvr5tjSR5uySGvFKoPnnqxgMwUAdxAF",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1573833111205,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "3F5GoogiKG3kAfBS7Q1hCGAPKGLACpAqvSaWWtASkqdq",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "8zG7TdFquh6pLBZxgfagr6J3UQiSkJNpdy4cCswjjWcj",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "9yC86hYhVwQWoYm7NFqA45BH4oUzrzaSvJssPgtQhPMC",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "4V4MYVyxsF1gZhYSVdtSY7rBUiN1E7SA6DhWEAEjAMq8",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "3oJD48UAGbis6DBw8Sog7xiB48Eae1a1y6nucJKm32o6",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "ATha26o8AQoBCGcNTjMmhWo3BDuXD1JHHMG5eeijYxWV",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 2565612860371,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "F4MWDMbY2rVubF189BD8Py4igUXW3hsmC7SxBcQhfcRG",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "8uRY9TXhTnS7qAm2HRzgRZsgoi6i8FbA6Bz99DYmFrbr",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    }
+  },
+  "quote": {
+    "service": "scout",
+    "tokenId": "nfa-2",
+    "inputData": "{\"question\":\"How does an NFA retain its treasury?\",\"sources\":[{\"title\":\"Vault\",\"url\":\"https://example.org/vault\",\"text\":\"An NFA retains its treasury in the same NEAR vault after its NFT transfers to a new owner. The registry gives the current owner control while the vault account remains unchanged.\"}]}",
+    "inputHash": "sha256:a994703412d2841cfa0bcf1f44d52d4b893e5b21f8ecfbb46252c4fe547f4885",
+    "versionKey": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+    "estimateYocto": "2000100000000000000000",
+    "feeYocto": "12400120000000000000000",
+    "replenishYocto": "2400120000000000000000",
+    "depositCapYocto": "2400120000000000000000",
+    "limits": {
+      "max_instructions": 1000000000,
+      "max_memory_mb": 64,
+      "max_execution_seconds": 10
+    },
+    "deadlineNs": 1794465184073000000,
+    "policyVersion": 1,
+    "unsignedAction": {
+      "receiverId": "nfagent-registry-0e9b2a.testnet",
+      "methodName": "request_reviewed_service_job",
+      "args": {
+        "token_id": "nfa-2",
+        "service_id": "scout",
+        "input_hash": "sha256:a994703412d2841cfa0bcf1f44d52d4b893e5b21f8ecfbb46252c4fe547f4885",
+        "deadline_ns": 1794465184073000000,
+        "fee": "12400120000000000000000",
+        "replenish": "2400120000000000000000",
+        "deposit_cap": "2400120000000000000000",
+        "limits": {
+          "max_instructions": 1000000000,
+          "max_memory_mb": 64,
+          "max_execution_seconds": 10
+        },
+        "expected_version": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+        "expected_policy_version": 1
+      },
+      "deposit": "12400120000000000000000",
+      "gas": "250000000000000"
+    }
+  },
+  "beforeIncome": "20000000000000000000000",
+  "finalized": {
+    "id": 11,
+    "epoch": 1,
+    "requester": "nfa-studio-mwd3mksx.testnet",
+    "input_hash": "sha256:a994703412d2841cfa0bcf1f44d52d4b893e5b21f8ecfbb46252c4fe547f4885",
+    "fee": "12400120000000000000000",
+    "replenish": "2400120000000000000000",
+    "deposit_cap": "2400120000000000000000",
+    "version_key": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+    "limits": {
+      "max_instructions": 1000000000,
+      "max_memory_mb": 64,
+      "max_execution_seconds": 10
+    },
+    "deadline_ns": 1794465184073000000,
+    "created_at_ns": 1794464325324729000,
+    "started_at_ns": 1794464330163107800,
+    "status": "FINALIZED",
+    "output_hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0",
+    "output_uri": "nfa://work/0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0",
+    "reimbursement_pending": false
+  },
+  "afterIncome": "30000000000000000000000",
+  "ledger": {
+    "customer_escrow": "0",
+    "vault_replenishment_pending": "0",
+    "gross_finalized_receipts": "37200360000000000000000",
+    "customer_refunds": "12400120000000000000000"
+  },
+  "completedAt": "2026-11-12T06:19:21.112Z"
+}

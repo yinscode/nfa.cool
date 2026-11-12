@@ -1,0 +1,150 @@
+{
+  "testedAt": "2026-11-12T09:39:39.084Z",
+  "workspaceId": "b0347184-d54d-451c-9d73-48f6b215e422",
+  "tokenId": "nfa-6",
+  "vault": "nfa-6.registry.test.near",
+  "projectUuid": "p0000000000000005",
+  "owner": "bob.test.near",
+  "manifestHash": "sha256:5a82e222ec92ad6735a10f5e47f994828a338c8947b85c459e4c6762ace327b4",
+  "jobId": 2,
+  "outputHash": "sha256:8b42dcbe42ac9fbe881231050b53c50c0efe7020c77c9b3d504222d20ca4810c",
+  "launchReceipts": [
+    {
+      "step": "mint",
+      "hash": "A9iBjFhhkjrCztZq3izPhGLKGD2YAH1dC1QPXboR5SU8"
+    },
+    {
+      "step": "project",
+      "hash": "A2kF26p2GqojiFqzGadBmhaEbF8ALxykmauQm9kWfp8k"
+    },
+    {
+      "step": "policy:scout",
+      "hash": "Huu6QBf3qgzCzfdoreWJRNGCnstnxuV5VQqsRYLcahAv"
+    },
+    {
+      "step": "policy:compare",
+      "hash": "3Dk8aLaWXbjdvPhm3RSnbtGWnwu95v46veruUJDq3zfn"
+    },
+    {
+      "step": "reserve",
+      "hash": "DptRR2M1hhqZzVVFLgt6bSVDDcYQ2viSCsjco33ZmdiC"
+    }
+  ],
+  "checks": [
+    "compact two-service launch",
+    "refresh retains uncertain receipt",
+    "exact reviewed receipt reconciliation",
+    "dynamic on-chain earnings margin",
+    "public assigned-ID checkout",
+    "pending sale lock",
+    "NFT sale",
+    "buyer character edit",
+    "buyer memory recall",
+    "old session rejected",
+    "buyer continues service and earns again",
+    "separate economics and buyer inventory",
+    "server restart preserves owner, character, UUID and finalized work"
+  ],
+  "nextPaidJobId": 4,
+  "economics": {
+    "unit": "yoctoNEAR",
+    "coverage": "complete_job_history",
+    "grossCustomerReceipts": "44800000000000000000000",
+    "executionReplenishment": "4800000000000000000000",
+    "creditedServiceEarnings": "40000000000000000000000",
+    "withdrawableIncome": "40000000000000000000000",
+    "operatingAvailable": "2003050000000000000000000",
+    "storageReserve": "4172440000000000000000000",
+    "gasReserve": "100000000000000000000000",
+    "customerEscrow": "0",
+    "replenishmentLiability": "0",
+    "customerRefundCredits": "0",
+    "actualOutlayerExecutionCost": null,
+    "externalInferenceCost": null,
+    "gasPaid": null,
+    "netProfit": null,
+    "jobs": {
+      "finalized": 2,
+      "failed": 0,
+      "unresolved": 0
+    },
+    "byService": {
+      "scout": {
+        "finalized": 2,
+        "failed": 0,
+        "pending": 0,
+        "grossReceiptsYocto": "44800000000000000000000",
+        "executionReplenishmentYocto": "4800000000000000000000",
+        "creditedEarningsYocto": "40000000000000000000000"
+      }
+    },
+    "explanation": "Replenishment is an execution reserve returned to the vault, not measured compute cost. Service earnings are fee minus replenishment. Actual OutLayer, inference, storage and gas costs are not fully reconciled; net profit is unknown. Prefunding, sale proceeds and customer escrow are not service revenue."
+  },
+  "inventory": {
+    "tokenId": "nfa-6",
+    "owner": "bob.test.near",
+    "ownerEpoch": 1,
+    "lifecycle": "ACTIVE",
+    "transferBarrier": {
+      "blocked": false
+    },
+    "included": {
+      "vault": "nfa-6.registry.test.near",
+      "vaultBalance": "6275490000000000000000000",
+      "unclaimedIncome": "40000000000000000000000",
+      "characterManifest": "sha256:5a82e222ec92ad6735a10f5e47f994828a338c8947b85c459e4c6762ace327b4",
+      "chainAddresses": [],
+      "outlayerProject": {
+        "id": "nfa-6.registry.test.near/scout",
+        "uuid": "p0000000000000005",
+        "version": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+        "state": "READY"
+      },
+      "services": [
+        {
+          "id": "scout",
+          "policyVersion": 1,
+          "schemaHash": "sha256:cca2b36dac261bdca1a3cd96ba0a0df7de7dc873acc81a3638b2fc5268cc53f6"
+        },
+        {
+          "id": "compare",
+          "policyVersion": 1,
+          "schemaHash": "sha256:7370681b68d4aee9bc79a0883eae16cafa722c154e7b5a727c0d3c2782bbcb86"
+        }
+      ],
+      "eligibleWork": [
+        {
+          "jobId": 2,
+          "service": "scout",
+          "outputHash": "sha256:8b42dcbe42ac9fbe881231050b53c50c0efe7020c77c9b3d504222d20ca4810c"
+        },
+        {
+          "jobId": 4,
+          "service": "scout",
+          "outputHash": "sha256:05d751a6ef4098fa95ed0542090ae4d1e279c4b704e9038d4a1dc0e907f6d797"
+        }
+      ]
+    },
+    "liabilities": {
+      "customerEscrow": "0",
+      "replenishment": "0",
+      "recallFunding": "0"
+    },
+    "excluded": [
+      "Seller personal credentials and OAuth grants",
+      "Nontransferable memberships or subscriptions",
+      "Seller-held copies of downloaded data",
+      "Unverified external assets"
+    ],
+    "dependencies": [
+      "Guardian upgrade authority",
+      "Trusted Sepolia settlement reporter",
+      "OutLayer availability and operating reserve",
+      "Externally granted credentials can be revoked"
+    ],
+    "historyComplete": true,
+    "projectAgreement": true,
+    "note": "Current finalized views are observations, not a guarantee of future revenue or a legal company transfer."
+  },
+  "mode": "local NEAR sandbox receipts; OutLayer mock"
+}

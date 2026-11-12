@@ -1,0 +1,62 @@
+[
+  {
+    "request_id": 26494,
+    "job_type": "execute",
+    "status": "failed",
+    "error_details": "Failed to submit to NEAR: the chain did not take resolve_execution (tx 3U3LmRbT8L5SZGEWF6Mj3priseCD7Pzp7KWxeheWucGC): the transaction failed: Action #0: ExecutionError(\"Smart contract panicked: panicked at src/execution.rs:1052:14:\\nExecution request not found\")",
+    "execution_time_ms": 102,
+    "instructions_used": 3235,
+    "transaction_hash": "qKLMea98zJBB4NMXTPeo6SBF8ujPv9cshUKpRzTaZ8N",
+    "created_at": "2026-11-11T22:35:09.625Z"
+  },
+  {
+    "request_id": 26449,
+    "job_type": "execute",
+    "status": "failed",
+    "error_details": "Failed to submit to NEAR: the chain did not take resolve_execution (tx M7pVd3YTSt15cXuGMs63aXP4S5RDAY1wSUksZrrK8wR): the transaction failed: Action #0: ExecutionError(\"Smart contract panicked: panicked at src/execution.rs:1052:14:\\nExecution request not found\")",
+    "execution_time_ms": 266,
+    "instructions_used": 5362,
+    "transaction_hash": "HtUvEckkkZoSFhrVHdCcCxdh3iyYhzZrjjvngYTpZeMW",
+    "created_at": "2026-11-11T22:30:37.109Z"
+  },
+  {
+    "request_id": 26494,
+    "job_type": "compile",
+    "status": "completed",
+    "error_details": null,
+    "execution_time_ms": null,
+    "instructions_used": null,
+    "transaction_hash": "qKLMea98zJBB4NMXTPeo6SBF8ujPv9cshUKpRzTaZ8N",
+    "created_at": "2026-11-11T22:28:17.702Z"
+  },
+  {
+    "request_id": 26449,
+    "job_type": "compile",
+    "status": "completed",
+    "error_details": null,
+    "execution_time_ms": null,
+    "instructions_used": null,
+    "transaction_hash": "HtUvEckkkZoSFhrVHdCcCxdh3iyYhzZrjjvngYTpZeMW",
+    "created_at": "2026-11-11T22:20:52.740Z"
+  },
+  {
+    "request_id": 26339,
+    "job_type": "execute",
+    "status": "failed",
+    "error_details": "Failed to submit to NEAR: the chain did not take resolve_execution (tx G4HKi5MCyciUPWfoN9FSjYkSP9Mu3UbYycHQnpSgUyHh): the transaction failed: Action #0: ExecutionError(\"Smart contract panicked: panicked at src/execution.rs:1052:14:\\nExecution request not found\")",
+    "execution_time_ms": 1137,
+    "instructions_used": 336542,
+    "transaction_hash": "9N69QoBHWpo23ohhkaKGgvcNHR7FaQgzaEbrcZPMX5Qn",
+    "created_at": "2026-11-11T22:17:35.196Z"
+  },
+  {
+    "request_id": 26339,
+    "job_type": "compile",
+    "status": "completed",
+    "error_details": null,
+    "execution_time_ms": null,
+    "instructions_used": null,
+    "transaction_hash": "9N69QoBHWpo23ohhkaKGgvcNHR7FaQgzaEbrcZPMX5Qn",
+    "created_at": "2026-11-11T21:57:59.235Z"
+  }
+]

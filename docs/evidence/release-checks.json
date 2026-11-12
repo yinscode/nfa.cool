@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-11-12T10:00:50.631589+00:00",
+  "javascript": {
+    "tests": 65,
+    "passed": 65,
+    "failed": 0
+  },
+  "webBuild": "passed",
+  "sdkBuild": "passed",
+  "integration": {
+    "checks": 13,
+    "mode": "local NEAR sandbox with OutLayer mock",
+    "evidence": "release-demo.json"
+  },
+  "sdkExample": {
+    "tokenId": "nfa-5",
+    "jobId": 2,
+    "resumedWithoutNewPayment": true,
+    "mode": "sandbox"
+  },
+  "browser": {
+    "profile": "nfa-6",
+    "owner": "bob.test.near",
+    "creditedEarningsYocto": "40000000000000000000000",
+    "screenshot": "../release-buyer-profile.jpg"
+  },
+  "publicDeployment": false,
+  "dockerImageBuilt": false,
+  "newLiveSepoliaAcceptance": false,
+  "researchHosted": false,
+  "researchIntegrationRemaining": [
+    "WASI P2 port and build",
+    "typed registry/vault/secret adapter",
+    "priced model billing and paid hosted acceptance"
+  ],
+  "video": {
+    "seconds": 42,
+    "type": "recorded evidence replay, not continuous live wallet recording"
+  },
+  "files": {
+    "services/api/deployment.mjs": "1a13e0c1d63eb405cf9fd33c96310b25a6d4f946bd503957d43653b1e99c6425",
+    "services/api/server.mjs": "1213e0554c6a102040051a6df601947d2315448f22752e04fee133e4c90e1f79",
+    "services/api/business.mjs": "940f5d841fabb0af5379a755bfe69c5093020cb4345edc0a1bad56e1a8ddf364",
+    "services/worker/assemble-evm.mjs": "77e87527ec9ff6c56ae07070e13e92ed0bf74e50916e26154d1e624295505521",
+    "services/worker/settlement.mjs": "5843c3c1bcb87fa122565b3dc43f1e9d5b6672e8b62b5cf28728415eeb609237",
+    "services/worker/evm-settler.mjs": "ff06864cd2ebe95cb4a46ee76034e13dfe154f3f0f6ee80ff5c148b9baf9908c",
+    "services/worker/near-intent.mjs": "4067c55b74d82f5735560b2787cb856babcec3e8dd86df31938d06a39e9e8ec1",
+    "services/worker/research.mjs": "440495323b3ec338eb9b1516a8a633aca256d23a37b3374271bc223da769ad1b",
+    "services/worker/research-runner.mjs": "d27e08c8b0f24d19f7b7d8c2178ba7cbe72a656a2b4eb3cb399fff256f796ca0",
+    "packages/sdk/src/services.ts": "19b776348cba25f79424ab630f880635c04198085e2099c56ccde3d1ecec2bce",
+    "examples/create-and-run.mjs": "700c1ef80d75ebfe18312eb08bd82b627c100ef62fd7b4272d35e2e624ab64db",
+    "docs/openapi.json": "347853e1a6ceca022696980d907cc0a36a58c9d9b42954f6279bcc1bf473a304",
+    "docs/release-evidence-walkthrough.mp4": "6e7351d819e3f6feed809668197ece5e02b5b0cefe587fd40466874780d5dd37"
+  }
+}

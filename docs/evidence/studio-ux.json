@@ -1,0 +1,65 @@
+{
+  "testedAt": "2026-11-12T08:08:26.823Z",
+  "workspaceId": "b0347184-d54d-451c-9d73-48f6b215e422",
+  "tokenId": "nfa-2",
+  "vault": "nfa-2.registry.test.near",
+  "projectUuid": "p0000000000000001",
+  "owner": "bob.test.near",
+  "manifestHash": "sha256:b85f06d534dd5fa5f4a04164b5c83297cac75efae59d3075dce6fa09e3a7acbc",
+  "jobId": 2,
+  "outputHash": "sha256:8b42dcbe42ac9fbe881231050b53c50c0efe7020c77c9b3d504222d20ca4810c",
+  "launchReceipts": [
+    {
+      "step": "mint",
+      "hash": "C69gQTJ6SPdYcNfWKtxt76eFvq69H1tswA9wBvh8pShV"
+    },
+    {
+      "step": "project",
+      "hash": "DcinLyvhbyXo1bRc3p3m6gqV6TMQ9taiFd6uH6wF2qx5"
+    },
+    {
+      "step": "policy:scout",
+      "hash": "A4r1wTsL8X1iUeC72U7fAPxBfgYsteyYPRCbFLkAwCsL"
+    },
+    {
+      "step": "policy:compare",
+      "hash": "GLEr2tdgnHVnCrmYwPtRtpwCUNLchg9P7dPw6Dfe96LN"
+    },
+    {
+      "step": "reserve",
+      "hash": "Dk8PFa11gKt2Tv3CvRJWdTQedZKpgjuPr4f3dRjvnUbf"
+    }
+  ],
+  "checks": [
+    "compact two-service launch",
+    "refresh retains uncertain receipt",
+    "exact reviewed receipt reconciliation",
+    "dynamic on-chain earnings margin",
+    "public assigned-ID checkout",
+    "pending sale lock",
+    "NFT sale",
+    "buyer character edit",
+    "buyer memory recall",
+    "old session rejected",
+    "server restart preserves owner, character, UUID and finalized work"
+  ],
+  "browserChecks": {
+    "createdToken": "nfa-3",
+    "name": "Lumen Research",
+    "services": [
+      "scout",
+      "compare"
+    ],
+    "refreshAfterMint": "resumed at Project provisioning",
+    "profileCheckout": {
+      "service": "compare",
+      "jobId": 2,
+      "status": "FINALIZED",
+      "outputHash": "sha256:718410844d91521e76520a1041222eb766e1d17973076ae59f380d358f0d893f"
+    },
+    "liveTestnetDiscovery": [
+      "nfa-1",
+      "nfa-2"
+    ]
+  }
+}

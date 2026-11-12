@@ -1,0 +1,1273 @@
+{
+  "steps": {
+    "stageNfaRuntimeV2": {
+      "hash": "GAxQkH3bS4LfwEepnSbTjvqJ7iMbDxoiAvWzZiLryiyG",
+      "sender": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277176328000010",
+      "blockHash": "CcLFVa3tj3k2cBECWY1XzXoDUD83JThxtvqXTAZgrvaM",
+      "at": "2026-11-12T05:59:56.629Z",
+      "outcome": {
+        "hash": "GAxQkH3bS4LfwEepnSbTjvqJ7iMbDxoiAvWzZiLryiyG",
+        "failed": false,
+        "failure": null,
+        "value": true,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "runtime_ready",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 6,
+                  "project": {
+                    "project_id": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+                    "project_uuid": "p0000000000000163",
+                    "version_key": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+                    "candidate_version": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                    "state": "READY",
+                    "action": ""
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "9ojcTkAycwFxaJPynNWzAUC6VLMGejyVsS8wkuMT1Xir",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3784126761794,
+            "status": {
+              "SuccessReceiptId": "HXbtER9nnXPzaQchLDWR96SSgk2mxT4yHRMUBPZckyJM"
+            }
+          },
+          {
+            "id": "8S33enH9LWrMgjzy9UPFQg82E1xUmSPU7S6sigRgWBFA",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2474842415208,
+            "status": {
+              "SuccessReceiptId": "31tJTpoug5FxxTu5NyiaQLUpmy4S9E8buNX79Ri1F4cw"
+            }
+          },
+          {
+            "id": "ETHa8BvVEHCnAaJ7jJwN8KeKf673NmSyj7FMxqXSdgAi",
+            "executor": "outlayer.testnet",
+            "gas": 3344115181487,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "371gaBzHfz1Gtto9yJf1Lt1SdhHhMEwz5hDE8KPtYBf8",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "6HkqA77JX7jm6S2RPzXXh4xRG7UogLn9DfWSccwaq4Zp",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "FqEGsLxJkpy5LqRQtCCkZyCCzShdXYuE4qY3jGxH8HLi",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "31tJTpoug5FxxTu5NyiaQLUpmy4S9E8buNX79Ri1F4cw",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2430961547123,
+            "status": {
+              "SuccessReceiptId": "8hLPFe51sND9V4yC1nDTEmCecehbbdsdacNiHjAstQ23"
+            }
+          },
+          {
+            "id": "F6aYj5m7roUiKVqVAmSVoSTxS24X4i9MDBTNDcrUXwtw",
+            "executor": "outlayer.testnet",
+            "gas": 2052946402136,
+            "status": {
+              "SuccessValue": "eyJ1dWlkIjoicDAwMDAwMDAwMDAwMDAxNjMiLCJvd25lciI6Im5mYS0yLm5mYWdlbnQtcmVnaXN0cnktMGU5YjJhLnRlc3RuZXQiLCJuYW1lIjoic2NvdXQiLCJwcm9qZWN0X2lkIjoibmZhLTIubmZhZ2VudC1yZWdpc3RyeS0wZTliMmEudGVzdG5ldC9zY291dCIsImFjdGl2ZV92ZXJzaW9uIjoiYjJjZjJkZDJiNjA2ZWMxNThhZDI3NWQzZDE1Y2M1OTM0MTk3ZDNkOWE0OTRkMDEyNzlhNTUyMTY3YzQxY2JmOSIsImNyZWF0ZWRfYXQiOjE3OTQ0NjE0NzY4NDkwMTUxNTgsInN0b3JhZ2VfZGVwb3NpdCI6IjI4NDAwMDAwMDAwMDAwMDAwMDAwMDAifQ=="
+            }
+          },
+          {
+            "id": "5S8Mp3XUtHYXJQ6fYjTDdvPj6enRCwEeCR6wE4DWYPeD",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "8hLPFe51sND9V4yC1nDTEmCecehbbdsdacNiHjAstQ23",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1880052078318,
+            "status": {
+              "SuccessValue": "eyJwcm9qZWN0X2lkIjoibmZhLTIubmZhZ2VudC1yZWdpc3RyeS0wZTliMmEudGVzdG5ldC9zY291dCIsInByb2plY3RfdXVpZCI6InAwMDAwMDAwMDAwMDAwMTYzIiwidmVyc2lvbl9rZXkiOiJiMmNmMmRkMmI2MDZlYzE1OGFkMjc1ZDNkMTVjYzU5MzQxOTdkM2Q5YTQ5NGQwMTI3OWE1NTIxNjdjNDFjYmY5Iiwid2FzbV91cmwiOiJodHRwczovL3Rlc3QuZmFzdGZzLmlvL25mYWdlbnQtYWxpY2UtZmU1M2Q4LnRlc3RuZXQvb3V0bGF5ZXIudGVzdG5ldC9iMmNmMmRkMmI2MDZlYzE1OGFkMjc1ZDNkMTVjYzU5MzQxOTdkM2Q5YTQ5NGQwMTI3OWE1NTIxNjdjNDFjYmY5Lndhc20iLCJzdGF0ZSI6IlJFQURZIn0="
+            }
+          },
+          {
+            "id": "9tNSnom5j8qr5uHXvC86xvkcG4YaZiUC8PtpLosuGLPF",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "F61HP3kgPAJgTfGVA9244EUdXvZv98BeLk4b83Qjf2Tz",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "2Kh2g5RbsNqGpo7oGisKrt1YA18vAjrGpaT4tJwW5rvv",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "HXbtER9nnXPzaQchLDWR96SSgk2mxT4yHRMUBPZckyJM",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3515681047428,
+            "status": {
+              "SuccessValue": "dHJ1ZQ=="
+            }
+          },
+          {
+            "id": "7pC9Z6rLr78fadVSeRBJjdEuJYY2SwTCDW3JNkqxBeuk",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "526waNxN1PPmS87r8pbYgaVrwXL83NuBkUgJH4c2ANtp",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "activateNfaRuntimeV2": {
+      "hash": "4RJWc79Y8LuDkKpYvToLrG9XkgV4LZbvANZdgLtiF9s3",
+      "sender": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277176328000012",
+      "blockHash": "FVCAon4eRJy4nbzMHsMTdMY1egjNg8UfUHAEV9uhXy37",
+      "at": "2026-11-12T06:00:04.993Z",
+      "outcome": {
+        "hash": "4RJWc79Y8LuDkKpYvToLrG9XkgV4LZbvANZdgLtiF9s3",
+        "failed": false,
+        "failure": null,
+        "value": true,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "runtime_ready",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 7,
+                  "project": {
+                    "project_id": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+                    "project_uuid": "p0000000000000163",
+                    "version_key": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                    "candidate_version": null,
+                    "state": "READY",
+                    "action": ""
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "2F7qDSFGDsfsRUuqZ3GmA1hvuqLfaSS1zb3cACvDM3nr",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3755216056288,
+            "status": {
+              "SuccessReceiptId": "A7AyfTSRHerJRGnnRtD5uPyk7MkLaHZCavRsyLj7z2qk"
+            }
+          },
+          {
+            "id": "9KPjTpqufF5nu8X6WpynJH4dctYqHD7XxEpY1sm1eCPk",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2426109222859,
+            "status": {
+              "SuccessReceiptId": "FYZyC33iXaTawzjN2ST1YD51PtTKDVHtmLXb76pKUUXQ"
+            }
+          },
+          {
+            "id": "w5YtZaJGXPKUVTBmpA4q9KEiPhnkC6aEqpbQ49zbitZ",
+            "executor": "outlayer.testnet",
+            "gas": 2665893311991,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "6H3w75o18sobZnW7HDWdMNgwiozmQFs4qiYZpoYzS3sf",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "FYZyC33iXaTawzjN2ST1YD51PtTKDVHtmLXb76pKUUXQ",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2431372301568,
+            "status": {
+              "SuccessReceiptId": "8vAWi69h96AFt4V2EGjP7SRddTWHxXWy1vbpLUkY6VTg"
+            }
+          },
+          {
+            "id": "AbqA7MBp8YotLDqE5YMdFCic4HeCWrKSDaBTPJfGXhJZ",
+            "executor": "outlayer.testnet",
+            "gas": 2052946402136,
+            "status": {
+              "SuccessValue": "eyJ1dWlkIjoicDAwMDAwMDAwMDAwMDAxNjMiLCJvd25lciI6Im5mYS0yLm5mYWdlbnQtcmVnaXN0cnktMGU5YjJhLnRlc3RuZXQiLCJuYW1lIjoic2NvdXQiLCJwcm9qZWN0X2lkIjoibmZhLTIubmZhZ2VudC1yZWdpc3RyeS0wZTliMmEudGVzdG5ldC9zY291dCIsImFjdGl2ZV92ZXJzaW9uIjoiODhiOGFiMGIwY2RjNTg5YjQ2ZjQ0MDdlMTczOGExNWZkYzhjMDkwYTFhNzBjZDc4M2U4M2QzNjYzNDMzN2E5ZSIsImNyZWF0ZWRfYXQiOjE3OTQ0NjE0NzY4NDkwMTUxNTgsInN0b3JhZ2VfZGVwb3NpdCI6IjI4NDAwMDAwMDAwMDAwMDAwMDAwMDAifQ=="
+            }
+          },
+          {
+            "id": "LYCyvFc82HFkNpKS1x3yy5UX51CnU4LdBhL9TWqLhfo",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "8vAWi69h96AFt4V2EGjP7SRddTWHxXWy1vbpLUkY6VTg",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1880324111911,
+            "status": {
+              "SuccessValue": "eyJwcm9qZWN0X2lkIjoibmZhLTIubmZhZ2VudC1yZWdpc3RyeS0wZTliMmEudGVzdG5ldC9zY291dCIsInByb2plY3RfdXVpZCI6InAwMDAwMDAwMDAwMDAwMTYzIiwidmVyc2lvbl9rZXkiOiI4OGI4YWIwYjBjZGM1ODliNDZmNDQwN2UxNzM4YTE1ZmRjOGMwOTBhMWE3MGNkNzgzZTgzZDM2NjM0MzM3YTllIiwid2FzbV91cmwiOiJodHRwczovL3Rlc3QuZmFzdGZzLmlvL25mYWdlbnQtYWxpY2UtZmU1M2Q4LnRlc3RuZXQvb3V0bGF5ZXIudGVzdG5ldC9iMmNmMmRkMmI2MDZlYzE1OGFkMjc1ZDNkMTVjYzU5MzQxOTdkM2Q5YTQ5NGQwMTI3OWE1NTIxNjdjNDFjYmY5Lndhc20iLCJzdGF0ZSI6IlJFQURZIn0="
+            }
+          },
+          {
+            "id": "CNG4opCczQmUxsRsBypEsHifF1KvKQyCubW4Mnkr6jvN",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "6SPNLYyEG7GWEyMAystu9ePUCwxoWvaLAddgeMW7AvE8",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "Ck7vPreXvVVzr2sLAjHMfGghnCBBwbRWpcnNXQYGgMbp",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "A7AyfTSRHerJRGnnRtD5uPyk7MkLaHZCavRsyLj7z2qk",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3487942929549,
+            "status": {
+              "SuccessValue": "dHJ1ZQ=="
+            }
+          },
+          {
+            "id": "727yoPVxCvEvJs9Q5rW1n1vwqTzwtgAZUZ5icduwmg82",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "Aj5XF2thPu8gvty5D6DdTuGwo6KJcvUFB87jRiBWoSVk",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "recallPresaleV1MemoryUnderV2": {
+      "hash": "AkdhSnxc8HCpJV7S55uLLMM6V7VGy3EeTA6MD6C8Ndju",
+      "sender": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277176328000014",
+      "blockHash": "2q81F2qE9Js2uhmRPrJd11cAgYK7xLqmLC2Lmm7AQjqq",
+      "at": "2026-11-12T06:00:13.240Z",
+      "outcome": {
+        "hash": "AkdhSnxc8HCpJV7S55uLLMM6V7VGy3EeTA6MD6C8Ndju",
+        "failed": false,
+        "failure": null,
+        "value": null,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_requested",
+              "data": [
+                {
+                  "request_data": "{\"request_id\":29127,\"sender_id\":\"3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d\",\"predecessor_id\":\"nfa-2.nfagent-registry-0e9b2a.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"recall\\\",\\\"service\\\":\\\"scout\\\",\\\"jobId\\\":2,\\\"expectedHash\\\":\\\"sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0\\\"}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"3000000000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794463215560221882,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p0000000000000163\",\"project_id\":\"nfa-2.nfagent-registry-0e9b2a.testnet/scout\"}",
+                  "data_id": [
+                    132,
+                    77,
+                    206,
+                    111,
+                    201,
+                    252,
+                    213,
+                    75,
+                    135,
+                    71,
+                    222,
+                    242,
+                    44,
+                    154,
+                    64,
+                    237,
+                    22,
+                    158,
+                    6,
+                    37,
+                    133,
+                    154,
+                    117,
+                    179,
+                    182,
+                    232,
+                    90,
+                    178,
+                    187,
+                    103,
+                    186,
+                    103
+                  ],
+                  "timestamp": 1794463215560222000
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_completed",
+              "data": [
+                {
+                  "sender_id": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+                  "code_source": {
+                    "WasmUrl": {
+                      "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                      "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                      "build_target": "wasm32-wasip2"
+                    }
+                  },
+                  "resources_used": {
+                    "instructions": 87228,
+                    "time_ms": 1563,
+                    "compile_time_ms": null
+                  },
+                  "success": true,
+                  "error_message": null,
+                  "payment_charged": "1156300000000000000000",
+                  "payment_refunded": "1843700000000000000000",
+                  "compilation_note": "Cached WASM from 2026-11-12T05:54:07.701443+00:00",
+                  "timestamp": 1794463220791777500
+                }
+              ]
+            }
+          },
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "memory_recalled",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 8,
+                  "job_id": 2,
+                  "output_hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0"
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "AFJpBZj5M7hxYk1ew9C6hQXHBbDJguh3NQaYuSzTe5iX",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3504387965178,
+            "status": {
+              "SuccessReceiptId": "GZmfy5G1e8V2t5aFT9JZY7qgAgLvTRg3jiiyGUKXwaAu"
+            }
+          },
+          {
+            "id": "GZmfy5G1e8V2t5aFT9JZY7qgAgLvTRg3jiiyGUKXwaAu",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2697699701187,
+            "status": {
+              "SuccessReceiptId": "BtBFxhDn3FpFJMaCG3WV5xtswTcZFZ2ouZNG7oCY3E54"
+            }
+          },
+          {
+            "id": "7vUzSD9enp75DhqiHJueBEGp8FAg8tMExKaU21GVsSWW",
+            "executor": "outlayer.testnet",
+            "gas": 4246400930476,
+            "status": {
+              "SuccessReceiptId": "B9ifzz1accuGQtAB3yhP68QWwozBGvZ6pTUrHBccsnoT"
+            }
+          },
+          {
+            "id": "B9ifzz1accuGQtAB3yhP68QWwozBGvZ6pTUrHBccsnoT",
+            "executor": "outlayer.testnet",
+            "gas": 3163878256201,
+            "status": {
+              "SuccessValue": "eyJqb2JJZCI6Miwib3V0cHV0SGFzaCI6InNoYTI1NjowNDc2Y2U4ODYwODUzYzEyZWQxMGJhMTE0Yjg4YjBhNzAzMzkxNDhmMmE2YzhhZGFkOTg5NDBkNDY4Y2JjMmIwIiwib3V0cHV0VXJpIjoibmZhOi8vd29yay8wNDc2Y2U4ODYwODUzYzEyZWQxMGJhMTE0Yjg4YjBhNzAzMzkxNDhmMmE2YzhhZGFkOTg5NDBkNDY4Y2JjMmIwIiwic2NoZW1hVmVyc2lvbiI6MSwic3RhdHVzIjoib2siLCJzdW1tYXJ5IjoiQW4gTkZBIHJldGFpbnMgaXRzIHRyZWFzdXJ5IGluIHRoZSBzYW1lIE5FQVIgdmF1bHQgYWZ0ZXIgaXRzIE5GVCB0cmFuc2ZlcnMgdG8gYSBuZXcgb3duZXIuIn0="
+            }
+          },
+          {
+            "id": "CuMMtosMUsrYpmMNL3SLKDGNVLZot3LEU6g9u4RaqGFB",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "9Nf2DBfW2UYVmYNNGHCmcFfHTAxKPHTSZDQSkdsaCUEn",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "BXynYng2feSXUGfXHA9dqoZ5W5oUEXZfrSsaptDiTBs1",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "BNQkUXJMyzXrPSCGbCnTeYhM8Wsa2zvjMa8p1xH1zTER",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "BtBFxhDn3FpFJMaCG3WV5xtswTcZFZ2ouZNG7oCY3E54",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2003147892960,
+            "status": {
+              "SuccessReceiptId": "HorZmFQBTmAZiXNaMV7aLKcELburv9xwzuVmFfUJe5np"
+            }
+          },
+          {
+            "id": "HorZmFQBTmAZiXNaMV7aLKcELburv9xwzuVmFfUJe5np",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3466875496206,
+            "status": {
+              "SuccessReceiptId": "8gTFmAHft4aJvGcQTHA4BA6Vx2m99BvpZptDqPaxkG6F"
+            }
+          },
+          {
+            "id": "4NaRG5CBghQwxi83wwqBViAeXVhkgYdedncdx85jmevN",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "HGwRmCK3n4WnkzuJ7ZVvVn4KoS2KRtEWcbWv8NPWAnMN",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "8gTFmAHft4aJvGcQTHA4BA6Vx2m99BvpZptDqPaxkG6F",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3737470071604,
+            "status": {
+              "SuccessReceiptId": "7zhKZ2zPdJXqLKzcaTf7UqajddywGX59nQxrEcdAQLj3"
+            }
+          },
+          {
+            "id": "7zhKZ2zPdJXqLKzcaTf7UqajddywGX59nQxrEcdAQLj3",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1569230192015,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "W3qveNTk8iooEzYJtc1XXatt8uXgsWXdD9BEbiouZQB",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "DhpwaFNm9ZntykBbx6eyGE31WW4nWJYP8twZa5wxKmpJ",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "521zzLSP7EmiUqaq391oLVqZ2CHeNr99qq4pJUgksf7o",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "67pbWgQ5xp5P14a9HSDz6BQUYpb2yQzcorz4i5Hf1AP",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "H857VW17xTMoU1sjgivkzNGZwSRCEzEXvUvsp8SCwjD8",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "7rW26zqDJRRESTBNhRVTgQxj64tX4eScCkstrPVkD4cq",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "payDefiniteFailure": {
+      "hash": "HvN84D82ucvtaSb4hBNipzXrTeVM81omWo5zfxAeougB",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000032",
+      "blockHash": "3nm5MwywH2MG6thuiK1rzazjUJ63YARfv9znkcMqLpBk",
+      "at": "2026-11-12T06:00:41.247Z",
+      "outcome": {
+        "hash": "HvN84D82ucvtaSb4hBNipzXrTeVM81omWo5zfxAeougB",
+        "failed": false,
+        "failure": null,
+        "value": 9,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "service_job_requested",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 9,
+                  "service_id": "scout",
+                  "input_hash": "sha256:5b43615a2eda910e6f4e2fa2a8c986432ca65e0e8a0b6c0f7199f070363269e6",
+                  "fee": "12400120000000000000000",
+                  "replenish": "2400120000000000000000",
+                  "deposit_cap": "2400120000000000000000",
+                  "epoch": 1
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "4fQdwfHUXKXjot2VBDvm3PLHfZVtskeL9cTGjeBaxLAg",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 4188019616596,
+            "status": {
+              "SuccessValue": "OQ=="
+            }
+          },
+          {
+            "id": "4BGYhRFUT4YCdRhCgrdZVy8Yg33wNJkWVEk9YCipXNbo",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "pendingListingDenied": {
+      "hash": "E4PQWS6dzZ1m4CPD8Wvf7kDEw9Mmnt7PAmViUpQoxw8R",
+      "sender": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277176328000016",
+      "blockHash": "AMsaya1MtL5SqvQRRUo7EtLro5c5SEUVFjJhkYCvAU5v",
+      "at": "2026-11-12T06:00:45.757Z",
+      "outcome": {
+        "hash": "E4PQWS6dzZ1m4CPD8Wvf7kDEw9Mmnt7PAmViUpQoxw8R",
+        "failed": true,
+        "failure": {
+          "ActionError": {
+            "index": 0,
+            "kind": {
+              "FunctionCallError": {
+                "ExecutionError": "WebAssembly trap: An `unreachable` opcode was executed."
+              }
+            }
+          }
+        },
+        "value": null,
+        "finality": "FINAL",
+        "events": [],
+        "receipts": [
+          {
+            "id": "GgBfAhW63d2sL56cFmEusyAD2na9z8h2LiL57o3UonTS",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 2403998975576,
+            "status": {
+              "Failure": {
+                "ActionError": {
+                  "index": 0,
+                  "kind": {
+                    "FunctionCallError": {
+                      "ExecutionError": "WebAssembly trap: An `unreachable` opcode was executed."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "XRqEsxbKYaKY5j6gFqMECAsnS7aCW8sNoKuxmEBrLPG",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "2SgdybAfXfcpTy9Jxov2t9WjSfqaVWxh5GKwoipj9Jvu",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "startDefiniteFailure": {
+      "hash": "47qzDNhQWNMsTXZwNDZTkrR6Y1ChTKJyanB72MpSaFQm",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000034",
+      "blockHash": "6b9mZSLAF1afJA6Dw7CoYwuaUn28nkWQm9mde8a8xJhP",
+      "at": "2026-11-12T06:00:50.242Z",
+      "outcome": {
+        "hash": "47qzDNhQWNMsTXZwNDZTkrR6Y1ChTKJyanB72MpSaFQm",
+        "failed": false,
+        "failure": null,
+        "value": null,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "service_job_started",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 9,
+                  "service_id": "scout",
+                  "input_hash": "sha256:5b43615a2eda910e6f4e2fa2a8c986432ca65e0e8a0b6c0f7199f070363269e6",
+                  "runtime_hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e"
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_requested",
+              "data": [
+                {
+                  "request_data": "{\"request_id\":29132,\"sender_id\":\"nfa-studio-mwd3mksx.testnet\",\"predecessor_id\":\"nfa-2.nfagent-registry-0e9b2a.testnet\",\"code_source\":{\"WasmUrl\":{\"url\":\"https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm\",\"hash\":\"88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e\",\"build_target\":\"wasm32-wasip2\"}},\"resource_limits\":{\"max_instructions\":1000000000,\"max_memory_mb\":64,\"max_execution_seconds\":10},\"input_data\":\"{\\\"operation\\\":\\\"scout\\\",\\\"jobId\\\":9,\\\"question\\\":\\\"What is quantum cargo allocation?\\\",\\\"sources\\\":[{\\\"title\\\":\\\"River\\\",\\\"url\\\":\\\"https://example.org/river\\\",\\\"text\\\":\\\"A river winds through the quiet city with ancient bridges and autumn leaves.\\\"}]}\",\"input_data_in_state\":false,\"secrets_ref\":null,\"response_format\":\"Json\",\"payment\":\"2400120000000000000000\",\"attached_usd\":\"0\",\"timestamp\":1794463252097941733,\"compile_only\":false,\"force_rebuild\":false,\"store_on_fastfs\":false,\"use_bound_identity\":false,\"project_uuid\":\"p0000000000000163\",\"project_id\":\"nfa-2.nfagent-registry-0e9b2a.testnet/scout\"}",
+                  "data_id": [
+                    108,
+                    128,
+                    191,
+                    195,
+                    102,
+                    188,
+                    197,
+                    151,
+                    8,
+                    39,
+                    132,
+                    34,
+                    189,
+                    219,
+                    225,
+                    171,
+                    99,
+                    81,
+                    209,
+                    68,
+                    90,
+                    178,
+                    117,
+                    252,
+                    248,
+                    116,
+                    221,
+                    223,
+                    65,
+                    90,
+                    194,
+                    172
+                  ],
+                  "timestamp": 1794463252097941800
+                }
+              ]
+            }
+          },
+          {
+            "executor": "outlayer.testnet",
+            "event": {
+              "standard": "near-outlayer",
+              "version": "1.0.0",
+              "event": "execution_completed",
+              "data": [
+                {
+                  "sender_id": "nfa-studio-mwd3mksx.testnet",
+                  "code_source": {
+                    "WasmUrl": {
+                      "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+                      "hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+                      "build_target": "wasm32-wasip2"
+                    }
+                  },
+                  "resources_used": {
+                    "instructions": 151982,
+                    "time_ms": 951,
+                    "compile_time_ms": null
+                  },
+                  "success": true,
+                  "error_message": null,
+                  "payment_charged": "1095100000000000000000",
+                  "payment_refunded": "1305020000000000000000",
+                  "compilation_note": "Cached WASM from 2026-11-12T05:54:07.701443+00:00",
+                  "timestamp": 1794463257596741600
+                }
+              ]
+            }
+          },
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "service_job_failed",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 9,
+                  "refund_credit": "12400120000000000000000",
+                  "runtime_hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e"
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "9adXhmrPqWb5rueuui8UqEGnh5CnsUdJzT9jY6EExsDy",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 4254806027461,
+            "status": {
+              "SuccessReceiptId": "tyquwb3WVUtGfUZPV47X8LUu8kZF2F8Vm9PyCUi6f8c"
+            }
+          },
+          {
+            "id": "EsvVwtaRqiG2AaNTp5tL4VCVZthxx6wTFRU49myKpvuP",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 2719823803494,
+            "status": {
+              "SuccessReceiptId": "J5V3h9vi4c6NpYYwmV73rN5BTLYUH8tSrYTHF2hC2JjH"
+            }
+          },
+          {
+            "id": "9pAyfSEzZxPAkTYS7cgUPbG9TGvnKZXUTbsTp1EJk7ar",
+            "executor": "outlayer.testnet",
+            "gas": 4299417704602,
+            "status": {
+              "SuccessReceiptId": "65AhVPDNg8dhzRmY82b4bF65MD9nSZbirh3pBGjTXcwv"
+            }
+          },
+          {
+            "id": "65AhVPDNg8dhzRmY82b4bF65MD9nSZbirh3pBGjTXcwv",
+            "executor": "outlayer.testnet",
+            "gas": 3099277787385,
+            "status": {
+              "SuccessValue": "eyJqb2JJZCI6OSwic2NoZW1hVmVyc2lvbiI6MSwic3RhdHVzIjoiZmFpbGVkIn0="
+            }
+          },
+          {
+            "id": "GacU7q5RA64ybCYENfQ63YPWa92AvhMtGbuuNaoihFDR",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "C2h2dXgm8huon5L9QDYBaBMvCBrjUnquEZbKYGFGCUgh",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "A2du7t5PVzyUXwMkkChNFUwy8P319gueweu8YvmguqNz",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "8Q3CAgH9cz8MR12hC8WVK46C7vn4tQR4tZyoL5WbWSE8",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "J5V3h9vi4c6NpYYwmV73rN5BTLYUH8tSrYTHF2hC2JjH",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1967918598134,
+            "status": {
+              "SuccessReceiptId": "Ar8RRpcNDv3MU2bmnGymVwHBC7WdthUfQqgNojrRTssw"
+            }
+          },
+          {
+            "id": "Ar8RRpcNDv3MU2bmnGymVwHBC7WdthUfQqgNojrRTssw",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 4384249297376,
+            "status": {
+              "SuccessReceiptId": "CsQxUQsMC5kAzuvkaBnSp1eNw45ZyNUzS1uUuySmizRc"
+            }
+          },
+          {
+            "id": "CsQxUQsMC5kAzuvkaBnSp1eNw45ZyNUzS1uUuySmizRc",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1573797610965,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "G1UzSzct9wd7XywTtasnVhjSesPYLGdKNNqXAGfJ8oiN",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "HFgAFjbKJZbEWwJVYy18ALBLaD7dhWz7HawfrtMwJr13",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "ESx8L184DwNoHeff8ZBWE4oT3NfHvuZLnaY8yHR4cgLF",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "hXViCiUHD8NutdThFKVpzTGaFRm2eyY6phJVVTnKSDN",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "tyquwb3WVUtGfUZPV47X8LUu8kZF2F8Vm9PyCUi6f8c",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 2554937747459,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "6aVdyK6TBhLHirb7wxu4u8jtdB6D5TvmWLMPLkp3oCYh",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "9DNjWUmvZdqqiFcpTCNZGXx7wEx2x2cNfASviGpVNHKn",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "resumeAfterDefiniteFailure0": {
+      "hash": "8KjBZ7WrHQ5bZQibw21d4rS3rBv14JQ77QrT9dmNsJpB",
+      "sender": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277176328000018",
+      "blockHash": "2wW3eikNr9ss8MA4WsnVtsMHSSAGdv9uDa7yMyp3KGxA",
+      "at": "2026-11-12T06:01:32.319Z",
+      "outcome": {
+        "hash": "8KjBZ7WrHQ5bZQibw21d4rS3rBv14JQ77QrT9dmNsJpB",
+        "failed": false,
+        "failure": null,
+        "value": true,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "service_failure_recovered",
+              "data": [
+                {
+                  "token_id": "nfa-2",
+                  "id": 10,
+                  "failed_job_id": 9
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "9KJwhRG95Ud5SdiaAHj2ewZj5tNLrezgbyMGNkFutLNo",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3768401293810,
+            "status": {
+              "SuccessReceiptId": "FXQEZQ9nt8E7doc4PtgHCZ8KQfcufVLxM6jnx6JNhh69"
+            }
+          },
+          {
+            "id": "6vWHUAoKXYAqGTzvnRBdgQzCQF3MVtgqZChhX6UwqPD7",
+            "executor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+            "gas": 1470137678908,
+            "status": {
+              "SuccessValue": "eyJjb250cm9sbGVyIjoibmZhZ2VudC1yZWdpc3RyeS0wZTliMmEudGVzdG5ldCIsInJlcG9ydGVyIjoiMDE4NzFkZTgzNGUwOWUzODA2ODRkM2NkYmRmZDRhM2QwMjkwNTFjZTc2OTU3ODY1YmJjY2MxOTQ3MWIzNWFlOCIsImd1YXJkaWFuIjoiMDE4NzFkZTgzNGUwOWUzODA2ODRkM2NkYmRmZDRhM2QwMjkwNTFjZTc2OTU3ODY1YmJjY2MxOTQ3MWIzNWFlOCIsInBhdGgiOiJldGgtc2Vwb2xpYS12MSIsImNoYWluX2lkIjoxMTE1NTExMSwibmV4dF9vcGVyYXRpb25faWQiOjEwLCJuZXh0X2V2bV9ub25jZSI6MCwicGVuZGluZyI6bnVsbCwibGFzdF9yZWNlaXB0IjpudWxsfQ=="
+            }
+          },
+          {
+            "id": "BZfbSBnE1RxHZB7MJyEfYqo16NDcTsGJDCCxxTjKkeNy",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "FXQEZQ9nt8E7doc4PtgHCZ8KQfcufVLxM6jnx6JNhh69",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3429043329613,
+            "status": {
+              "SuccessValue": "dHJ1ZQ=="
+            }
+          },
+          {
+            "id": "6A8YyNNtvLvyb8tME6fwDdE5xuSsajCFE3pN8mff9zpG",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "7mn2YBwiQ3BsepaKg7g8dvQ5Cn756BLT9pmz8PQZKim4",
+            "executor": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+            "gas": 7524947687500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    },
+    "withdrawFailureRefund": {
+      "hash": "JDAgpv1QTomgCGsuBg7zu3FQTGvw5BAXFkuGkhM5ngVS",
+      "sender": "nfa-studio-mwd3mksx.testnet",
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "state": "FINAL",
+      "nonce": "277318702000036",
+      "blockHash": "13mnNrHqFbih8FGHPKEDXkDrywudZ7a2Qusbz3iqZjwT",
+      "at": "2026-11-12T06:01:51.484Z",
+      "outcome": {
+        "hash": "JDAgpv1QTomgCGsuBg7zu3FQTGvw5BAXFkuGkhM5ngVS",
+        "failed": false,
+        "failure": null,
+        "value": true,
+        "finality": "FINAL",
+        "events": [
+          {
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "event": {
+              "standard": "nfa",
+              "version": "1.0.0",
+              "event": "payout_finalized",
+              "data": [
+                {
+                  "seller": "nfa-studio-mwd3mksx.testnet",
+                  "id": 1,
+                  "amount": "12400120000000000000000"
+                }
+              ]
+            }
+          }
+        ],
+        "receipts": [
+          {
+            "id": "EUiv17PiwAtZrrKL4zmVQwjLL2NsdrYZ8XC7ickgZcCw",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 3331851597095,
+            "status": {
+              "SuccessReceiptId": "C4LJLKR9Y6XyyQffhdxnchzEJaS2cdjUkUfrCMGNdchQ"
+            }
+          },
+          {
+            "id": "8u2yjGjTi55m1ghGwBHTAFoPGoRzE9RXnG7pD4JBYKxi",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "FEDdn9xAUg5nuShW3kh1kdzYzeqdpvM1zKdqMXb6E6SZ",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "C4LJLKR9Y6XyyQffhdxnchzEJaS2cdjUkUfrCMGNdchQ",
+            "executor": "nfagent-registry-0e9b2a.testnet",
+            "gas": 2772992219250,
+            "status": {
+              "SuccessValue": "dHJ1ZQ=="
+            }
+          },
+          {
+            "id": "D45vUUymLkNfZ6QDT7uy8vo7BjSeczMxQjWRB6RkgcmL",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          },
+          {
+            "id": "CJk9iYXw279jdnRVbFY53JP2LLm9uCMqiQZqFTwTrLRv",
+            "executor": "nfa-studio-mwd3mksx.testnet",
+            "gas": 223182562500,
+            "status": {
+              "SuccessValue": ""
+            }
+          }
+        ]
+      }
+    }
+  },
+  "versionContinuity": {
+    "projectUuid": "p0000000000000163",
+    "beforeRuntime": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+    "afterRuntime": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+    "recalledOutputHash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0"
+  },
+  "definiteFailure": {
+    "jobId": 9,
+    "inputData": "{\"question\":\"What is quantum cargo allocation?\",\"sources\":[{\"title\":\"River\",\"url\":\"https://example.org/river\",\"text\":\"A river winds through the quiet city with ancient bridges and autumn leaves.\"}]}",
+    "fee": "12400120000000000000000",
+    "beforeIncome": "20000000000000000000000",
+    "beforePayout": {
+      "available": "0",
+      "pending": null,
+      "next_id": 0
+    },
+    "finalized": {
+      "id": 9,
+      "epoch": 1,
+      "requester": "nfa-studio-mwd3mksx.testnet",
+      "input_hash": "sha256:5b43615a2eda910e6f4e2fa2a8c986432ca65e0e8a0b6c0f7199f070363269e6",
+      "fee": "12400120000000000000000",
+      "replenish": "2400120000000000000000",
+      "deposit_cap": "2400120000000000000000",
+      "version_key": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+      "limits": {
+        "max_instructions": 1000000000,
+        "max_memory_mb": 64,
+        "max_execution_seconds": 10
+      },
+      "deadline_ns": 1794464140638000000,
+      "created_at_ns": 1794463242379582200,
+      "started_at_ns": 1794463250849866800,
+      "status": "FAILED",
+      "output_hash": null,
+      "output_uri": null,
+      "reimbursement_pending": false
+    }
+  },
+  "refundCredit": {
+    "available": "12400120000000000000000",
+    "pending": null,
+    "next_id": 0
+  },
+  "refundAfterWithdrawal": {
+    "available": "0",
+    "pending": null,
+    "next_id": 1
+  },
+  "ownerArtifact": {
+    "owner": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+    "hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0",
+    "provenance": "deterministic reconstruction of public input, verified against finalized commitment"
+  },
+  "emptyCacheArtifactCheck": {
+    "manifestHash": "sha256:5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e",
+    "imageHash": "sha256:8d4381ec70e2ad6c9902234557f8d0c2c13b0c8e7729678bedb21fd41eea2907",
+    "cutoutHash": "sha256:d8cef5a53f871fbb6be77d50da7be884a4166690a43bcd7bab64e1122c9906c5"
+  },
+  "finalIdentity": {
+    "registryAccountId": "nfagent-registry-0e9b2a.testnet",
+    "tokenId": "nfa-2",
+    "vaultAccountId": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "ownerAccountId": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+    "ownerEpoch": 1,
+    "lifecycle": "ACTIVE",
+    "manifestHash": "sha256:5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e",
+    "manifestUri": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e.json",
+    "income": "20000000000000000000000",
+    "listing": null,
+    "foreignWallet": {
+      "chain_id": 11155111,
+      "signer_id": "v1.signer-prod.testnet",
+      "path": "eth-sepolia-v1",
+      "domain_id": 0,
+      "public_key": "secp256k1:3qHqt4jJWkeUKiYGydWD9qcQfNri65Qtn4VHiVy5XAJdT4CNuszFhm2msDAe82fYY7PUKX69vKquKcJ8tRUNyzAP",
+      "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9"
+    }
+  },
+  "finalProject": {
+    "project_id": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+    "project_uuid": "p0000000000000163",
+    "version_key": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+    "candidate_version": null,
+    "state": "READY",
+    "action": ""
+  },
+  "finalLedger": {
+    "customer_escrow": "0",
+    "vault_replenishment_pending": "0",
+    "gross_finalized_receipts": "24800240000000000000000",
+    "customer_refunds": "12400120000000000000000"
+  },
+  "finalVault": {
+    "project": {
+      "project_id": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+      "project_uuid": "p0000000000000163",
+      "version_key": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+      "wasm_url": "https://test.fastfs.io/nfagent-alice-fe53d8.testnet/outlayer.testnet/b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9.wasm",
+      "state": "READY"
+    },
+    "pending": null,
+    "available": "1522633240000000000000000",
+    "daily_budget": {
+      "day": 20769,
+      "deposits": "16200360000000000000000"
+    },
+    "daily_cap": "2000000000000000000000000",
+    "storage_account": "predecessor"
+  },
+  "completedAt": "2026-11-12T06:02:49.782Z"
+}

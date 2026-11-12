@@ -1,0 +1,17 @@
+{
+  "oldCodeSha256": "253e5b15693b624bafc436bd56ab848e561a0368c8e3b9b47a387c71e393af83",
+  "newCodeSha256": "99fd106f60d79b4b4fa289fee9c2630b0412fd25ddb849ab04243344c1bb0636",
+  "localUpgradeTransaction": "2MgiEe9P2dHcs2QCzSqo6tcQ361RCZtBDotWQqnJgPN7",
+  "oldToken": {
+    "owner": "alice.test.near",
+    "vault": "nfa-1.registry.test.near",
+    "epoch": 0
+  },
+  "assertions": [
+    "deployed actual prior testnet WASM",
+    "minted old contract state",
+    "upgraded without state migration",
+    "preserved old NFT owner, epoch, manifest and vault",
+    "minted funded new vault after upgrade"
+  ]
+}

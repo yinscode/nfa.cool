@@ -1,0 +1,49 @@
+{
+  "registryCodeBytes": 1222788,
+  "codeHash": "4iUsqB7hykiVazNgMvVrCUchm7LEer7Yox7dfczUUCBG",
+  "registryStorageBytes": {
+    "before": 1222970,
+    "after": 1234586
+  },
+  "vaultStorageBytes": 417043,
+  "vaultBalanceYocto": "5796000000000000000000000",
+  "transactionGas": {
+    "create": "93785337868472",
+    "job": "3567021063347",
+    "rollback": "10613678914086",
+    "sale": "4964947296841",
+    "failedPayout": "12853981795764",
+    "sellerWithdrawal": "6982437290070"
+  },
+  "paidResults": {
+    "project": {
+      "project_id": "nfa-1.registry.test.near/scout",
+      "project_uuid": "p0000000000000001",
+      "version_key": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+      "candidate_version": null,
+      "state": "READY",
+      "action": ""
+    },
+    "scoutId": 2,
+    "compareId": 3,
+    "transactionGas": {
+      "provision": "18295574093508",
+      "scoutRequest": "4399013690196",
+      "scoutStart": "25797030017033",
+      "comparePolicy": "3734364150503",
+      "compareRequest": "4332921089017",
+      "compareStart": "25937519920783",
+      "recall": "21005010297950"
+    }
+  },
+  "assertions": [
+    "provisioned keyless vault",
+    "paid Scout output",
+    "income follows sale",
+    "seller payout",
+    "old session and old owner rejected",
+    "failed vault transfer callback",
+    "transfer-call rollback",
+    "upgrade preserves state"
+  ]
+}

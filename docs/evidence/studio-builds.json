@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-12",
+  "artifacts": [
+    {
+      "path": "releases/nfa-registry-studio-99fd106f60d79b4b.wasm",
+      "sha256": "99fd106f60d79b4b4fa289fee9c2630b0412fd25ddb849ab04243344c1bb0636",
+      "bytes": 1222755
+    },
+    {
+      "path": "releases/nfa-vault-studio-263e3087d2104099.wasm",
+      "sha256": "263e3087d21040995a991d716ab4523d114fd800aab63126c034d88983977cd0",
+      "bytes": 416484
+    },
+    {
+      "path": "releases/nfa-registry-before-studio-253e5b15693b624b.wasm",
+      "sha256": "253e5b15693b624bafc436bd56ab848e561a0368c8e3b9b47a387c71e393af83",
+      "bytes": 659883,
+      "purpose": "prior deployed bytecode for upgrade rehearsal"
+    }
+  ],
+  "javascriptTests": 65,
+  "vaultTests": 14,
+  "registryTests": 36,
+  "hostedAcceptance": "passed",
+  "publicWebDeployment": false,
+  "productionS3Configured": false,
+  "localStudioPort": 3102,
+  "compactStudioIntegrationChecks": 11,
+  "releaseIntegrationChecks": 13,
+  "researchHosted": false,
+  "newEvmLiveAcceptance": false
+}

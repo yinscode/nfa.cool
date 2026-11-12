@@ -1,0 +1,224 @@
+{
+  "capturedAt": "2026-11-12T06:20:14.951Z",
+  "project": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+  "projectUuid": "p0000000000000163",
+  "verification": "Final NEAR receipt, execution-input/runtime/caller/project bindings and TDX v4 report-data hash. Intel collateral/signature trust chain was not independently verified.",
+  "records": [
+    {
+      "label": "scout",
+      "transaction": "3vMtgjdpSCQYY6mZix4h3xCtRNCWxXZc4Mmmy6Ao3ADt",
+      "hostJobId": 69664,
+      "requestId": 28990,
+      "runtimeHash": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+      "inputHash": "35cb45c77ea5d18341ce1e250c5b608c4499ee25dbf153f15ac49767d5b5b9d2",
+      "stdoutHash": "5a2bd3090c50e7c258538a168cd64bee936aa4e43095e5f9cf49de9748fac899",
+      "reportDataHash": "439032dd6ed030c40ecd5b06b4e196270db3fcd24fd07987516695ad71795d21",
+      "quoteSha256": "a375704029afccebf0a0bbf472bd49984ec055b35105ae3a3da467227a94fa46",
+      "quoteFile": "attestations/scout.json",
+      "paymentYocto": "2400120000000000000000",
+      "chargedYocto": "1087900000000000000000",
+      "refundedYocto": "1312220000000000000000",
+      "instructions": 335495,
+      "timeMs": 879,
+      "registryEvents": [
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "service_job_started",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 2,
+              "service_id": "scout",
+              "input_hash": "sha256:a994703412d2841cfa0bcf1f44d52d4b893e5b21f8ecfbb46252c4fe547f4885",
+              "runtime_hash": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9"
+            }
+          ]
+        },
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "service_job_finalized",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 2,
+              "output_hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0",
+              "runtime_hash": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+              "fee": "12400120000000000000000",
+              "replenished": "2400120000000000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "compare",
+      "transaction": "3CJ3rzg1VmUQjTEk6BuBsXrD4fb5jhqjFAJ8XGdon7Rt",
+      "hostJobId": 69679,
+      "requestId": 29005,
+      "runtimeHash": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+      "inputHash": "ebf41d47279dc232bc5d438b57aa805c2ae7ee01f075fff79599f5f273519926",
+      "stdoutHash": "55c53ebdc172fbde2842607fbbab3c79d16b4924b7312fb5c8fe1a1b452c2bd2",
+      "reportDataHash": "8fce1a1706372871418567dbbaeba1e293e9e54efd8e3157480adef6a10acf11",
+      "quoteSha256": "b53757f45e1b6bd32184d4f2c0a86b5c55ee928f9a1ae1eb534f759e4288e996",
+      "quoteFile": "attestations/compare.json",
+      "paymentYocto": "2400120000000000000000",
+      "chargedYocto": "1118400000000000000000",
+      "refundedYocto": "1281720000000000000000",
+      "instructions": 582670,
+      "timeMs": 1184,
+      "registryEvents": [
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "service_job_started",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 3,
+              "service_id": "compare",
+              "input_hash": "sha256:64a438ad238045425e36609abd74a9db5371f97944ac404813b8f8f983bbc318",
+              "runtime_hash": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9"
+            }
+          ]
+        },
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "service_job_finalized",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 3,
+              "output_hash": "sha256:efe8cff1f3608969eb56fcaee9a1c7dd9cf05bd8df315d5580d8e5928bbc01dd",
+              "runtime_hash": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+              "fee": "12400120000000000000000",
+              "replenished": "2400120000000000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "buyer-recall",
+      "transaction": "TFhDciYMmAB68LRYbqnwKADZYdYKAjFj66ieNwCwDrD",
+      "hostJobId": 69699,
+      "requestId": 29024,
+      "runtimeHash": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+      "inputHash": "3118d9149fb40312b8e1f928f9f2d4c291ed22c7d840fcaad912578fbd7a49b4",
+      "stdoutHash": "fbf8b907decb504d6596ba9bd76a161c1ebb212b08d2ef206bd2efe5c4fceab2",
+      "reportDataHash": "69377abd26a09fe0a8aa5d66b3e9d36714f9fded3d5177d4d6b41006eaf66f8e",
+      "quoteSha256": "50df5d35375be8abbc4d1fe8fcaec712fd8a47a762ecdfaabca9d7c6323d03b2",
+      "quoteFile": "attestations/buyer-recall.json",
+      "paymentYocto": "3000000000000000000000",
+      "chargedYocto": "1147400000000000000000",
+      "refundedYocto": "1852600000000000000000",
+      "instructions": 87228,
+      "timeMs": 1474,
+      "registryEvents": [
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "memory_recalled",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 5,
+              "job_id": 2,
+              "output_hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "version-recall",
+      "transaction": "AkdhSnxc8HCpJV7S55uLLMM6V7VGy3EeTA6MD6C8Ndju",
+      "hostJobId": 69803,
+      "requestId": 29127,
+      "runtimeHash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+      "inputHash": "3118d9149fb40312b8e1f928f9f2d4c291ed22c7d840fcaad912578fbd7a49b4",
+      "stdoutHash": "fbf8b907decb504d6596ba9bd76a161c1ebb212b08d2ef206bd2efe5c4fceab2",
+      "reportDataHash": "e264b65a11b2ef742bd1323112d1f2d010685fa9210bb969f024fdeb54471f29",
+      "quoteSha256": "c639be26d9346fc73399a296a17c854d1f851a3714f4ee180e4bf9693021919f",
+      "quoteFile": "attestations/version-recall.json",
+      "paymentYocto": "3000000000000000000000",
+      "chargedYocto": "1156300000000000000000",
+      "refundedYocto": "1843700000000000000000",
+      "instructions": 87228,
+      "timeMs": 1563,
+      "registryEvents": [
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "memory_recalled",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 8,
+              "job_id": 2,
+              "output_hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "reviewed-quote",
+      "transaction": "4H8wxVPWYZzaL9TLgEwCZhsHtPZH58tZBW2vU77LjnjM",
+      "hostJobId": 69874,
+      "requestId": 29197,
+      "runtimeHash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+      "inputHash": "d29cf0b94c416faa510ee53e88d4727cf3493b21261102af876e3ada752a5a6e",
+      "stdoutHash": "27d50fa55be66288d23b958c476e0da0e152fb428ead5e8faeaf5adea9a9e2fb",
+      "reportDataHash": "4f854bb166993a342e1445836927e8be8c41568a4eb3bb33c50978d9454ea4c7",
+      "quoteSha256": "1fce58c20a823aac5effc786dd9bb978bae5681da8595ac07ed715afec69c56a",
+      "quoteFile": "attestations/reviewed-quote.json",
+      "paymentYocto": "2400120000000000000000",
+      "chargedYocto": "1091000000000000000000",
+      "refundedYocto": "1309120000000000000000",
+      "instructions": 335611,
+      "timeMs": 910,
+      "registryEvents": [
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "service_job_started",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 11,
+              "service_id": "scout",
+              "input_hash": "sha256:a994703412d2841cfa0bcf1f44d52d4b893e5b21f8ecfbb46252c4fe547f4885",
+              "runtime_hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e"
+            }
+          ]
+        },
+        {
+          "executor": "nfagent-registry-0e9b2a.testnet",
+          "standard": "nfa",
+          "version": "1.0.0",
+          "event": "service_job_finalized",
+          "data": [
+            {
+              "token_id": "nfa-2",
+              "id": 11,
+              "output_hash": "sha256:0476ce8860853c12ed10ba114b88b0a70339148f2a6c8adad98940d468cbc2b0",
+              "runtime_hash": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+              "fee": "12400120000000000000000",
+              "replenished": "2400120000000000000000"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

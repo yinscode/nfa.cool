@@ -58,9 +58,25 @@ The guest tests cover durable attempt idempotency; 42 registry and 15 vault
 native tests pass. See [evidence/m05-memory-billing.json](evidence/m05-memory-billing.json).
 The receipt fixture does not execute WASI HTTP, a model or a TEE.
 
-## M06 — preparing hosted acceptance
+## M06 — hosted compatibility passed; model credential required
 
-The pinned candidate remains unavailable for public research quotes. A dedicated
-model API key is required for live inference; no unrelated credentials are used.
-Secret access is restricted to the stable vault predecessor and exact reviewed
-WASM build. Public hosting remains deferred.
+The rehearsed registry and vault bytes are deployed on NEAR testnet. A bounded
+0.7 testNEAR transfer from the existing test funder covered additional registry
+storage after the first deployment was definitively rejected for insufficient
+storage balance. The funded retry used a separate signed transaction. Vault
+state, Sepolia nonce/receipt and Project UUID were preserved.
+
+The candidate is active in the same vault-owned Project. A real hosted job
+returned NOT_STARTED without a model credential, credited the full customer
+NEAR refund, and resumed only through the owner's explicit action. Scout and
+Compare finalized on the new runtime; Alice recalled pre-sale Scout work under
+that runtime. Runtime/input/report-data bindings and actual OutLayer compute
+charges are recorded in [evidence/m06-preparation.json](evidence/m06-preparation.json).
+
+M06 is **not complete**. Real model inference, research-specific buyer follow-up
+and the final research demo remain. Public research quotes stay disabled while
+the catalog is a candidate. Put a dedicated provider key, provider name and model
+ID in the Git-ignored `.env.research` file; see
+[RESEARCH-ACCEPTANCE.md](RESEARCH-ACCEPTANCE.md). No unrelated environment key is
+used. Secret access is restricted to the stable vault predecessor and exact
+reviewed WASM build. Public hosting remains deferred.

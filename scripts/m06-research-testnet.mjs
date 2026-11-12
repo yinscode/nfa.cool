@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Phased testnet acceptance. Public REST remains gated until real inference + buyer continuity pass.
 import {readFile,writeFile} from 'node:fs/promises';
-import {loadEnvFile} from 'node:process';
+import {readFileSync} from 'node:fs';
+import {parseEnv} from 'node:util';
 import {createHash} from 'node:crypto';
 import {transactions,utils} from 'near-api-js';
 import {NfaSdk} from '@nfa/sdk';
@@ -10,7 +11,7 @@ import {quoteService,schemaHashFor} from '../services/api/service-runtime.mjs';
 import {researchEncryptionKey,researchSecretAccess,sealOutlayerSecrets} from '../services/worker/outlayer-secrets.mjs';
 import {hostedExecutionEvidence} from './hosted-execution-evidence.mjs';
 const phase=process.argv[2]||'inspect';
-if(!['inspect','upload','upgrade','secrets-smoke','secrets','stage','activate','configure-smoke','configure','smoke','legacy','research','handover','buyer','verify'].includes(phase))throw Error('Unknown M06 phase');
+if(!['inspect','checkpoint','upload','upgrade','secrets-smoke','secrets','stage','activate','configure-smoke','configure','smoke','legacy','research','handover','buyer','verify'].includes(phase))throw Error('Unknown M06 phase');
 const ctx=await testnet('deployments/m06-research.json'),registry=await ctx.signer('t006-registry'),operator=await ctx.signer('t004-operator'),
   alice=await ctx.signer('t006-alice'),bob=await ctx.signer('t008-bob'),customer=await ctx.signer('studio-funder');
 const tokenId='nfa-2',sdk=new NfaSdk({registryAccountId:registry.id,rpcUrl:ctx.rpcUrl});
@@ -47,14 +48,15 @@ async function run(label,service,input){
   record.result=await until(()=>sdk.getServiceJob(tokenId,id),r=>['FINALIZED','FAILED','UNCERTAIN'].includes(r?.job?.status));
   await ctx.save();return record;
 }
+let researchCredential;
 function configValues(smoke){
   if(!smoke){
-    try{loadEnvFile('.env.research')}catch{throw Error('Place the dedicated model credential/configuration in .env.research before this phase')}
-    if(!process.env.NFA_RESEARCH_API_KEY||!['near-ai','openai'].includes(process.env.NFA_RESEARCH_PROVIDER)||!process.env.NFA_RESEARCH_MODEL)
+    try{researchCredential=parseEnv(readFileSync('.env.research','utf8'))}catch{throw Error('Place the dedicated model credential/configuration in .env.research before this phase')}
+    if(!researchCredential.NFA_RESEARCH_API_KEY||!['near-ai','openai'].includes(researchCredential.NFA_RESEARCH_PROVIDER)||!researchCredential.NFA_RESEARCH_MODEL)
       throw Error('Dedicated NFA_RESEARCH_API_KEY, NFA_RESEARCH_PROVIDER and NFA_RESEARCH_MODEL required');
   }
   return {version_key:runtime.sha256,secrets_ref:{account_id:operator.id,profile:smoke?'research-v3-smoke':'research-v3'},
-    allowed_sources:[{host:'docs.near.org',path_prefix:'/'}],model:smoke?'no-model-smoke':process.env.NFA_RESEARCH_MODEL,
+    allowed_sources:[{host:'docs.near.org',path_prefix:'/'}],model:smoke?'no-model-smoke':researchCredential.NFA_RESEARCH_MODEL,
     max_input_tokens:24000,max_output_tokens:512,input_microusd_per_token:1,output_microusd_per_token:2,
     max_cost_microusd:30000,daily_budget_microusd:150000};
 }
@@ -68,7 +70,20 @@ if(phase==='upload'){
   if(hash(code)!==rehearsal.newCodeSha256||hash(vaultCode)!==rehearsal.vaultCodeSha256)throw Error('Rehearsed contract hash mismatch');
   const deployed=await ctx.account(registry.id),deployedHash=Buffer.from(utils.serialize.base_decode(deployed.code_hash)).toString('hex');
   if(![rehearsal.oldCodeSha256,rehearsal.newCodeSha256].includes(deployedHash))throw Error('Unexpected deployed registry release');
-  await ctx.send('researchRegistryUpgrade',registry,registry.id,[transactions.deployContract(code)]);
+  const oldLength=deployedHash===rehearsal.newCodeSha256?code.length:
+    (await readFile(`releases/nfa-registry-studio-${rehearsal.oldCodeSha256.slice(0,16)}.wasm`)).length;
+  const required=BigInt(deployed.storage_usage+code.length-oldLength)*10000000000000000000n+200000000000000000000000n-BigInt(deployed.amount);
+  if(required>0n){
+    const unit=50000000000000000000000n,amount=((required+unit-1n)/unit)*unit;
+    if(amount>1000000000000000000000000n)throw Error('Registry storage top-up exceeds the 1 testNEAR acceptance cap');
+    const balance=await ctx.account(customer.id);
+    if(BigInt(balance.amount)-BigInt(balance.storage_usage)*10000000000000000000n<amount+200000000000000000000000n)
+      throw Error('Test funder lacks the registry storage top-up and reserve');
+    await ctx.send('researchRegistryStorageFunding',customer,registry.id,[transactions.transfer(amount)]);
+    ctx.evidence.upgradeFunding={source:customer.id,recipient:registry.id,amountYocto:amount.toString(),purpose:'rehearsed contract storage and 0.2 testNEAR headroom'};await ctx.save();
+  }
+  const upgradeLabel=ctx.evidence.steps.researchRegistryUpgrade?.outcome?.failed?'researchRegistryUpgradeFunded':'researchRegistryUpgrade';
+  await ctx.send(upgradeLabel,registry,registry.id,[transactions.deployContract(code)]);
   await action('researchVaultUpgrade',operator,{receiverId:vault,methodName:'emergency_upgrade',args:{code:vaultCode.toString('base64')},gas:'100000000000000',deposit:'0'});
   const after=await until(()=>sdk.view(vault,'status'),s=>s.research_interface===1);
   const {research_interface,...preserved}=after,{research_interface:oldInterface,...old}=status;
@@ -79,7 +94,7 @@ if(phase==='upload'){
 }else if(phase==='secrets'||phase==='secrets-smoke'){
   const smoke=phase==='secrets-smoke',settings=configValues(smoke),profile=settings.secrets_ref.profile;
   const pubkey=await researchEncryptionKey({owner:operator.id,profile,projectId:project.project_id});
-  const secrets=smoke?{NFA_RESEARCH_PROVIDER:'near-ai'}:{NFA_RESEARCH_API_KEY:process.env.NFA_RESEARCH_API_KEY,NFA_RESEARCH_PROVIDER:process.env.NFA_RESEARCH_PROVIDER};
+  const secrets=smoke?{NFA_RESEARCH_PROVIDER:'near-ai'}:{NFA_RESEARCH_API_KEY:researchCredential.NFA_RESEARCH_API_KEY,NFA_RESEARCH_PROVIDER:researchCredential.NFA_RESEARCH_PROVIDER};
   const accessor={Project:{project_id:project.project_id}},access=researchSecretAccess(vault,runtime.sha256);
   await action(smoke?'storeSmokeSecret':'storeResearchSecret',operator,{receiverId:'outlayer.testnet',methodName:'store_secrets',
     args:{accessor,profile,encrypted_secrets_base64:sealOutlayerSecrets(pubkey,secrets),access,vault_id:null},gas:'50000000000000',deposit:'100000000000000000000000'});
@@ -106,6 +121,7 @@ if(phase==='upload'){
     if(service==='compare'){input.criteria=['memory'];input.sources.push({title:'Signer',url:'https://docs.near.org/accounts-contracts/account',text:'A human signer can change while the agent vault and memory remain the same.'})}
     const result=await run('legacy'+service,service,input);if(result.result.job.status!=='FINALIZED')throw Error('Legacy handler acceptance failed');
   }
+  await action('legacyRecallOldScout',owner,sdk.recallOwnerMemory(tokenId,11,ctx.evidence.legacyscout.quote.depositCapYocto));
 }else if(phase==='research'||phase==='buyer'){
   if(phase==='buyer'&&identity.ownerAccountId!==bob.id)throw Error('Buyer must own the NFA');
   const result=await run(phase,'research',{question:phase==='buyer'?'Which NEAR account facts remain useful after an NFT ownership change?':'How are NEAR accounts and their keys related?',
@@ -121,6 +137,27 @@ if(phase==='upload'){
   const recallDeposit=ctx.evidence.research.quote.depositCapYocto;
   await action('oldOwnerRecallDenied',alice,sdk.recallOwnerMemory(tokenId,ctx.evidence.research.id,recallDeposit),{failureExpected:true});
   await action('buyerRecall',bob,sdk.recallOwnerMemory(tokenId,ctx.evidence.research.id,recallDeposit));
+}else if(phase==='checkpoint'){
+  await assertIdle();const jobs={},hosted={};
+  for(const label of ['smoke','legacyscout','legacycompare']){
+    const recorded=ctx.evidence[label];if(!recorded)continue;
+    jobs[label]={id:recorded.id,result:await sdk.getServiceJob(tokenId,recorded.id)};
+    hosted[label]=await hostedExecutionEvidence({sdk,hash:ctx.evidence.steps[label+'Start'].hash,sender:customer.id,
+      runtimeHash:runtime.sha256,predecessor:vault,projectUuid:project.project_uuid});
+  }
+  const [config,budget,ledger]=await Promise.all([sdk.getResearchConfig(tokenId),sdk.view(registry.id,'research_budget',{token_id:tokenId}),sdk.getPaidLedger()]);
+  const evidence={milestone:'M06',complete:false,checkedAt:new Date().toISOString(),status:'Hosted no-key failure and compatibility acceptance; real inference pending',
+    runtimeHash:runtime.sha256,identity:{...initial,owner:identity.ownerAccountId,epoch:identity.ownerEpoch},activeProject:project,
+    upload:ctx.evidence.upload,upgrade:ctx.evidence.upgrade,upgradeFunding:ctx.evidence.upgradeFunding,
+    secret:ctx.evidence.smokeSecret,jobs,hosted,modelAllowance:budget,nativeLedger:ledger,
+    researchConfiguration:{version:config.version,hash:config.configuration_hash,secrets_ref:config.settings.secrets_ref},
+    nearTransactions:Object.fromEntries(Object.entries(ctx.evidence.steps).map(([k,v])=>[k,{hash:v.hash,failed:v.outcome?.failed}])),
+    remaining:['Dedicated model credential','Real paid research, sale, buyer recall and follow-up','Final Studio/testnet recording'],
+    limitations:['No-key smoke performs no model inference.','Full research report remains encrypted; recall returns a summary.',
+      'Intel collateral/signature trust chain was not independently verified.',
+      'FastFS upload used an intentionally failing minimal-gas data receipt; published bytes were hash-verified.']};
+  await writeFile('docs/evidence/m06-preparation.json',JSON.stringify(evidence,null,2)+'\n');
+  console.log(JSON.stringify({checkpointSaved:true,complete:false,currentOwner:identity.ownerAccountId,activeRuntime:project.version_key}));
 }else if(phase==='verify'){
   if(!ctx.evidence.research||!ctx.evidence.buyer||!ctx.evidence.legacyscout||!ctx.evidence.legacycompare||
     !ctx.evidence.steps.buyerRecall?.outcome||!ctx.evidence.steps.oldOwnerRecallDenied?.outcome?.failed)

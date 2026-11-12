@@ -6,7 +6,8 @@ const wasm='skills/scout-wasi/target/wasm32-wasip2/release/nfa-scout-wasi.wasm';
 const checked=JSON.parse(execFileSync(process.execPath,['scripts/check-wasi.mjs',wasm],{encoding:'utf8'}));
 const sources={};
 for(const path of ['skills/scout-wasi/src/main.rs','skills/scout-wasi/src/research.rs','skills/scout-wasi/Cargo.toml',
-  'skills/scout-wasi/Cargo.lock','scripts/build-outlayer-wasi.sh','scripts/prepare-wasi-toolchain.mjs'])
+  'skills/scout-wasi/Cargo.lock','skills/scout-wasi/wit/world.wit','skills/scout-wasi/wit/deps/storage.wit',
+  'scripts/build-outlayer-wasi.sh','scripts/prepare-wasi-toolchain.mjs'])
   sources[path]=createHash('sha256').update(await readFile(path)).digest('hex');
 const artifact=`releases/nfa-services-research-${checked.sha256.slice(0,16)}.wasm`;
 await copyFile(wasm,artifact);

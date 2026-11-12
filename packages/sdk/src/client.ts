@@ -4,6 +4,12 @@ export type WalletAction = Readonly<{
   receiverId:string; methodName?:string; args?:Record<string,unknown>; gas?:string; deposit:string;
 }>;
 export type Wallet = {signAndSendTransaction(action:WalletAction):Promise<unknown>};
+export type ResearchSettings={version_key:string;secrets_ref:{account_id:string;profile:string};
+  allowed_sources:Array<{host:string;path_prefix:string}>;model:string;max_input_tokens:number;max_output_tokens:number;
+  input_microusd_per_token:number;output_microusd_per_token:number;max_cost_microusd:number;daily_budget_microusd:number};
+export type ResearchConfig={version:number;configuration_hash:string;settings:ResearchSettings};
+export type ResearchUsage={configuration_hash:string;configuration_version:number;reserved_microusd:number;
+  priced_usage_microusd:number|null;state:'RESERVED'|'NOT_STARTED'|'PRICED_USAGE'|'UNKNOWN';day:number};
 type Fetch = typeof fetch;
 const GAS='250000000000000', ONE='1', CREATION='6000000000000000000000000';
 const SHA=/^sha256:[0-9a-f]{64}$/, TOKEN=/^nfa-[1-9][0-9]*$/;
@@ -149,8 +155,8 @@ export class NfaSdk {
       input_hash:hash(inputHash),deadline_ns:ns(deadlineNs),fee:amount(fee),
       replenish:amount(replenish),deposit_cap:amount(depositCap),limits:limits(resourceLimits)},fee);
   }
-  getResearchConfig(id:string){return this.view<Record<string,any>|null>(this.registryAccountId,'research_config',{token_id:token(id)})}
-  configureResearch(id:string,settings:Record<string,unknown>){return this.prepare('configure_research',{token_id:token(id),settings})}
+  getResearchConfig(id:string){return this.view<ResearchConfig|null>(this.registryAccountId,'research_config',{token_id:token(id)})}
+  configureResearch(id:string,settings:ResearchSettings){return this.prepare('configure_research',{token_id:token(id),settings})}
   verifyResearchVault(id:string){return this.prepare('verify_research_vault',{token_id:token(id)})}
   startServiceJob(id:string,jobId:number,inputData:string){
     if(!Number.isSafeInteger(jobId)||jobId<1||new TextEncoder().encode(inputData).length>8192)

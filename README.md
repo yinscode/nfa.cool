@@ -31,7 +31,7 @@ storage see [docs/STUDIO-RUNBOOK.md](docs/STUDIO-RUNBOOK.md).
 - [Studio plan](docs/NFA-STUDIO-PLAN.md) and [service REST API](docs/SERVICES-API.md)
 - [Fast focused checks](docs/LOCAL-LOOP.md) and [deployment history](docs/LIVE-DEPLOYMENT.md)
 
-Validation: 65 JS tests, 14 vault tests, 36 registry tests, web/SDK builds,
+Validation: 70 JS tests, 15 vault tests, 42 registry tests, six WASI guest tests, web/SDK builds,
 full sandbox receipt suite, actual-old-bytecode upgrade rehearsal and hosted
 acceptance. Current testnet NFT is `nfa-2`, registry
 `nfagent-registry-0e9b2a.testnet`, Project UUID `p0000000000000163`.
@@ -50,7 +50,7 @@ is included under `docs/evidence/`. Do not fund the retired T004 one-use vault.
 
 ## Release milestones
 
-The six approved release milestones are tracked in [RELEASE-PLAN.md](docs/RELEASE-PLAN.md). SDK/service packages, economics/inventory and a 13-check local handover demo are delivered. Public hosting, current live Sepolia acceptance and the research WASI/contract integration remain open. See [DEVELOPER-QUICKSTART.md](docs/DEVELOPER-QUICKSTART.md) and [DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md).
+The six approved release milestones are tracked in [RELEASE-PLAN.md](docs/RELEASE-PLAN.md). SDK/service packages, economics/inventory and a 13-check local handover demo are delivered. M01–M05 are complete: current Sepolia handover, typed research contracts/SDK/API, pinned WASI and local memory/billing acceptance. M06 hosted compatibility and no-key failure/refund checks passed; real inference, research handover and the final demo need a dedicated model credential. Public hosting remains deferred. See [MILESTONES.md](docs/MILESTONES.md). See [DEVELOPER-QUICKSTART.md](docs/DEVELOPER-QUICKSTART.md) and [DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md).
 
 ## Already implemented
 

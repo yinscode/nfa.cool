@@ -1,10 +1,11 @@
 # Ownership and transfer threat model
 
-Status: design contract for T005–T014 and T029–T034. The T004 one-use vault,
-the replacement test vault, and a registry have been deployed on NEAR testnet;
-the registry has not minted an NFT yet because its initial callback failed.
-The intended NFT is the sole current-owner authority. A vault keeps its
-account ID and balances when its NFT changes hands.
+Status: original threat model, with current testnet evidence summarized in
+[MILESTONES.md](MILESTONES.md). The registry has minted NFTs; the current live
+acceptance NFT is `nfa-2`. Current NEAR/OutLayer and Sepolia handover checks have
+passed. The historical T004 one-use vault is retired and must not be funded.
+The original attack matrix below is a review checklist, not a statement that
+every case has been exercised on live networks.
 
 ## Assets, authorities and trust
 
@@ -48,7 +49,9 @@ be reconciled. For EVM, a signer response is not settlement: the old holder may
 have a valid signature that can be broadcast later. Transfer requires observed
 execution or sufficiently finalized same-nonce replacement/cancellation for
 every issued signature. If the result is unknown, transfer remains blocked;
-there is no timer or unilateral operator override in the MVP.
+there is no normal timeout-based unlock. Registry administration and guardian
+contract upgrades remain explicit trusted powers and can change these rules;
+the MVP is not immutable or free of operator trust.
 
 ## Attack matrix and planned checks
 

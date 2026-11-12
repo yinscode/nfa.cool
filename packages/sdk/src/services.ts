@@ -1,8 +1,9 @@
-import type {WalletAction} from './client.js';
+import type {WalletAction,ResearchUsage} from './client.js';
 export type ServiceId='scout'|'compare'|'research';
 export type ServiceQuote={service:ServiceId;tokenId:string;inputData:string;inputHash:string;versionKey:string;policyVersion:number;
-  feeYocto:string;replenishYocto:string;depositCapYocto:string;deadlineNs:number;unsignedAction:WalletAction;researchConfigHash?:string};
-export type ServiceRecord={service_id:ServiceId;policy_version:number;research_usage?:{configuration_hash:string};job:{status:string;requester:string;input_hash:string;version_key:string;fee:string;output_hash?:string}};
+  feeYocto:string;replenishYocto:string;depositCapYocto:string;deadlineNs:number;unsignedAction:WalletAction;researchConfigHash?:string;
+  modelBudget?:{currency:'USD';reservationMicrousd:string;maxCostMicrousd:string;basis:string}};
+export type ServiceRecord={service_id:ServiceId;policy_version:number;research_usage?:ResearchUsage|null;job:{status:string;requester:string;input_hash:string;version_key:string;fee:string;output_hash?:string}};
 
 /** REST preparation and exact payment reconciliation. The caller owns signing and retry policy. */
 export class NfaServicesClient{

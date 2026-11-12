@@ -1,18 +1,55 @@
 {
   "milestone": "M06",
   "complete": false,
-  "status": "Preparing hosted smoke; real model credential absent",
+  "checkedAt": "2026-11-12T12:21:58.570Z",
+  "status": "Hosted no-key failure and compatibility acceptance; real inference pending",
   "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
   "identity": {
     "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
     "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
     "projectUuid": "p0000000000000163",
-    "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout"
+    "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+    "owner": "nfagent-alice-fe53d8.testnet",
+    "epoch": 2
+  },
+  "activeProject": {
+    "project_id": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+    "project_uuid": "p0000000000000163",
+    "version_key": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+    "candidate_version": null,
+    "state": "READY",
+    "action": ""
   },
   "upload": {
     "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3.wasm",
     "hash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
     "transaction": "CuN2KGJHJ49rWewDLSGa7wYhMXQfP7XgezWQuJXtGwro"
+  },
+  "upgrade": {
+    "registrySha256": "3547ac6018aa2d5e86e764a947edfa2c61c8390554b6cc40e80fbaaab6fd584e",
+    "vaultSha256": "5b561a8996b6a47bf7cc4330bab11b90a77cf1f4307e010c5ba1737e155f53a8",
+    "preservedStatus": {
+      "controller": "nfagent-registry-0e9b2a.testnet",
+      "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+      "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+      "path": "eth-sepolia-v1",
+      "chain_id": 11155111,
+      "next_operation_id": 14,
+      "next_evm_nonce": 2,
+      "pending": null,
+      "last_receipt": [
+        1,
+        "0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+        12118521,
+        true
+      ]
+    }
+  },
+  "upgradeFunding": {
+    "source": "nfa-studio-mwd3mksx.testnet",
+    "recipient": "nfagent-registry-0e9b2a.testnet",
+    "amountYocto": "700000000000000000000000",
+    "purpose": "rehearsed contract storage and 0.2 testNEAR headroom"
   },
   "secret": {
     "owner": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
@@ -42,6 +79,194 @@
     },
     "stored": true
   },
+  "jobs": {
+    "smoke": {
+      "id": 17,
+      "result": {
+        "job": {
+          "id": 17,
+          "epoch": 2,
+          "requester": "nfa-studio-mwd3mksx.testnet",
+          "input_hash": "sha256:d44d8a09305b17e6eadc448c5a77304da31fe0cf6755354f3d0e75cdb590672f",
+          "fee": "14800120000000000000000",
+          "replenish": "4800120000000000000000",
+          "deposit_cap": "4800120000000000000000",
+          "version_key": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+          "limits": {
+            "max_instructions": 1000000000,
+            "max_memory_mb": 128,
+            "max_execution_seconds": 30
+          },
+          "deadline_ns": 1794486632026000000,
+          "created_at_ns": 1794485770301052000,
+          "started_at_ns": 1794485774508162600,
+          "status": "FAILED",
+          "output_hash": null,
+          "output_uri": null,
+          "reimbursement_pending": false
+        },
+        "service_id": "research",
+        "policy_version": 1,
+        "research_usage": {
+          "configuration_hash": "sha256:947d9dd927e192b62d35851d0a95b63f26d22585631efa52f887b9bcb729b749",
+          "configuration_version": 1,
+          "reserved_microusd": 25024,
+          "priced_usage_microusd": null,
+          "state": "NOT_STARTED",
+          "day": 20769
+        }
+      }
+    },
+    "legacyscout": {
+      "id": 19,
+      "result": {
+        "job": {
+          "id": 19,
+          "epoch": 2,
+          "requester": "nfa-studio-mwd3mksx.testnet",
+          "input_hash": "sha256:3740f4a77b0a5b83803528bf77865a6e4e45c780afe7ecbae3d552328f90794b",
+          "fee": "12400120000000000000000",
+          "replenish": "2400120000000000000000",
+          "deposit_cap": "2400120000000000000000",
+          "version_key": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+          "limits": {
+            "max_instructions": 1000000000,
+            "max_memory_mb": 64,
+            "max_execution_seconds": 10
+          },
+          "deadline_ns": 1794486720054000000,
+          "created_at_ns": 1794485840558846000,
+          "started_at_ns": 1794485844700107300,
+          "status": "FINALIZED",
+          "output_hash": "sha256:9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+          "output_uri": "nfa://work/9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+          "reimbursement_pending": false
+        },
+        "service_id": "scout",
+        "policy_version": 1,
+        "research_usage": null
+      }
+    },
+    "legacycompare": {
+      "id": 20,
+      "result": {
+        "job": {
+          "id": 20,
+          "epoch": 2,
+          "requester": "nfa-studio-mwd3mksx.testnet",
+          "input_hash": "sha256:9655f90288a9a9b71f7e8ac75ce0357529d245d5477dfc507dcc0927b29758b7",
+          "fee": "12400120000000000000000",
+          "replenish": "2400120000000000000000",
+          "deposit_cap": "2400120000000000000000",
+          "version_key": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+          "limits": {
+            "max_instructions": 1000000000,
+            "max_memory_mb": 64,
+            "max_execution_seconds": 10
+          },
+          "deadline_ns": 1794486759646000000,
+          "created_at_ns": 1794485878196026000,
+          "started_at_ns": 1794485882856669400,
+          "status": "FINALIZED",
+          "output_hash": "sha256:aceb241e34567d99e37815438d70825fc805f153c254a003e64a8cd4c5a40988",
+          "output_uri": "nfa://work/aceb241e34567d99e37815438d70825fc805f153c254a003e64a8cd4c5a40988",
+          "reimbursement_pending": false
+        },
+        "service_id": "compare",
+        "policy_version": 1,
+        "research_usage": null
+      }
+    }
+  },
+  "hosted": {
+    "smoke": {
+      "transaction": "A5trkMF1TnMsLbRTFt71PBi5wVnL3w7JJNEdNmGz6UEN",
+      "hostJobId": 74468,
+      "requestId": 31045,
+      "predecessor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+      "projectUuid": "p0000000000000163",
+      "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+      "inputHash": "3542c65cda479e310062d8ada8e0d3f9907d18c2b639120fa3d1d9364a5b51d9",
+      "stdoutHash": "6b864e77c17b207ebbe10890a632b24a38861b1e83d3f8a222b2fc4d8b1e5dc2",
+      "priorWork": [],
+      "reportDataHash": "8622ea86dfb53ffb65730fb653928ba26e0811674ad75ea2c7f7188b9bf17c6b",
+      "quoteSha256": "394452adf20b519f342daa1ae78500de5790e97c648d90dc0c5ac70e373d5cb8",
+      "paymentYocto": "4800120000000000000000",
+      "chargedYocto": "1102400000000000000000",
+      "refundedYocto": "3697720000000000000000",
+      "resources": {
+        "instructions": 254159,
+        "time_ms": 1024,
+        "compile_time_ms": null
+      },
+      "intelCollateralVerified": false
+    },
+    "legacyscout": {
+      "transaction": "D6PKGbULJw78EciTTB39iB6q4LmpUvDs3bVEjtdTzB6r",
+      "hostJobId": 74473,
+      "requestId": 31050,
+      "predecessor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+      "projectUuid": "p0000000000000163",
+      "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+      "inputHash": "631e97801360be2a0c6d322c7024662729b90bf24a9e6b57a990ffe19a4aba81",
+      "stdoutHash": "dd2b411b7a4731c47d20db20d1fce3c37f535019635abc4de2b6919758685f27",
+      "priorWork": [],
+      "reportDataHash": "0b05d956496fcb7ce12bd89e14370edc5abe181fe8ebe892c74a8f8c552ab7f1",
+      "quoteSha256": "51c9920630143ee7b267d240484babe44212c4f27457e1f9888e2f2da6bf44fb",
+      "paymentYocto": "2400120000000000000000",
+      "chargedYocto": "1207400000000000000000",
+      "refundedYocto": "1192720000000000000000",
+      "resources": {
+        "instructions": 280272,
+        "time_ms": 2074,
+        "compile_time_ms": null
+      },
+      "intelCollateralVerified": false
+    },
+    "legacycompare": {
+      "transaction": "C84n6vjKrMJMXgm5Y2yg5pfksQ5PV2YNKBbxVzkttNTm",
+      "hostJobId": 74480,
+      "requestId": 31057,
+      "predecessor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+      "projectUuid": "p0000000000000163",
+      "runtimeHash": "6c8f5b72bf48897e32ef527d9518a4570c36cb8f18511d3a42595ad5171c24f3",
+      "inputHash": "768c5ff66bb72d3321578d81bc8376040829acdb4e864fc8b996a51ada483a56",
+      "stdoutHash": "a49a17c49c178f117be2aca2562c0bdacfd9259d6998d3da2454fb578a7d36aa",
+      "priorWork": [],
+      "reportDataHash": "46eea6f38faafc5f83f097df680641d752f9ab80dfce67b9687e9f100b4317b7",
+      "quoteSha256": "52d234e2b8c6b02ee70c4eabf62a91f80c57e390116c68c12dad3ef9c98d554b",
+      "paymentYocto": "2400120000000000000000",
+      "chargedYocto": "1156400000000000000000",
+      "refundedYocto": "1243720000000000000000",
+      "resources": {
+        "instructions": 526731,
+        "time_ms": 1564,
+        "compile_time_ms": null
+      },
+      "intelCollateralVerified": false
+    }
+  },
+  "modelAllowance": {
+    "day": 20769,
+    "reserved_microusd": 25024
+  },
+  "nativeLedger": {
+    "customer_escrow": "0",
+    "vault_replenishment_pending": "0",
+    "gross_finalized_receipts": "62000600000000000000000",
+    "customer_refunds": "27200240000000000000000"
+  },
+  "researchConfiguration": {
+    "version": 1,
+    "hash": "sha256:947d9dd927e192b62d35851d0a95b63f26d22585631efa52f887b9bcb729b749",
+    "secrets_ref": {
+      "account_id": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+      "profile": "research-v3-smoke"
+    }
+  },
   "nearTransactions": {
     "researchRuntimeUpload": {
       "hash": "CuN2KGJHJ49rWewDLSGa7wYhMXQfP7XgezWQuJXtGwro",
@@ -50,16 +275,85 @@
     "storeSmokeSecret": {
       "hash": "2BNfaAvDji2y1KyBHgWCvxiQoxgVLaobA9LcD6ynsV5X",
       "failed": false
+    },
+    "researchRegistryUpgrade": {
+      "hash": "BYUnmhqSRNnBnqPGuLxtgfhfNTKRdBLU1L9GRSwR3Hkf",
+      "failed": true
+    },
+    "researchRegistryStorageFunding": {
+      "hash": "8K1CpRXqaVgLqvNF6n7dP6AsLar2dMMERvReMRaCBqbc",
+      "failed": false
+    },
+    "researchRegistryUpgradeFunded": {
+      "hash": "2URgTkZGp1EraHA2evkbre3q5nxDjwYwgbQirA9BdVZb",
+      "failed": false
+    },
+    "researchVaultUpgrade": {
+      "hash": "GM8gBfLzmgk2u33UzzMjf58vCPd8i115nkm2yzG6J5XJ",
+      "failed": false
+    },
+    "verifyResearchVault": {
+      "hash": "D5XHt2rKmpw29EyvWvtbLnKRDNHRJZainvghDtHStqe5",
+      "failed": false
+    },
+    "stageResearchVersion": {
+      "hash": "B2pZfmppFFTUjDjg8QzA5RD3poMiXBNfEQYbPP7cwSwJ",
+      "failed": false
+    },
+    "activateResearchVersion": {
+      "hash": "DYfB5ueS458ofjD9ng6UMaHqus8UugmuBzDPMUcnPwBQ",
+      "failed": false
+    },
+    "configure-smokeResearch": {
+      "hash": "FfMdN7WiZTMDjPerTmjBt13KBAizJLis8xD2LuHetEJV",
+      "failed": false
+    },
+    "configure-smokePolicy": {
+      "hash": "6s7iUCRazRHxMsatDgcDH6BtoVZAQSS1F2CQzVn65P9e",
+      "failed": false
+    },
+    "smokePay": {
+      "hash": "C2o7SJmDDfmEUN4JPSheF2V7jyh34gC3QAGQBqheVwRs",
+      "failed": false
+    },
+    "smokeStart": {
+      "hash": "A5trkMF1TnMsLbRTFt71PBi5wVnL3w7JJNEdNmGz6UEN",
+      "failed": false
+    },
+    "resumeAfterSmoke": {
+      "hash": "hx8nTKAqUcas4aVCzSCpQis4TydcGWUaK3FdyHabDMP",
+      "failed": false
+    },
+    "legacyscoutPay": {
+      "hash": "6eVniqEHB3d2N1muMzgU6HpRMgvhefnt9Z8tbgbbTSrE",
+      "failed": false
+    },
+    "legacyscoutStart": {
+      "hash": "D6PKGbULJw78EciTTB39iB6q4LmpUvDs3bVEjtdTzB6r",
+      "failed": false
+    },
+    "legacycomparePay": {
+      "hash": "WC1RmPVwvrGiyA2D6cFdy2HEdDFK7fLaSEgBgJrfKce",
+      "failed": false
+    },
+    "legacycompareStart": {
+      "hash": "C84n6vjKrMJMXgm5Y2yg5pfksQ5PV2YNKBbxVzkttNTm",
+      "failed": false
+    },
+    "legacyRecallOldScout": {
+      "hash": "CvyfwX63L15gvYy3sZfR3wyeAHVNg1z496EHyyQyKXx6",
+      "failed": false
     }
   },
   "remaining": [
-    "Hosted WASI no-key failure and legacy handlers",
     "Dedicated model credential",
     "Real paid research, sale, buyer recall and follow-up",
     "Final Studio/testnet recording"
   ],
   "limitations": [
-    "Uploaded bytes and a stored secret row are not hosted execution acceptance.",
-    "The smoke secret contains only a provider name; no model API key."
+    "No-key smoke performs no model inference.",
+    "Full research report remains encrypted; recall returns a summary.",
+    "Intel collateral/signature trust chain was not independently verified.",
+    "FastFS upload used an intentionally failing minimal-gas data receipt; published bytes were hash-verified."
   ]
 }

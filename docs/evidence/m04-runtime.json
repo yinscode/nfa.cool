@@ -16,6 +16,8 @@
     "skills/scout-wasi/src/research.rs": "120fbc86ded6a8b593ca996964ca1e709e1fae71be70a88ebd4aebfbdb038eff",
     "skills/scout-wasi/Cargo.toml": "2a4a3deeb796421a347114f14aa1306717b373b6bbbd5409850569e6422865aa",
     "skills/scout-wasi/Cargo.lock": "89caba379cdfef068e1cede1c97cc80a0e065edf4241466cd3c8bab9893f81c8",
+    "skills/scout-wasi/wit/world.wit": "8462918fdcb9abbe0ff5ba7b18bf5f2e0c40383d955b75833f5e1470e10fe0dc",
+    "skills/scout-wasi/wit/deps/storage.wit": "9d7cc517da5e4183641bb7c97722faac35dea658c50be9e90c92966ed2c2d963",
     "scripts/build-outlayer-wasi.sh": "ea39fbfd4c9db3c1c20f2f8b44402861391e8ec44a63e235336fb92cbc3048cd",
     "scripts/prepare-wasi-toolchain.mjs": "ffbc98fe0caba8bfc97e03cfc2c678eb2e1a45ce44f055a8c3c9d700277ac034"
   },

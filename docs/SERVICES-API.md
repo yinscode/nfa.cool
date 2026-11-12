@@ -14,13 +14,16 @@ the seller's personal credentials.
 | --- | --- | --- | --- |
 | Scout | Question and supplied source text/URLs | Extractive, cited brief and content hash | Hosted testnet passed; REST quote and wallet checkout |
 | Compare | Question, criteria and supplied option texts | Ranked evidence coverage and content hash | Hosted testnet passed in the same OutLayer Project |
+| Research | Question and approved source title/HTTPS URL records | Retrieved-source/model report committed in encrypted memory | Typed adapter and WASI implemented; hosted no-key check passed; real inference pending |
 | Monitor | Allowlisted targets, condition, duration | Scheduled alerts and evidence receipts | Design; needs recurring job scheduler and prepaid budget |
 | Curator | Items and scoring policy | Ranked collection with provenance | Design; separate guest, fee and output schema |
 | Analyst | Uploaded dataset and bounded query | Reproducible report | Design; private data policy and size limits needed |
 | Concierge | Explicit allowed API adapter and task | Receipt for an approved action | Design; credential handoff and permissions needed |
 | Treasury watcher | Vault and asset watch rules | Read-only risk or balance report | Design; never grant a reporting service spend access |
 
-The testnet release has Scout and Compare handlers; discovery advertises
+The active testnet component retains Scout/Compare and adds a candidate Research
+handler. Research public quotes remain gated until real inference and buyer
+continuation pass; see [RESEARCH-ACCEPTANCE.md](RESEARCH-ACCEPTANCE.md). Discovery advertises
 Compare as callable only when the owner configures its on-chain policy and the
 API has a matching quote policy. The other services are examples of products
 that can use the same interface once they have their own reviewed guest,
@@ -45,7 +48,8 @@ unavailable and checkout is blocked.
 
 | HTTP | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/v1/nfas/:tokenId/services` | Discover Scout/Compare availability and schemas |
+| `GET` | `/v1/nfas/:tokenId/research` | Read research configuration, daily USD allowance and vault compatibility |
+| `GET` | `/v1/nfas/:tokenId/services` | Discover configured service availability and schemas |
 | `POST` | `/v1/nfas/:tokenId/services/:serviceId/quotes` | Validate input, fetch OutLayer estimate, return fee and unsigned NEAR payment action |
 | `GET` | `/v1/nfas/:tokenId/services/:serviceId/jobs/:jobId` | Read the on-chain status, service binding and public result commitment |
 | `POST` | `/v1/nfas/:tokenId/services/:serviceId/jobs/:jobId/prepare-start` | Validate the committed input and return unsigned NEAR start action |

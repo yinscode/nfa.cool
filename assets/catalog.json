@@ -1,0 +1,240 @@
+{
+  "bodies": {
+    "pebble": {
+      "file": "assets/bodies/pebble.png",
+      "sha256": "7d6b81209387234be2afd34adc17688eb791eefe1a1e4a57b1814ea24277a9cd"
+    },
+    "cube": {
+      "file": "assets/bodies/cube.png",
+      "sha256": "d7a7840b1cef91373e876cc76d652bafa661ebec6c3bafe3bc30f31927e0ffa2"
+    },
+    "star": {
+      "file": "assets/bodies/star.png",
+      "sha256": "ff8bcec6609b971e97adb8592a68eced41a076358321a21103baf53a332e6c22"
+    },
+    "capsule": {
+      "file": "assets/bodies/capsule.png",
+      "sha256": "844bbcb143eb08c497c1f266b95f0935128379a3423da4a3da5395c927eb89cf"
+    },
+    "sphere": {
+      "file": "assets/bodies/sphere.png",
+      "sha256": "8f36b97f5fb727c05f4f934b65fcca7f8bf7996a6c6dd1243c4a8bf90ff74d1a"
+    },
+    "cloud": {
+      "file": "assets/bodies/cloud.png",
+      "sha256": "92f7c670d7310e03e774674f6871e06e94b7248eb69d0349d53418f369c7a658"
+    },
+    "teardrop": {
+      "file": "assets/bodies/teardrop.png",
+      "sha256": "467ce2e8c5c12d3922e92b2541eaae7e7a78f1218ecc6654f8a507d9c0cc645f"
+    },
+    "bean": {
+      "file": "assets/bodies/bean.png",
+      "sha256": "1a54be3a2b706943214ed7f50810cc229a62cacfd625573fee6faf56e4aa054a"
+    }
+  },
+  "expressions": {
+    "curious": {
+      "file": "assets/expressions/curious.png",
+      "sha256": "2fca87b40f9b5f30cb4d7a037b20af3af1466a7bd562fcda1ee284d08a29d4a5"
+    },
+    "focused": {
+      "file": "assets/expressions/focused.png",
+      "sha256": "c47139fb334bc42828fc43bc72e465c69fb4dc1b2efd18ad47ef530529a21129"
+    },
+    "joyful": {
+      "file": "assets/expressions/joyful.png",
+      "sha256": "ad9dd38e4f7d62a481433a9351ef9771507cccaf33ad1bf734b5627a7ef4d6c4"
+    },
+    "thoughtful": {
+      "file": "assets/expressions/thoughtful.png",
+      "sha256": "9a65b31ed15263a629a8b167809ce33e508260ebf6d5cbf5067be58d4402f56b"
+    },
+    "calm": {
+      "file": "assets/expressions/calm.png",
+      "sha256": "0fe64bdb6d79f1016f1c0b759a4ad2ef52d64a0e6c3b4f5b6023444a1011b5ab"
+    },
+    "skeptical": {
+      "file": "assets/expressions/skeptical.png",
+      "sha256": "2aeb21bbc1707c6f54c76df3ef65a5c3ef6139e92ad742801f908b8c4153697a"
+    },
+    "excited": {
+      "file": "assets/expressions/excited.png",
+      "sha256": "a9d33592bc968be6eec8c19426367b2ba1f940d7907b510afea81bc16a39d32c"
+    },
+    "sleepy": {
+      "file": "assets/expressions/sleepy.png",
+      "sha256": "ec57cd8372d71f5ac031ae9781ae1734fb7aef10694b4e616a525715d00d784b"
+    },
+    "surprised": {
+      "file": "assets/expressions/surprised.png",
+      "sha256": "831dbd8b38daf1b6605c76db0f5640ecd2481ce9f85faa1b1dfb6a62a876143b"
+    },
+    "determined": {
+      "file": "assets/expressions/determined.png",
+      "sha256": "00c3c3d049e4fb14a0eb3a99b3b0dd60f9d4fab7bdb21d572bfe2511b3585f9d"
+    }
+  },
+  "tools": {
+    "magnifier": {
+      "file": "assets/tools/magnifier.png",
+      "sha256": "c6d0033589e1a09008968d5bf8803a41a72a05c95c7d5555693897e4586ebef7"
+    },
+    "notebook": {
+      "file": "assets/tools/notebook.png",
+      "sha256": "8e987aad7b468eb7a5733179e0606c468c3edef63543ee4b3bf3fe4bf231ab2e"
+    },
+    "pencil": {
+      "file": "assets/tools/pencil.png",
+      "sha256": "91f1076575cf4636219ac966386e704d055af246f0703c57e2c31d28e57765e5"
+    },
+    "laptop": {
+      "file": "assets/tools/laptop.png",
+      "sha256": "f176cc08cbc0c3b4fd322552a52ed82d3e626fe9409e7d47d6135285b280d313"
+    },
+    "map": {
+      "file": "assets/tools/map.png",
+      "sha256": "04069e117dd90694fc297ca2a1896cbd7a44b344dfe62cac3d0e73d677187067"
+    },
+    "microphone": {
+      "file": "assets/tools/microphone.png",
+      "sha256": "e6742301170ef95eb4626de4553a35dd03f75d77775ff2934a442464d7b06677"
+    },
+    "pen": {
+      "file": "assets/tools/pen.png",
+      "sha256": "911c411a6ede609456f0215dd6ad49b25e75cd4defad33ee4c2fd293d5c6b963"
+    },
+    "swatches": {
+      "file": "assets/tools/swatches.png",
+      "sha256": "9b665388d407301bfadc22baf17fbf4e15123a8e03955d6f00dc98b79655dad5"
+    },
+    "shield": {
+      "file": "assets/tools/shield.png",
+      "sha256": "a84214d9932d123e17b4e5a69727e604f9814f0864d725f29b9d0794b36893ed"
+    },
+    "bag": {
+      "file": "assets/tools/bag.png",
+      "sha256": "6d8cfb8dd4fbc6787c7f27d9ed167b6149527f61a69f309f1b2df95ea3b73cc6"
+    },
+    "telescope": {
+      "file": "assets/tools/telescope.png",
+      "sha256": "4300e8792c91486802e30bd3a51b94adb3a48fc5ac7becf84d2a535e10132eab"
+    },
+    "toolkit": {
+      "file": "assets/tools/toolkit.png",
+      "sha256": "aa0d7974552570795b6f352245bf13d4ea42e58da3cd07f6d13074e1357be22f"
+    }
+  },
+  "eyewear": {
+    "round-wire": {
+      "file": "assets/eyewear/round-wire.png",
+      "sha256": "c595658f0af88c7f6faa41c560b5b1104a1a967be580a5cc0bfd0ae5c424a796"
+    },
+    "rectangular": {
+      "file": "assets/eyewear/rectangular.png",
+      "sha256": "f6bcba4d947b41004346aa617f88dc70a9a1a01f6e589e4189d034f2ed69abfe"
+    },
+    "oversized-round": {
+      "file": "assets/eyewear/oversized-round.png",
+      "sha256": "1074d38887caedf984f128224549d0215df54326d7dba1870422ce27fcd39f66"
+    },
+    "half-rim": {
+      "file": "assets/eyewear/half-rim.png",
+      "sha256": "eb75c97fea7998d86fc89a99c0a4f5f6c0801194a5d901e7fb3de106057f3339"
+    },
+    "oval-sun": {
+      "file": "assets/eyewear/oval-sun.png",
+      "sha256": "c2d612b41a9bdb41cf4c29cdccf7ee21dc29de93e1c09c705603f4d5b838cd92"
+    },
+    "angular-sun": {
+      "file": "assets/eyewear/angular-sun.png",
+      "sha256": "f348248c92e07b04d51cd7a8676784d97a7a5061783eb49e22f2189670a675d9"
+    },
+    "monocle": {
+      "file": "assets/eyewear/monocle.png",
+      "sha256": "09a44760bfe0b7999d56249f183566a63762dd487a1a28af1dea7477bc4088cf"
+    },
+    "clear-visor": {
+      "file": "assets/eyewear/clear-visor.png",
+      "sha256": "81318134513ec14c2f49600aaab725279e5e63182b440f93ab84ae30ceee3cda"
+    }
+  },
+  "attachments": {
+    "sprout": {
+      "file": "assets/attachments/sprout.png",
+      "sha256": "8940e15c16f586d848da9b04bf3844e3281445e73da970e91d5047129f2c96ab"
+    },
+    "bow": {
+      "file": "assets/attachments/bow.png",
+      "sha256": "39e5568d8bc05dcdffb790a90d85e133b924ae72f10d12943a24c9e28602e901"
+    },
+    "star-pin": {
+      "file": "assets/attachments/star-pin.png",
+      "sha256": "c685fa3eacae0319c9e856cb66818e6cdfac243e335198221daa31e4efb73b91"
+    },
+    "antenna": {
+      "file": "assets/attachments/antenna.png",
+      "sha256": "094bc82c66b8d844b54b3ed145bc70650fe37203a47145cdabf092c447795e15"
+    },
+    "flower": {
+      "file": "assets/attachments/flower.png",
+      "sha256": "2350beb450c567db44b18e8edee3632f40ac4db39c2461393e8cc2c491f01a65"
+    },
+    "butterfly": {
+      "file": "assets/attachments/butterfly.png",
+      "sha256": "a7493a0b989808599c0a7ce22ca8d36e70f9967f3ce69c8beeea12a63d21ca90"
+    }
+  },
+  "ornaments": {
+    "halo": {
+      "file": "assets/ornaments/halo.png",
+      "sha256": "4b1a198c67faa08ff72f1e0d848a9a789be39730c9e82338acc3a7fadca27bdc"
+    },
+    "sparkles": {
+      "file": "assets/ornaments/sparkles.png",
+      "sha256": "4825428493c91297f5e4ce7760681d02cf7c68f70cb41641a94ad5031746037f"
+    },
+    "crown": {
+      "file": "assets/ornaments/crown.png",
+      "sha256": "84453d3a06e861f0133ab6f6b0b4b16a8b63e4e9c56810a6037ab4d60b32c444"
+    },
+    "satellite": {
+      "file": "assets/ornaments/satellite.png",
+      "sha256": "e588a02e9d2004ede0d1fa08e7a566760f0a0cc75f77a40125f0cf8e5eb5c2c3"
+    }
+  },
+  "headwear": {
+    "glasses": {
+      "file": "assets/headwear/glasses.png",
+      "sha256": "6a1699d9730b0b6ae1e835eca67a2194c9f004dd3d5e2af3ad5abaf59c82dd34"
+    },
+    "headphones": {
+      "file": "assets/headwear/headphones.png",
+      "sha256": "cbecf57aa88c31ab28296488411c04500c7b89bb17656cc22a8be87a54b4be33"
+    },
+    "explorer-cap": {
+      "file": "assets/headwear/explorer-cap.png",
+      "sha256": "8d6c80978795cb8e21041c1b83d853af6ba2e040de624d05bf04a54df8e69e6e"
+    },
+    "beanie": {
+      "file": "assets/headwear/beanie.png",
+      "sha256": "2439fabe0978095db38010c5824115e587e1a2fc94c6ac1c4ab71b5363d38796"
+    },
+    "visor": {
+      "file": "assets/headwear/visor.png",
+      "sha256": "d5fa0fa5674a7018aaee9a338498d8fad055183802a6e81b6246071de3bf23fd"
+    },
+    "antenna": {
+      "file": "assets/headwear/antenna.png",
+      "sha256": "1ee9dee9a0185c1e29d799805c28fe29b3f2fa03234c5806db40188703a1d735"
+    },
+    "headband": {
+      "file": "assets/headwear/headband.png",
+      "sha256": "85aa5f6f3b33fc4797d15b1deac4ad0101b488708b0382d0eefe384df4686550"
+    },
+    "headset": {
+      "file": "assets/headwear/headset.png",
+      "sha256": "0b0b13f59d1451c1632c2e73477a350d794ec7402655d65051d1d043e1835859"
+    }
+  }
+}

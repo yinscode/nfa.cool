@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "research",
+  "version": "0.1.0",
+  "runtime": "node-reference",
+  "stage": "candidate",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "question",
+      "sources"
+    ],
+    "properties": {
+      "question": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 240
+      },
+      "sources": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "url"
+          ],
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      }
+    }
+  },
+  "inputSchemaHash": "sha256:3609cd06d28e9a74581c3d52a8c61c18513ec24c133d441aaf198c874f9712d9",
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "findings",
+      "sources",
+      "inference"
+    ]
+  },
+  "tools": [
+    "allowlisted-fetch",
+    "bounded-inference"
+  ],
+  "permissions": {
+    "network": [
+      "reviewed-source-hosts",
+      "reviewed-inference-provider"
+    ],
+    "treasury": false,
+    "projectManagement": false
+  },
+  "memory": {
+    "identity": "vault-predecessor",
+    "namespace": "research/<jobId>",
+    "transfer": "finalized-agent-owned-work",
+    "isolation": "reference-adapter"
+  },
+  "limits": {
+    "max_instructions": 1000000000,
+    "max_memory_mb": 128,
+    "max_execution_seconds": 30
+  },
+  "pricing": {
+    "asset": "native-NEAR",
+    "externalInferenceLedger": "USD-microunits-separate"
+  },
+  "source": "services/worker/research.mjs"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "scout",
+  "version": "1.0.0",
+  "name": "Scout",
+  "description": "Produces a short source-backed research brief from supplied documents.",
+  "status": "available",
+  "skill": {"id": "extractive-research", "version": "1.0.0", "input": "question + 1–8 source texts", "output": "cited findings + content hash"},
+  "tools": ["supplied-text-only"],
+  "budget": {"maxSources": 8, "maxSourceChars": 50000, "maxFindings": 5},
+  "payment": {"minFeeYocto": "10000000000000000000000", "asset": "NEAR", "earnedOn": "finalized output"},
+  "transfer": {"included": ["agent vault", "unclaimed income", "completed work", "manifest"], "reconnect": ["personal connectors"], "excluded": ["seller cookies", "prior downloaded copies"]}
+}

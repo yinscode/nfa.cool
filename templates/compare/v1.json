@@ -1,0 +1,12 @@
+{
+  "id": "compare",
+  "version": "1.0.0",
+  "name": "Compare",
+  "description": "Ranks supplied options by how much evidence they contain for supplied criteria.",
+  "status": "local-candidate",
+  "skill": {"id": "evidence-coverage", "version": "1.0.0", "input": "question + 1–5 criteria + 2–8 options", "output": "ranked evidence coverage + content hash"},
+  "tools": ["supplied-text-only"],
+  "budget": {"maxCriteria": 5, "maxOptions": 8, "maxSourceChars": 5000},
+  "payment": {"asset": "NEAR", "earnedOn": "finalized output"},
+  "transfer": {"included": ["shared NFA vault", "OutLayer Project UUID", "finalized comparison memory"], "excluded": ["seller copies", "personal credentials"]}
+}

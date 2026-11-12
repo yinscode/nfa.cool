@@ -1,0 +1,6 @@
+{
+  "unsigned_tx": "0x02ef83aa36a780843b9aca00847735940082520894000000000000000000000000000000000000dead85e8d4a5100080c0",
+  "signature": "{\"scheme\":\"Secp256k1\",\"big_r\":{\"affine_point\":\"02278d1b6d4bb28296651fc0e2d6d4f2d727c86feb5832a5bec0c033b4b862eb6b\"},\"s\":{\"scalar\":\"5728db7bbacde53bbdef579d27b8493c4297f582c91777fa0c0908217d79c861\"},\"recovery_id\":1}",
+  "derived_public_key": "secp256k1:6F8oxJzibb4noLKaGEfCwiBNqScGq5jLav6FD8q8KYGesZUVusbsAvXovxnx2vBJuBDNs4TGmeseTMbfgyWG89y",
+  "sepolia_evm_address": "0x84e18A402f8a2B5C6c68B76FDFE2c24755A37948"
+}

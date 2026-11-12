@@ -1,0 +1,5 @@
+package nfa:scout;
+
+world nfa {
+  import near:storage/api@0.2.0;
+}

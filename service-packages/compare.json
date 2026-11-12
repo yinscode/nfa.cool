@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "id": "compare",
+  "version": "1.0.0",
+  "runtime": "outlayer-wasip2",
+  "stage": "hosted-testnet-verified",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "question",
+      "criteria",
+      "sources"
+    ],
+    "properties": {
+      "question": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 240
+      },
+      "criteria": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 5,
+        "items": {
+          "type": "string"
+        }
+      },
+      "sources": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "url",
+            "text"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "inputSchemaHash": "sha256:7370681b68d4aee9bc79a0883eae16cafa722c154e7b5a727c0d3c2782bbcb86",
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "schemaVersion",
+      "template",
+      "question",
+      "criteria",
+      "ranking"
+    ],
+    "properties": {
+      "schemaVersion": {
+        "const": 1
+      },
+      "template": {
+        "const": "compare@1.0.0"
+      },
+      "question": {
+        "type": "string"
+      },
+      "criteria": {
+        "type": "array",
+        "maxItems": 5
+      },
+      "ranking": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "required": [
+            "sourceId",
+            "title",
+            "url",
+            "contentHash",
+            "matchedCriteria",
+            "evidence"
+          ]
+        }
+      }
+    }
+  },
+  "tools": [
+    "supplied-text-only"
+  ],
+  "permissions": {
+    "network": [],
+    "treasury": false,
+    "projectManagement": false
+  },
+  "memory": {
+    "identity": "vault-predecessor",
+    "namespace": "services/compare/pending:<jobId>",
+    "transfer": "finalized-agent-owned-work",
+    "isolation": "shared-reviewed-runtime"
+  },
+  "limits": {
+    "max_instructions": 1000000000,
+    "max_memory_mb": 64,
+    "max_execution_seconds": 10
+  },
+  "pricing": {
+    "asset": "native-NEAR",
+    "components": [
+      "execution-reserve",
+      "owner-minimum-margin"
+    ],
+    "refund": "registry-definite-failure"
+  },
+  "source": "skills/scout-wasi"
+}

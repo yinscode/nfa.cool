@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "id": "scout",
+  "version": "1.0.0",
+  "runtime": "outlayer-wasip2",
+  "stage": "hosted-testnet-verified",
+  "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "question",
+      "sources"
+    ],
+    "properties": {
+      "question": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 240
+      },
+      "sources": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "url",
+            "text"
+          ],
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "inputSchemaHash": "sha256:cca2b36dac261bdca1a3cd96ba0a0df7de7dc873acc81a3638b2fc5268cc53f6",
+  "outputSchema": {
+    "type": "object",
+    "required": [
+      "schemaVersion",
+      "template",
+      "question",
+      "findings",
+      "sources"
+    ],
+    "properties": {
+      "schemaVersion": {
+        "const": 1
+      },
+      "template": {
+        "const": "scout@1.0.0"
+      },
+      "question": {
+        "type": "string"
+      },
+      "findings": {
+        "type": "array",
+        "maxItems": 5,
+        "items": {
+          "type": "object",
+          "required": [
+            "claim",
+            "sourceId"
+          ]
+        }
+      },
+      "sources": {
+        "type": "array",
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "required": [
+            "id",
+            "title",
+            "url",
+            "contentHash"
+          ]
+        }
+      }
+    }
+  },
+  "tools": [
+    "supplied-text-only"
+  ],
+  "permissions": {
+    "network": [],
+    "treasury": false,
+    "projectManagement": false
+  },
+  "memory": {
+    "identity": "vault-predecessor",
+    "namespace": "pending:<jobId>",
+    "transfer": "finalized-agent-owned-work",
+    "isolation": "shared-reviewed-runtime"
+  },
+  "limits": {
+    "max_instructions": 1000000000,
+    "max_memory_mb": 64,
+    "max_execution_seconds": 10
+  },
+  "pricing": {
+    "asset": "native-NEAR",
+    "components": [
+      "execution-reserve",
+      "owner-minimum-margin"
+    ],
+    "refund": "registry-definite-failure"
+  },
+  "source": "skills/scout-wasi"
+}

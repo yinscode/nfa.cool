@@ -1,0 +1,10 @@
+{
+  "registryAccountId": "registry.testnet",
+  "tokenId": "scout-1",
+  "vaultAccountId": "scout-1.registry.testnet",
+  "ownerAccountId": "alice.testnet",
+  "ownerEpoch": 0,
+  "lifecycle": "ACTIVE",
+  "manifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "manifestUri": "ipfs://bafy-example"
+}

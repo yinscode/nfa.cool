@@ -1,0 +1,50 @@
+{
+  "releases": [
+    {
+      "id": "scout-compare-1",
+      "versionKey": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+      "url": "https://test.fastfs.io/nfagent-alice-fe53d8.testnet/outlayer.testnet/b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9.wasm",
+      "services": [
+        "scout",
+        "compare"
+      ],
+      "artifactCodec": "scout-compare-v1",
+      "hostedStatus": "verified",
+      "reason": "Vault-owned Scout and Compare finalized; buyer recalled pre-sale memory after NFT sale.",
+      "hostedEvidence": {
+        "scout": "3vMtgjdpSCQYY6mZix4h3xCtRNCWxXZc4Mmmy6Ao3ADt",
+        "compare": "3CJ3rzg1VmUQjTEk6BuBsXrD4fb5jhqjFAJ8XGdon7Rt",
+        "recall": "TFhDciYMmAB68LRYbqnwKADZYdYKAjFj66ieNwCwDrD",
+        "projectUuid": "p0000000000000163"
+      }
+    },
+    {
+      "id": "scout-compare-2",
+      "versionKey": "88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e",
+      "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88b8ab0b0cdc589b46f4407e1738a15fdc8c090a1a70cd783e83d36634337a9e.wasm",
+      "services": [
+        "scout",
+        "compare"
+      ],
+      "artifactCodec": "scout-compare-v1",
+      "hostedStatus": "verified",
+      "reason": "Metadata-only revision: staged Scout/Compare passed, then activated on the same NFA Project and recalled pre-sale V1 memory.",
+      "diff": {
+        "revision": "studio-continuity-v2",
+        "baseSha256": "b2cf2dd2b606ec158ad275d3d15cc5934197d3d9a494d01279a552167c41cbf9",
+        "change": "Release metadata only; executable logic unchanged"
+      },
+      "hostedEvidence": {
+        "scout": "AFRSq3zMnfnNYkMfNg1dde4veBGLeUyYHBSUNLEousMw",
+        "compare": "ABhXoe6TfEbMzmnaNTGPLtdsQ3jsLX5GBqJ4iJ6ff5e7",
+        "recall": "9eF9AXLDJdkWBnEFtoKcbZndAHZ928TBxruAH5nM75yt",
+        "projectUuid": "p000000000000015f"
+      },
+      "nfaEvidence": {
+        "activation": "4RJWc79Y8LuDkKpYvToLrG9XkgV4LZbvANZdgLtiF9s3",
+        "recall": "AkdhSnxc8HCpJV7S55uLLMM6V7VGy3EeTA6MD6C8Ndju",
+        "projectUuid": "p0000000000000163"
+      }
+    }
+  ]
+}

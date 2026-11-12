@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "tokenId": "scout-1",
+  "ownerEpoch": 0,
+  "kind": "NEAR_TRANSFER",
+  "status": "REQUESTED",
+  "vaultAccountId": "scout-1.registry.testnet",
+  "requestedBy": "alice.testnet",
+  "recipient": "merchant.testnet",
+  "amount": "100000000000000000000000"
+}

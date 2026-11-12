@@ -1,0 +1,8 @@
+package near:storage@0.2.0;
+
+interface api {
+  set: func(key: string, value: list<u8>) -> string;
+  get: func(key: string) -> tuple<list<u8>, string>;
+  has: func(key: string) -> tuple<bool, string>;
+  set-if-absent: func(key: string, value: list<u8>) -> tuple<bool, string>;
+}

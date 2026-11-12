@@ -1,0 +1,58 @@
+{
+  "name": "nfa-gent",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Transferable NFA accounts, services and Studio",
+  "workspaces": [
+    "packages/shared",
+    "packages/sdk"
+  ],
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "studio": "npm run build && node services/api/server.mjs",
+    "studio:sandbox": "sh scripts/studio-sandbox.sh",
+    "studio:start": "sh scripts/studio-sandbox.sh --background",
+    "studio:status": "node scripts/studio-background.mjs status",
+    "studio:stop": "node scripts/studio-background.mjs stop",
+    "generate": "node generate.cjs",
+    "founding": "node generate.cjs --preset founding --out output/founding",
+    "test": "node --test test.cjs services/worker/test/*.test.mjs services/api/test/*.test.mjs packages/sdk/test/*.test.mjs apps/web/test/*.test.mjs",
+    "dev:vault": "sh scripts/dev.sh vault",
+    "dev:registry": "sh scripts/dev.sh registry",
+    "dev:worker": "sh scripts/dev.sh worker",
+    "dev:api": "sh scripts/dev.sh api",
+    "dev:sdk": "sh scripts/dev.sh sdk",
+    "dev:all": "sh scripts/dev.sh all",
+    "dev:bundle": "sh scripts/dev.sh bundle",
+    "sandbox:check": "node scripts/sandbox-check.mjs",
+    "economics": "node scripts/economics.mjs",
+    "outlayer:preflight": "node scripts/outlayer-preflight.mjs",
+    "outlayer:inspect": "node scripts/inspect-outlayer-job.mjs",
+    "outlayer:wasi-check": "node scripts/check-wasi.mjs",
+    "outlayer:wasi-build": "sh scripts/build-outlayer-wasi.sh",
+    "build:web": "vite build",
+    "build": "npm run build --workspace @nfa/shared && npm run build --workspace @nfa/sdk && npm run build:web",
+    "check": "node --check generate.cjs && node --check prepare-assets.cjs && node --check test.cjs && node --check scripts/probe-near.mjs && node scripts/check-web.mjs && npm run build && npm test",
+    "ci": "sh scripts/ci.sh",
+    "release:preflight": "node scripts/release-preflight.mjs",
+    "sdk:example": "node scripts/sdk-example-check.mjs",
+    "demo:receipts": "node scripts/studio-ux-check.mjs --restart",
+    "demo:reel": "node scripts/build-demo-reel.mjs",
+    "settle:evm": "node scripts/settle-evm.mjs"
+  },
+  "dependencies": {
+    "@near-wallet-selector/core": "10.1.4",
+    "@near-wallet-selector/modal-ui": "10.1.4",
+    "@near-wallet-selector/my-near-wallet": "10.1.4",
+    "sharp": "0.35.5",
+    "vite": "8.3.7"
+  },
+  "devDependencies": {
+    "@noble/curves": "1.8.1",
+    "@noble/hashes": "1.7.1",
+    "near-api-js": "6.5.1",
+    "typescript": "5.9.3"
+  }
+}

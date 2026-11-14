@@ -14,7 +14,16 @@ export function nfaSummary(snapshot,manifest=null){
   const id=identity.tokenId,number=Number(id.slice(4));
   const character=manifest?.publicCharacter||{};
   const finalized=jobs.map(row=>row.service).filter(s=>s?.job?.status==='FINALIZED');
-  const services=availability.map(item=>{
+  // List what the NFA actually offers: services enabled on-chain, plus any this site can quote.
+  // A service enabled on-chain but not sold here (Research runs through the operator's hosted
+  // path) is shown as not open for public checkout rather than hidden.
+  const onchain=(snapshot.services||[]).filter(p=>p?.enabled).map(p=>p.service_id);
+  const NAMES={research:['Research','Approved-source retrieval and bounded model inference'],
+    scout:['Scout','Cited findings from supplied source text'],compare:['Compare','Rank supplied options by evidence coverage']};
+  const offered=[...availability.filter(item=>item.available||onchain.includes(item.id)),
+    ...onchain.filter(id=>!availability.some(item=>item.id===id)&&NAMES[id]).map(id=>({id,name:NAMES[id][0],description:NAMES[id][1],
+      available:false,reason:'hosted_checkout_not_enabled'}))];
+  const services=offered.map(item=>{
     const fees=finalized.filter(s=>s.service_id===item.id).map(s=>BigInt(s.job.fee));
     const counts=economics?.byService?.[item.id]||{};
     return {id:item.id,name:item.name,description:item.description,available:!!item.available,reason:item.reason||null,

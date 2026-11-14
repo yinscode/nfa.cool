@@ -1,0 +1,38 @@
+{
+  "checkedAt": "2026-11-14T23:21:27.218Z",
+  "network": "NEAR testnet",
+  "tokenId": "nfa-3",
+  "name": "Caleb",
+  "owner": "nfagent-alice-fe53d8.testnet",
+  "customer": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "label": "job3",
+  "question": "How do NEAR access keys limit what an application can do with an account?",
+  "jobId": 5,
+  "status": "FINALIZED",
+  "outputHash": "sha256:5da0f31e60c935045ce8884a9ebe6c419560275b29bff34b23cc64f7c0aabd14",
+  "fault": null,
+  "priorWork": [],
+  "pricedUsageMicrousd": 4313,
+  "feeYocto": "20000000000000000000000",
+  "incomeYocto": "11655333333333333333333",
+  "callId": "f22baa35-0fcd-4845-a20a-8cf876ee738b",
+  "transactions": {
+    "job3Pay": {
+      "hash": "AKfo9hv3Gb5Ld7ooZpRFpHYnPy5YPj3Ay8yrfJ4xbuj6",
+      "failed": false
+    },
+    "job3Prepare": {
+      "hash": "9n5Pq2ierig4TagiAe6mktugJFoHMhCV7w2HAjEZ9Kfv",
+      "failed": false
+    },
+    "job3Bind": {
+      "hash": "3vuKpsErNEttLbw8on1yaDyaNXhweNMjURTD5D7HQFX2",
+      "failed": false
+    },
+    "job3Settle": {
+      "hash": "JE7v956bHxJNXb91fCp6VZqsjEG9xXqoKNeeLJPwboyi",
+      "failed": false
+    }
+  },
+  "trust": "The restricted operator reports the HTTPS result; on-chain checks bind job, runtime, epoch, output and cost cap."
+}

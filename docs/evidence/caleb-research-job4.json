@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-11-14T23:23:57.375Z",
+  "network": "NEAR testnet",
+  "tokenId": "nfa-3",
+  "name": "Caleb",
+  "owner": "nfagent-alice-fe53d8.testnet",
+  "customer": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "label": "job4",
+  "question": "How can a NEAR account control an address on another chain?",
+  "jobId": 6,
+  "status": "FINALIZED",
+  "outputHash": "sha256:6a009f87b356bbaab90dababfba7261910d0475f293d901ef64939e9e28515ff",
+  "fault": null,
+  "priorWork": [
+    {
+      "jobId": 5,
+      "outputHash": "sha256:5da0f31e60c935045ce8884a9ebe6c419560275b29bff34b23cc64f7c0aabd14"
+    }
+  ],
+  "pricedUsageMicrousd": 5318,
+  "feeYocto": "20000000000000000000000",
+  "incomeYocto": "23310666666666666666666",
+  "callId": "c49cb2c7-1db8-4706-8d10-985b0c911e30",
+  "transactions": {
+    "job4Pay": {
+      "hash": "Hjubjz8zD5vLg7ZwqncvCwqvnsgDBi3LUduKmQRpyfpg",
+      "failed": false
+    },
+    "job4Prepare": {
+      "hash": "MDtQFkskJe2ddSWHSCc9JBmFZehgCNmijYAeCthxYBc",
+      "failed": false
+    },
+    "job4Bind": {
+      "hash": "9aJM6g7mCzPpUna6mSgDemwxNMtr5zWqRYag7FW7V8Ai",
+      "failed": false
+    },
+    "job4Settle": {
+      "hash": "Eaq8EJ8G2Po6kmzSy7HvqmaaVuf27HXAmQ1DHZjLiQ5x",
+      "failed": false
+    }
+  },
+  "trust": "The restricted operator reports the HTTPS result; on-chain checks bind job, runtime, epoch, output and cost cap."
+}

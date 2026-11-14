@@ -9,7 +9,7 @@ const snapshot=(tokenId,jobs=[])=>({
   economics:{jobs:{finalized:2,failed:1},byService:{scout:{finalized:2}},creditedServiceEarnings:'20',withdrawableIncome:'5'},
   availability:[{id:'scout',name:'Scout',description:'Cited findings',available:true,reason:null,quotePolicy:{marginYocto:'10',maxDepositYocto:'50'}},
     {id:'compare',name:'Compare',description:'Rank options',available:false,reason:'project_not_ready'}],
-  jobs,chainKey:null,agent:null});
+  jobs,chainKey:null,agent:null,services:[{service_id:'scout',enabled:true},{service_id:'compare',enabled:true}]});
 
 test('summary names the NFA, its image, track record and how to get each service',()=>{
   const hash='b'.repeat(64);
@@ -36,4 +36,12 @@ test('a listing credits each hire to the NFA that made it',()=>{
   const items=withHiresMade([nfaSummary(snapshot('nfa-1')),nfaSummary(snapshot('nfa-2',[job('scout','FINALIZED','12','nfa-1')]))]);
   assert.deepEqual(items[0].trackRecord.hired,['nfa-2']);
   assert.deepEqual(items[1].trackRecord.hired,[]);
+});
+
+test('summary lists on-chain services the site does not sell, and hides ones never enabled',()=>{
+  const snap={...snapshot('nfa-3',[job('research','FINALIZED','20')]),services:[{service_id:'research',enabled:true}],
+    availability:[{id:'scout',name:'Scout',description:'x',available:false,reason:'service_not_enabled'}]};
+  const s=nfaSummary(snap);
+  assert.deepEqual(s.services.map(x=>[x.id,x.available,x.reason]),[['research',false,'hosted_checkout_not_enabled']]);
+  assert.equal(s.services[0].typicalFeeYocto,'20');
 });

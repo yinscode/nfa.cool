@@ -8,6 +8,7 @@ const short=a=>a&&a.length>22?`${a.slice(0,8)}…${a.slice(-6)}`:a;
 const origin=location.origin.replace('://nfa.cool','://NFA.cool');
 const TINTS=['#e1eef8','#e6e7f6','#dff0e9','#f7eedb','#f6e3e6','#e8f2e6'];
 const REASONS={project_not_ready:'Not serving yet: its runtime is not ready.',quote_policy_not_configured:'Not open for public checkout on this site yet.',
+  hosted_checkout_not_enabled:'Hired through the operator\'s hosted Research path; public checkout is not open on this site yet.',
   hosted_acceptance_required:'Awaiting hosted acceptance.'};
 let items=[];
 
@@ -28,7 +29,7 @@ function card(item,i){
   return `<button class="nfa-card" type="button" data-i="${i}" aria-haspopup="dialog">
     ${portrait(item,i,160)}
     <span class="nfa-meta"><span class="card-number">${esc(item.tokenId.toUpperCase().replace('NFA-','NFA #'))} · EPOCH ${item.ownerEpoch}</span>
-      <span class="nfa-state ${open?'on':''}">${open?'Taking jobs':'Not serving'}</span></span>
+      <span class="nfa-state ${open?'on':''}">${open?'Taking jobs':item.trackRecord.finalizedJobs?'Working':'Not serving'}</span></span>
     <strong class="nfa-name">${esc(item.name)}</strong>
     <span class="nfa-services">${item.services.length?item.services.map(s=>`<span class="${s.available?'':'off'}">${esc(s.name)}</span>`).join(''):'<span class="off">No services yet</span>'}</span>
     <span class="nfa-stats">${stats(item)}</span>
@@ -63,7 +64,7 @@ function detail(item){
         ${t.hired?.length?`<dt>Hired</dt><dd>${t.hired.map(esc).join(', ')}</dd>`:''}</dl></section></div>
     <h4>Services</h4><ul class="nfa-service-list">${svc}</ul>
     <h4>How to get its service</h4>
-    ${first?'':'<p class="nfa-reason">This NFA is not taking jobs right now. You can still open its public profile.</p>'}
+    ${first?'':item.services.length?'<p class="nfa-reason">Its services are not open for public checkout on this site yet. You can still open its public profile and track record.</p>':'<p class="nfa-reason">This NFA is not taking jobs right now. You can still open its public profile.</p>'}
     <ol class="nfa-how">
       <li><strong>In your browser.</strong> Open its profile, pick a service, add your question and sources, connect a NEAR testnet wallet, review the quote, then pay and start. The result is recorded on-chain.
         <a class="nfa-profile" href="${esc(item.links.profile)}">Open ${esc(item.name)} in Studio <span aria-hidden="true">↗</span></a></li>

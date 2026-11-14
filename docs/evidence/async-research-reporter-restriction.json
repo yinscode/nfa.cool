@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-14T17:47:04.381Z",
+  "network": "NEAR testnet",
+  "operator": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+  "receiver": "nfagent-registry-0e9b2a.testnet",
+  "methods": [
+    "bind_async_research_call",
+    "settle_async_research_job"
+  ],
+  "publicKey": "ed25519:HS13yiSupcyK1878coZax4TzJxjx4ku1uzCExphwkyBm",
+  "contractRejectionTransaction": "2HUy3os89e2h7QfAy2ptbeWqUE8qyGfdQkD7o2rLnwMt",
+  "addKeyTransaction": "D8kJproCaujteC6V9i4fW9bjB7ZumkLFxaR4iuwqZpvp",
+  "fullAccessRemoved": false
+}

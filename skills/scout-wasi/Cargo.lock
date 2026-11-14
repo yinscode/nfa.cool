@@ -531,8 +531,6 @@ dependencies = [
 [[package]]
 name = "wasi-http-client"
 version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9a3442babb35929ef98a816b50ab35882dbd191b9a44798e6f7ec557dc36f09"
 dependencies = [
  "anyhow",
  "serde",

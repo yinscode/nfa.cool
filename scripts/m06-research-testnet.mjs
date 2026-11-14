@@ -11,15 +11,58 @@ import {quoteService,schemaHashFor} from '../services/api/service-runtime.mjs';
 import {researchEncryptionKey,researchSecretAccess,sealOutlayerSecrets} from '../services/worker/outlayer-secrets.mjs';
 import {hostedExecutionEvidence} from './hosted-execution-evidence.mjs';
 const phase=process.argv[2]||'inspect';
-if(!['inspect','checkpoint','upload','upgrade','secrets-smoke','secrets','stage','activate','configure-smoke','configure','smoke','legacy','research','handover','buyer','verify'].includes(phase))throw Error('Unknown M06 phase');
-const ctx=await testnet('deployments/m06-research.json'),registry=await ctx.signer('t006-registry'),operator=await ctx.signer('t004-operator'),
+if(!['inspect','health','checkpoint','upload','secrets-smoke','secrets','stage','activate','configure-smoke','configure','smoke','legacy','diagnostic-scout','research','release','research-retry','handover','buyer','verify'].includes(phase))throw Error('Unknown M06 phase');
+const ctx=await testnet('deployments/m06-reviewed.json'),registry=await ctx.signer('t006-registry'),operator=await ctx.signer('t004-operator'),
   alice=await ctx.signer('t006-alice'),bob=await ctx.signer('t008-bob'),customer=await ctx.signer('studio-funder');
 const tokenId='nfa-2',sdk=new NfaSdk({registryAccountId:registry.id,rpcUrl:ctx.rpcUrl});
-const runtime=JSON.parse(await readFile('docs/evidence/m04-runtime.json','utf8')),
+const runtime=JSON.parse(await readFile('docs/evidence/m06-reviewed-runtime.json','utf8')),
   rehearsal=JSON.parse(await readFile('docs/m03-upgrade-rehearsal.json','utf8'));
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const until=async(work,predicate)=>{for(let i=0;i<100;i++){const result=await work();if(predicate(result))return result;await pause(500)}throw Error('Finalized state not ready; rerun same phase')};
 const action=(label,who,a,options)=>ctx.send(label,who,a.receiverId,[transactions.functionCall(a.methodName,a.args,BigInt(a.gas),BigInt(a.deposit))],options);
+const retryLabels=()=>Object.keys(ctx.evidence).filter(k=>/^researchRetry[1-9][0-9]*$/.test(k))
+  .sort((a,b)=>Number(a.slice(13))-Number(b.slice(13)));
+const diagnosticLabels=()=>Object.keys(ctx.evidence).filter(k=>/^diagnosticScout(?:Retry[1-9][0-9]*)?$/.test(k))
+  .sort((a,b)=>(a==='diagnosticScout'?0:Number(a.slice(20)))-(b==='diagnosticScout'?0:Number(b.slice(20))));
+async function blockMillis(hash){
+  const response=await fetch(ctx.rpcUrl,{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({jsonrpc:'2.0',id:'health',method:'block',params:{block_id:hash}}),signal:AbortSignal.timeout(15000)});
+  const block=(await response.json()).result;if(!block)throw Error('Testnet block unavailable');
+  return Number(BigInt(block.header.timestamp_nanosec)/1000000n);
+}
+async function outlayerHealth(){
+  const response=await fetch('https://testnet-api.outlayer.ai/public/jobs?limit=100',{signal:AbortSignal.timeout(15000)});
+  if(!response.ok)throw Error('OutLayer testnet health data unavailable');
+  const jobs=await response.json(),samples=[];
+  for(const job of jobs.filter(j=>j.transaction_hash&&j.success&&j.user_account_id).slice(0,12)){
+    try{
+      const tx=await sdk.transaction(job.transaction_hash,job.user_account_id);
+      const receipt=tx.receipts_outcome?.find(r=>r.outcome.executor_id==='outlayer.testnet'
+        &&r.outcome.logs?.some(l=>l.includes('"event":"execution_requested"')));
+      if(!receipt)continue;
+      const requestedAt=await blockMillis(receipt.block_hash),createdAt=Date.parse(job.created_at),
+        lagSeconds=Math.round((createdAt-requestedAt)/1000);
+      if(Date.now()-createdAt<600000&&lagSeconds>=0)samples.push({jobId:job.job_id,lagSeconds});
+      if(samples.length===3)break;
+    }catch{/* A single unrelated job may have an unavailable RPC receipt. */}
+  }
+  const ready=samples.length===3&&samples.every(s=>s.lagSeconds<60);
+  if(!ready)throw Error(`OutLayer NEAR execution latency is not ready: ${JSON.stringify(samples)}`);
+  return samples;
+}
+async function projectHealth(){
+  const label=diagnosticLabels().at(-1),record=ctx.evidence[label];
+  if(record?.result?.job?.status!=='FINALIZED')throw Error('A finalized same-Project Scout canary is required');
+  const tx=await sdk.transaction(ctx.evidence.steps[label+'Start'].hash,customer.id);
+  const rows=tx.receipts_outcome.filter(r=>r.outcome.executor_id==='outlayer.testnet');
+  const requested=rows.find(r=>r.outcome.logs?.some(l=>l.includes('"event":"execution_requested"')));
+  const completed=rows.find(r=>r.outcome.logs?.some(l=>l.includes('"event":"execution_completed"')));
+  if(!requested||!completed)throw Error('Same-Project canary has no hosted completion receipts');
+  const [start,end]=await Promise.all([blockMillis(requested.block_hash),blockMillis(completed.block_hash)]);
+  const elapsedSeconds=Math.round((end-start)/1000);
+  if(Date.now()-end>=600000||elapsedSeconds>=60)throw Error(`Same-Project OutLayer latency is not ready: ${elapsedSeconds}s`);
+  return {jobId:record.id,elapsedSeconds};
+}
 const identity=await sdk.get(tokenId),vault=identity.vaultAccountId,project=await sdk.getOutlayerProject(tokenId);
 if(!ctx.evidence.initial){ctx.evidence.initial={vault,address:identity.foreignWallet.address,projectUuid:project.project_uuid,projectId:project.project_id};await ctx.save()}
 const initial=ctx.evidence.initial;
@@ -34,12 +77,12 @@ const limits={max_instructions:1000000000,max_memory_mb:128,max_execution_second
 const policy={limits,marginYocto:'10000000000000000000000',maxDepositYocto:'500000000000000000000000'};
 async function run(label,service,input){
   let record=ctx.evidence[label];
-  if(!record){
+  if(!record?.quote){
     const existing=await sdk.getServicePolicy(tokenId,service);
     const compatible=service==='research'||!existing?policy:{...policy,limits:existing.limits,
       maxDepositYocto:(BigInt(existing.max_deposit)<BigInt(policy.maxDepositYocto)?BigInt(existing.max_deposit):BigInt(policy.maxDepositYocto)).toString()};
     const quote=await quoteService({sdk,tokenId,service,body:{input},policy:{[service]:compatible},allowResearchCandidate:true});
-    record={quote,input};ctx.evidence[label]=record;await ctx.save();
+    record={...record,quote,input};ctx.evidence[label]=record;await ctx.save();
   }
   const paid=await action(label+'Pay',customer,record.quote.unsignedAction);
   const id=paid.value;if(!Number.isSafeInteger(id))throw Error('Missing assigned job ID');
@@ -55,7 +98,7 @@ function configValues(smoke){
     if(!researchCredential.NFA_RESEARCH_API_KEY||!['near-ai','openai'].includes(researchCredential.NFA_RESEARCH_PROVIDER)||!researchCredential.NFA_RESEARCH_MODEL)
       throw Error('Dedicated NFA_RESEARCH_API_KEY, NFA_RESEARCH_PROVIDER and NFA_RESEARCH_MODEL required');
   }
-  return {version_key:runtime.sha256,secrets_ref:{account_id:operator.id,profile:smoke?'research-v3-smoke':'research-v3'},
+  return {version_key:runtime.sha256,secrets_ref:{account_id:operator.id,profile:smoke?'research-v4-smoke':'research-v4'},
     allowed_sources:[{host:'docs.near.org',path_prefix:'/'}],model:smoke?'no-model-smoke':researchCredential.NFA_RESEARCH_MODEL,
     max_input_tokens:24000,max_output_tokens:512,input_microusd_per_token:1,output_microusd_per_token:2,
     max_cost_microusd:30000,daily_budget_microusd:150000};
@@ -122,10 +165,60 @@ if(phase==='upload'){
     const result=await run('legacy'+service,service,input);if(result.result.job.status!=='FINALIZED')throw Error('Legacy handler acceptance failed');
   }
   await action('legacyRecallOldScout',owner,sdk.recallOwnerMemory(tokenId,11,ctx.evidence.legacyscout.quote.depositCapYocto));
-}else if(phase==='research'||phase==='buyer'){
+}else if(phase==='diagnostic-scout'){
+  await assertIdle();
+  const labels=diagnosticLabels(),latest=labels.at(-1),label=latest&&ctx.evidence[latest].result?.job?.status==='FINALIZED'?
+    `diagnosticScoutRetry${labels.length}`:latest||'diagnosticScout';
+  const result=await run(label,'scout',{question:'What identity remains stable when this NFA changes owner?',
+    sources:[{title:'Vault identity',url:'https://docs.near.org/',text:'The NFA vault and its OutLayer Project remain with the NFT when ownership changes.'}]});
+  if(result.result.job.status!=='FINALIZED')throw Error('Diagnostic Scout did not finalize');
+}else if(phase==='health'){
+  console.log(JSON.stringify({outlayerReady:true,samples:await outlayerHealth(),sameProject:await projectHealth()}));
+}else if(phase==='release'){
+  const label=[...retryLabels().reverse(),'research',...diagnosticLabels().reverse()].find(k=>ctx.evidence[k]?.result?.job?.status==='UNCERTAIN');
+  const prior=ctx.evidence[label];
+  if(!prior||prior.result?.job?.status!=='UNCERTAIN')throw Error('No uncertain Research attempt to release');
+  const live=await sdk.getServiceJob(tokenId,prior.id);
+  if(live.job.status==='UNCERTAIN')await action(label==='research'?'releaseResearchUncertain':`release${label[0].toUpperCase()+label.slice(1)}Uncertain`,customer,sdk.releaseServiceJob(tokenId,prior.id));
+  prior.result=await sdk.getServiceJob(tokenId,prior.id);await ctx.save();
+  if(prior.result.job.status!=='FAILED')throw Error('Uncertain Research attempt did not settle');
+  await assertIdle();
+}else if(phase==='research'||phase==='research-retry'||phase==='buyer'){
+  const expected=configValues(false),configured=await sdk.getResearchConfig(tokenId);
+  if(configured?.settings?.model!==expected.model||
+    configured?.settings?.secrets_ref?.profile!==expected.secrets_ref.profile||
+    configured?.settings?.version_key!==runtime.sha256||!ctx.evidence.researchSecret)
+    throw Error('Real Research requires the dedicated stored credential and matching active configuration');
   if(phase==='buyer'&&identity.ownerAccountId!==bob.id)throw Error('Buyer must own the NFA');
-  const result=await run(phase,'research',{question:phase==='buyer'?'Which NEAR account facts remain useful after an NFT ownership change?':'How are NEAR accounts and their keys related?',
+  const retries=retryLabels(),latest=retries.at(-1);
+  if(phase==='research-retry'&&ctx.evidence[latest||'research']?.result?.job?.status!=='FAILED'
+    &&!['FINALIZED',undefined].includes(ctx.evidence[latest]?.result?.job?.status))throw Error('Release the uncertain attempt before retry');
+  if(phase==='research-retry'&&!latest&&ctx.evidence.research?.result?.job?.status!=='FAILED')throw Error('First Research attempt must be released before retry');
+  const oneShotLabel=process.env.NFA_RESEARCH_ONE_SHOT_LABEL;
+  if(oneShotLabel&&phase!=='research-retry')throw Error('One-shot label is only valid for a Research retry');
+  if(oneShotLabel&&!/^researchRetry[1-9][0-9]*$/.test(oneShotLabel))throw Error('Invalid one-shot Research label');
+  if(oneShotLabel&&!ctx.evidence[oneShotLabel]&&oneShotLabel!==`researchRetry${retries.length+1}`)
+    throw Error('One-shot Research label must identify the next unused retry');
+  const label=oneShotLabel||(
+    phase==='research-retry'&&latest&&ctx.evidence[latest]?.result?.job?.status!=='FAILED'?latest:
+    phase==='research-retry'?`researchRetry${retries.length+1}`:phase);
+  if(phase==='research-retry'&&!ctx.evidence[label]){
+    try{
+      console.log(JSON.stringify({outlayerReady:true,samples:await outlayerHealth(),sameProject:await projectHealth()}));
+    }catch(error){
+      if(!oneShotLabel)throw error;
+      ctx.evidence[label]={healthOverride:{reason:'User-directed one-shot NEAR-funded Research retry',
+        observedError:String(error),at:new Date().toISOString()}};
+      await ctx.save();
+      console.log(JSON.stringify({outlayerReady:false,label,observedError:String(error),
+        override:'User-directed one-shot retry; health gate failed'}));
+    }
+  }
+  const result=await run(label,'research',{question:phase==='buyer'?'Which NEAR account facts remain useful after an NFT ownership change?':'How are NEAR accounts and their keys related?',
     sources:[{title:'NEAR accounts',url:'https://docs.near.org/protocol/accounts-contracts/access-keys'}]});
+  if(phase==='research-retry'&&result.result.job.status==='FINALIZED'&&result.result.research_usage.state==='PRICED_USAGE'){
+    ctx.evidence.research={...result,startStep:label+'Start'};await ctx.save();
+  }
   if(result.result.job.status!=='FINALIZED'||result.result.research_usage.state!=='PRICED_USAGE')throw Error('Research did not finalize with model usage');
 }else if(phase==='handover'){
   if(ctx.evidence.research?.result?.job.status!=='FINALIZED')throw Error('First paid research must finalize before handover');
@@ -156,7 +249,7 @@ if(phase==='upload'){
     limitations:['No-key smoke performs no model inference.','Full research report remains encrypted; recall returns a summary.',
       'Intel collateral/signature trust chain was not independently verified.',
       'FastFS upload used an intentionally failing minimal-gas data receipt; published bytes were hash-verified.']};
-  await writeFile('docs/evidence/m06-preparation.json',JSON.stringify(evidence,null,2)+'\n');
+  await writeFile('docs/evidence/m06-reviewed-preparation.json',JSON.stringify(evidence,null,2)+'\n');
   console.log(JSON.stringify({checkpointSaved:true,complete:false,currentOwner:identity.ownerAccountId,activeRuntime:project.version_key}));
 }else if(phase==='verify'){
   if(!ctx.evidence.research||!ctx.evidence.buyer||!ctx.evidence.legacyscout||!ctx.evidence.legacycompare||
@@ -172,7 +265,7 @@ if(phase==='upload'){
   }
   const ledger=await sdk.getPaidLedger();if(ledger.customer_escrow!=='0'||ledger.vault_replenishment_pending!=='0')throw Error('Native ledger still has pending liabilities');
   const hosted={};
-  for(const label of ['research','buyer'])hosted[label]=await hostedExecutionEvidence({sdk,hash:ctx.evidence.steps[label+'Start'].hash,
+  for(const label of ['research','buyer'])hosted[label]=await hostedExecutionEvidence({sdk,hash:ctx.evidence.steps[ctx.evidence[label].startStep||label+'Start'].hash,
     sender:customer.id,runtimeHash:runtime.sha256,predecessor:vault,projectUuid:project.project_uuid,
     requiredPriorWork:label==='buyer'?[{jobId:ctx.evidence.research.id,outputHash:ctx.evidence.research.result.job.output_hash}]:[]});
   const evidence={milestone:'M06',complete:true,checkedAt:new Date().toISOString(),mode:'real NEAR testnet / hosted OutLayer',initial,
@@ -184,7 +277,7 @@ if(phase==='upload'){
       'Secret remains operator-owned and revocable; the vault/build access grant persists through NFT sale.',
       'Full research artifacts remain encrypted; owner recall returns a summary.','Independent full Intel collateral validation remains open.']};
   await writeFile('docs/evidence/m06-hosted-research.json',JSON.stringify(evidence,null,2)+'\n');console.log(JSON.stringify(evidence,null,2));
-  const hostedEvidence={research:ctx.evidence.steps.researchStart.hash,buyerResearch:ctx.evidence.steps.buyerStart.hash,
+  const hostedEvidence={research:ctx.evidence.steps[ctx.evidence.research.startStep||'researchStart'].hash,buyerResearch:ctx.evidence.steps.buyerStart.hash,
     recall:ctx.evidence.steps.buyerRecall.hash,scout:ctx.evidence.steps.legacyscoutStart.hash,
     compare:ctx.evidence.steps.legacycompareStart.hash,projectUuid:project.project_uuid};
   const catalog=JSON.parse(await readFile('releases/catalog.json','utf8')),release=catalog.releases.find(r=>r.versionKey===runtime.sha256);

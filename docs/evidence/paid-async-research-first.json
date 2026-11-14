@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-11-14T17:50:32.605Z",
+  "network": "NEAR testnet",
+  "label": "first",
+  "tokenId": "nfa-2",
+  "owner": "nfagent-alice-fe53d8.testnet",
+  "ownerEpoch": 2,
+  "projectUuid": "p0000000000000163",
+  "jobId": 42,
+  "inputHash": "sha256:d874aa6878a080ef8eea6ea6794c3de9b2c5cdddc78a6ab6183fb72d846d54aa",
+  "executionHash": "sha256:552c22809613d4aaf56b6d155dd7aca8e400d8168be4898084a146758e428168",
+  "callId": "57dbf010-2c31-445c-baab-3150684bb8a3",
+  "status": "FAILED",
+  "fault": "operator",
+  "outputHash": null,
+  "pricedUsageMicrousd": null,
+  "computeCostMicrousd": 1021,
+  "feeYocto": "20000000000000000000000",
+  "incomeYocto": "46000000000000000000000",
+  "attestationUrl": "/attestations/by-call/57dbf010-2c31-445c-baab-3150684bb8a3",
+  "transactions": {
+    "firstResearchPay": {
+      "hash": "7QFYPCJ1aecnopyYDjnjx9TpFHYJJyAuGyjFwuyA3okG",
+      "failed": false
+    },
+    "firstResearchPrepare": {
+      "hash": "AXfd4sBuiMMyDKyyERTJsFBmqPvmbzz1h9utRge7LoFA",
+      "failed": false
+    },
+    "firstResearchBind": {
+      "hash": "oWqRQjLuj34QHoWpE8MP3gyK1BNaYskwnruZa6p8mBS",
+      "failed": false
+    },
+    "firstResearchSettle": {
+      "hash": "9pxKbaKYGRnEH46W45KS4PmtvRk52kM2ddPGirDSDHLf",
+      "failed": false
+    }
+  },
+  "trust": "The restricted operator reports the HTTPS result; on-chain checks bind job, runtime, epoch, output and cap. No on-chain OutLayer attestation verification."
+}

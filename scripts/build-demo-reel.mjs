@@ -22,9 +22,10 @@ const slides=[
     'Restart preserves owner, avatar, vault, UUID and finalized work.']],
   ['Actual Studio after restart',['The next frame is the captured public profile.',
     'It shows Bob as owner, two jobs and separately labeled economics.']],
-  ['Verified scope',[`${e.checks.length} local integration checks; 65 JavaScript tests.`,
+  ['Verified scope',[`${e.checks.length} local integration checks; 84 JavaScript tests.`,
     'Current video: local NEAR sandbox with an OutLayer mock.','Earlier hosted receipts are linked in the documentation.',
-    'Public deployment and new Sepolia live acceptance remain open.','Research/LLM is a candidate; hosted integration is not claimed.']]
+    'Reviewed testnet rollout and no-key Research smoke have separate receipts.',
+    'Public hosting is deferred; real model Research remains open.']]
 ];
 const directory=await mkdtemp(join(tmpdir(),'nfa-reel-')),frames=[];
 try{
@@ -37,7 +38,7 @@ try{
       for(const value of lines){content+=`<text x="65" y="${y}" font-size="30" fill="#30483e">${esc(value)}</text>`;y+=41}y+=18;
     }
     const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><rect width="1280" height="720" fill="#f4f3ed"/>
-      <g font-family="Arial,sans-serif"><text x="65" y="62" font-size="23" fill="#526d5e">nfa.gent / RELEASE EVIDENCE</text>
+      <g font-family="Arial,sans-serif"><text x="65" y="62" font-size="23" fill="#526d5e">nfa.cool / RELEASE EVIDENCE</text>
       <text x="65" y="150" font-size="52" fill="#223c32">${esc(title)}</text>${content}
       <rect y="659" width="1280" height="61" fill="#244b3c"/><text x="45" y="700" font-size="22" fill="white">LOCAL SANDBOX / OUTLAYER MOCK / NO REAL OR TESTNET FUNDS</text></g></svg>`;
     const file=join(directory,`${index}.png`);await sharp(Buffer.from(svg)).png().toFile(file);frames.push(file);

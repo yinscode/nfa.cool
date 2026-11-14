@@ -58,6 +58,50 @@
       "artifactCodec": "research-v1",
       "hostedStatus": "candidate",
       "reason": "Real paid inference and buyer continuity acceptance are required before advertising Research."
+    },
+    {
+      "id": "scout-compare-research-4-reviewed",
+      "versionKey": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+      "artifact": "releases/nfa-services-reviewed-578af9bf7adb3a8d.wasm",
+      "services": [
+        "scout",
+        "compare",
+        "research"
+      ],
+      "artifactCodec": "research-v1",
+      "hostedStatus": "candidate",
+      "reason": "Memory and failure handling fixes rebuilt and pinned; hosted model acceptance is pending."
+    },
+    {
+      "id": "scout-compare-research-5-https",
+      "versionKey": "40e425829df5f22253c80a5ede821bbc13bdcafedb846f7faeb6fbb6ebc8772e",
+      "artifact": "releases/nfa-services-research-40e425829df5f222.wasm",
+      "services": ["scout", "compare", "research"],
+      "artifactCodec": "research-v1",
+      "hostedStatus": "candidate",
+      "reason": "NEAR AI HTTPS diagnostic passed; paid on-chain Research and buyer continuity are still under test.",
+      "hostedEvidence": {
+        "diagnostic": "docs/evidence/research-output-fix-diagnostic.json",
+        "projectUuid": "p0000000000000163"
+      }
+    },
+    {
+      "id": "scout-compare-research-6-long-model",
+      "versionKey": "a8513acd137f37ce21a820e8d2e9b92b9712970e3c3710b41a4e26df06137588",
+      "artifact": "releases/nfa-services-research-a8513acd137f37ce.wasm",
+      "services": ["scout", "compare", "research"],
+      "artifactCodec": "research-v1",
+      "hostedStatus": "verified",
+      "reason": "Paid seller and buyer Research jobs finalized with priced NEAR AI usage; buyer recalled seller-era work after sale and its next paid job consumed that finalized work commitment.",
+      "hostedEvidence": {
+        "staged": "docs/evidence/research-long-staged.json",
+        "activation": "docs/evidence/research-long-activation.json",
+        "research": "docs/evidence/paid-async-research-seller.json",
+        "seller": "docs/evidence/paid-async-research-seller.json",
+        "handover": "docs/evidence/async-research-handover.json",
+        "buyer": "docs/evidence/paid-async-research-buyer-accepted.json",
+        "projectUuid": "p0000000000000163"
+      }
     }
   ]
 }

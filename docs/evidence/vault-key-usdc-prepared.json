@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-11-14T12:34:06.741Z",
+  "network": "NEAR testnet",
+  "payer": "nfa-studio-mwd3mksx.testnet",
+  "token": "usdc.fakes.testnet",
+  "wrap": "wrap.testnet",
+  "exchange": "ref-finance-101.testnet",
+  "poolId": 54,
+  "inputYoctoNear": "200000000000000",
+  "minimumOutputMicrousd": "400000",
+  "quoteMicrousd": "437500",
+  "outputBalanceMicrousd": "593750",
+  "transactions": {
+    "vaultWrapNear": "FP9jgvMyakoRCGT6g87zXbjR4W5VGj1152P9AKw9TArP",
+    "vaultDepositWrappedNearToRef": "AUCkAuoKeNEbTZ7W8yZJ8y6yzaBq1VXS1p8RuGQMGKo9",
+    "vaultSwapWrappedNearForUsdcE": "4zWmQBhwx14ojAbFw129UHb3x1FwmBt1DnBjjdXz8crc",
+    "vaultWithdrawUsdcEFromRef": "BKwLDjDvw3B2k3b6JtdwZoLuru4NHqPnofqdNLhXDR6w"
+  }
+}

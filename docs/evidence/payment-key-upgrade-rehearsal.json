@@ -1,0 +1,22 @@
+{
+  "scope": "local-sandbox-upgrade-only",
+  "oldRegistryHash": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "newRegistryHash": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb",
+  "oldVaultHash": "200821c58802e52ac795fbd1a594a66d6f6de8703862019972b9ee93bc33c6e7",
+  "newVaultHash": "5a37a47242d4d38994c7849d11a227146e2816a1e09420336892c12c7a5050ce",
+  "preserved": {
+    "owner": "alice.test.near",
+    "epoch": 0,
+    "vault": "nfa-1.registry.test.near",
+    "manifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "nextOperationId": 1,
+    "nextEvmNonce": 0
+  },
+  "assertions": [
+    "deployed exact prior testnet registry and vault bytes",
+    "registry root state preserved",
+    "owner-approved guardian vault upgrade deployed exact new bytes",
+    "vault identity and operation state preserved",
+    "new Payment Key setup storage starts empty"
+  ]
+}

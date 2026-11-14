@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-11-14T12:51:05.503Z",
+  "network": "NEAR testnet",
+  "exception": "User-directed direct registry deployment with pre-existing FullAccess key before the two-day contract delay",
+  "proposedHash": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb",
+  "oldHash": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "registryId": "nfagent-registry-0e9b2a.testnet",
+  "tokenId": "nfa-2",
+  "owner": "nfagent-alice-fe53d8.testnet",
+  "ownerEpoch": 2,
+  "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+  "projectUuid": "p0000000000000163",
+  "preserved": {
+    "identity": true,
+    "address": true,
+    "liabilities": true,
+    "paidLedger": true,
+    "job26MemoryCommitment": true,
+    "vaultState": true
+  },
+  "liabilitiesYocto": "155600240000000000000000",
+  "proposalCancelled": true,
+  "reserveTx": "CGBnSi3tzWsgjbywcKra9NauS8WzQJ4QQtLD6BwMBNLC",
+  "deployTx": "E3RjfgjbQRvYwcv4PQaGZDLWNFXgimpTq9h8gVLpUcFa",
+  "cancelTx": "H8qvXhAsYSxiqq2nPd9CE8PHCJU14Z8zNYWLPm9eqJbw"
+}

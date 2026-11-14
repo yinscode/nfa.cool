@@ -1,0 +1,40 @@
+{
+  "oldCodeSha256": "3547ac6018aa2d5e86e764a947edfa2c61c8390554b6cc40e80fbaaab6fd584e",
+  "newCodeSha256": "0f02c8a935199f998922552067f92f5bfc6b2ae58edf89c5bc30bb3e034e63d0",
+  "vaultCodeSha256": "200821c58802e52ac795fbd1a594a66d6f6de8703862019972b9ee93bc33c6e7",
+  "localUpgradeTransaction": "BWsbSjdjPjzpSkqinRga8ABuHVLr1fgb6cGMGNhAuY8r",
+  "localMigrationTransaction": "8dU8baoVbxa3z5Xd3ertvZ21sqUM4sBXN1WzCeLXtb6w",
+  "balances": {
+    "income": "30000000000000000000000",
+    "escrow": "30000000000000000000000",
+    "payouts": {
+      "alice.test.near": {
+        "available": "1000000000000000000000",
+        "pending": null,
+        "next_id": 0
+      },
+      "customer.test.near": {
+        "available": "30000000000000000000000",
+        "pending": null,
+        "next_id": 0
+      }
+    },
+    "payoutTotal": "31000000000000000000000",
+    "liabilities": "91000000000000000000000"
+  },
+  "preserved": {
+    "owner": "bob.test.near",
+    "epoch": 1,
+    "vault": "nfa-1.registry.test.near",
+    "manifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "assertions": [
+    "deployed exact prior testnet registry bytes",
+    "finalized legacy work to create income",
+    "expired legacy work to create a refund credit",
+    "sold NFA to create a seller credit",
+    "new code blocked withdrawal before migration",
+    "one-time migration included escrow, income, refund and seller credits",
+    "owner, epoch, vault, manifest and income survived registry upgrade"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-14T18:33:14.534Z",
+  "network": "NEAR testnet",
+  "registry": "nfagent-registry-0e9b2a.testnet",
+  "payoutRows": {
+    "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8": "688333333333333333334",
+    "038327209480812fdc542213402f46ace8bf755341aac768c0ba0d961187ed41": "0",
+    "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d": "22000000000000000000000",
+    "nfa-studio-mwd3mksx.testnet": "77600240000000000000000",
+    "nfagent-alice-fe53d8.testnet": "51000000000000000000000"
+  },
+  "incomeRows": {
+    "nfa-1": "12000000000000000000000",
+    "nfa-2": "53311666666666666666666"
+  },
+  "escrow": "0",
+  "payouts": "151288573333333333333334",
+  "income": "65311666666666666666666",
+  "liabilities": "216600240000000000000000",
+  "registryBalance": "15909808527122761300000040",
+  "storageBytes": 1543834,
+  "reserveAboveLiabilities": "254868287122761300000040",
+  "result": "balanced"
+}

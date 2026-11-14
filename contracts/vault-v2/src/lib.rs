@@ -16,6 +16,7 @@ const OUTLAYER: &str = "outlayer.test.near";
 const PROJECT_NAME: &str = "scout";
 const MAX_PROJECT_DEPOSIT: u128 = 500_000_000_000_000_000_000_000;
 const MAX_JOB_DEPOSIT: u128 = 500_000_000_000_000_000_000_000;
+const PAYMENT_KEY_STORAGE_DEPOSIT: u128 = 100_000_000_000_000_000_000_000;
 const MAX_DAILY_DEPOSITS: u128 = 2_000_000_000_000_000_000_000_000;
 const DAY_NS: u64 = 86_400_000_000_000;
 
@@ -76,6 +77,7 @@ pub enum Pending {
     Project { id: u64, action: String, version: String, uncertain: bool },
     Skill { id: u64, version: String, deposit: u128, reported: bool, uncertain: bool },
     Recall { id: u64, job_id: u64, reported: bool, uncertain: bool },
+    PaymentKey { id: u64, nonce: u32, uncertain: bool },
 }
 
 #[near(contract_state)]
@@ -195,6 +197,58 @@ impl Vault {
         let project_id = project().get(&0).unwrap().project_id;
         self.call_outlayer("get_project",serde_json::json!({"project_id":project_id}),
             0,20,"on_project_verified",id,25)
+    }
+
+    /// The registry is the only issuer. No generic secret accessor or token transfer
+    /// is exposed; the ciphertext was approved by the current NFT owner upstream.
+    pub fn create_payment_key(&mut self, id: u64, nonce: u32, encrypted_secrets_base64: String) -> Promise {
+        self.assert_controller();
+        require!(nonce > 0 && encrypted_secrets_base64.len() >= 80
+            && encrypted_secrets_base64.len() <= 4096
+            && encrypted_secrets_base64.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'+' || b == b'/' || b == b'='),
+            "Invalid encrypted Payment Key");
+        require!(project().get(&0).is_some_and(|p| p.state == "READY"), "Project unavailable");
+        self.check_balance(PAYMENT_KEY_STORAGE_DEPOSIT);
+        self.begin(id);
+        self.pending = Some(Pending::PaymentKey { id, nonce, uncertain: false });
+        self.call_outlayer("store_secrets", serde_json::json!({
+            "accessor":{"System":"PaymentKey"},"profile":nonce.to_string(),
+            "encrypted_secrets_base64":encrypted_secrets_base64,
+            "access":"AllowAll","vault_id":null
+        }), PAYMENT_KEY_STORAGE_DEPOSIT, 100, "on_payment_key_write", id, 70)
+    }
+
+    #[private]
+    pub fn on_payment_key_write(&mut self, id: u64) -> Promise {
+        let Some(Pending::PaymentKey { id: current, nonce, uncertain }) = &mut self.pending else { env::panic_str("No Payment Key write") };
+        require!(*current == id, "Wrong Payment Key callback");
+        *uncertain = true;
+        let nonce = *nonce;
+        self.payment_key_query(id, nonce)
+    }
+
+    pub fn reconcile_payment_key(&mut self, id: u64) -> Promise {
+        self.assert_controller();
+        let Some(Pending::PaymentKey { id: current, nonce, uncertain: true }) = &self.pending else { env::panic_str("No uncertain Payment Key") };
+        require!(*current == id, "Wrong Payment Key operation");
+        self.payment_key_query(id, *nonce)
+    }
+
+    #[private]
+    pub fn on_payment_key_verified(&mut self, id: u64) -> Option<bool> {
+        require!(matches!(&self.pending, Some(Pending::PaymentKey { id: current, .. }) if *current == id), "Wrong Payment Key verification");
+        let Ok(bytes) = env::promise_result_checked(0, 8192) else { return None };
+        let Ok(value) = serde_json::from_slice::<serde_json::Value>(&bytes) else { return None };
+        if !value.is_null() && !value.get("encrypted_secrets").is_some() { return None }
+        self.pending = None;
+        Some(!value.is_null())
+    }
+
+    fn payment_key_query(&self, id: u64, nonce: u32) -> Promise {
+        self.call_outlayer("get_secrets", serde_json::json!({
+            "accessor":{"System":"PaymentKey"},"profile":nonce.to_string(),
+            "owner":env::current_account_id()
+        }), 0, 20, "on_payment_key_verified", id, 25)
     }
 
     pub fn execute_skill(&mut self, id: u64, version_key: String, input_data: String,
@@ -642,6 +696,31 @@ mod tests {
     fn vault() -> Vault {
         testing_env!(context("controller.testnet").build());
         Vault::new(id("controller.testnet"), id("reporter.testnet"), id("guardian.testnet"))
+    }
+
+    #[test]
+    fn payment_key_is_controller_only_and_failed_verification_does_not_replay(){
+        let mut v=vault();
+        project().insert(&0,&ProjectRecord{project_id:"vault.testnet/scout".into(),project_uuid:"p1".into(),
+            version_key:"a".repeat(64),wasm_url:"https://test.fastfs.io/a.wasm".into(),state:"READY".into()});
+        let ciphertext="A".repeat(120);
+        testing_env!(context("alice.testnet").build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            v.create_payment_key(1,1,ciphertext.clone()))).is_err());
+        testing_env!(context("controller.testnet").build());
+        let _=v.create_payment_key(1,1,ciphertext.clone());
+        assert!(matches!(v.pending,Some(Pending::PaymentKey{id:1,nonce:1,..})));
+        testing_env!(context("vault.testnet").build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Failed]);
+        let _=v.on_payment_key_write(1);
+        assert!(matches!(v.pending,Some(Pending::PaymentKey{uncertain:true,..})));
+        testing_env!(context("vault.testnet").build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Failed]);
+        assert_eq!(v.on_payment_key_verified(1),None);
+        assert!(v.pending.is_some());
+        testing_env!(context("controller.testnet").build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            v.create_payment_key(2,1,ciphertext))).is_err());
     }
 
     #[test]

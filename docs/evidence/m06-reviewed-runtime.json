@@ -1,0 +1,34 @@
+{
+  "milestone": "M06",
+  "status": "rebuilt; hosted acceptance pending",
+  "artifact": "releases/nfa-services-reviewed-578af9bf7adb3a8d.wasm",
+  "bytes": 574088,
+  "sha256": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+  "componentVersion": "0d000100",
+  "storageManifest": {
+    "storage_account": "predecessor"
+  },
+  "storageImport": "near:storage/api@0.2.0",
+  "rust": "1.88.0",
+  "target": "wasm32-wasip2",
+  "sources": {
+    "skills/scout-wasi/src/main.rs": "e27605b7e26b2bbf6218091f2afc3a97afe39c13cf497a08be3ff47f2580d2ac",
+    "skills/scout-wasi/src/research.rs": "dd77bf0e9a5ee171745fe396cf0faf2b1796d3cb284fa2acaa08c5e09fb0d561",
+    "skills/scout-wasi/Cargo.toml": "2a4a3deeb796421a347114f14aa1306717b373b6bbbd5409850569e6422865aa",
+    "skills/scout-wasi/Cargo.lock": "89caba379cdfef068e1cede1c97cc80a0e065edf4241466cd3c8bab9893f81c8",
+    "skills/scout-wasi/wit/world.wit": "8462918fdcb9abbe0ff5ba7b18bf5f2e0c40383d955b75833f5e1470e10fe0dc",
+    "skills/scout-wasi/wit/deps/storage.wit": "9d7cc517da5e4183641bb7c97722faac35dea658c50be9e90c92966ed2c2d963"
+  },
+  "nativeTests": 7,
+  "checks": [
+    "finalized prior work only enters buyer context",
+    "caller bound to stable vault predecessor",
+    "unknown inference attempts cannot be retried",
+    "staged outputs replay without another model call",
+    "guest reports fault classification for customer and operator failures"
+  ],
+  "limits": [
+    "Native fake backends do not verify hosted WASI HTTP or TEE execution.",
+    "Real model inference remains pending a dedicated near-ai credential and model ID."
+  ]
+}

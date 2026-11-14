@@ -24,6 +24,8 @@ import {studioPort,listenStudio} from './studio-listen.mjs';
 import {deploymentConfig,readiness} from './deployment.mjs';
 import {sepoliaHoldings} from '../worker/evm-settler.mjs';
 import {reviewedPackages} from './service-package.mjs';
+import {PaymentCheckout,verifyIntentsDestination} from './payment-checkout.mjs';
+import {OneClickClient} from './oneclick.mjs';
 
 const templatePath=fileURLToPath(new URL('../../templates/scout/v1.json',import.meta.url));
 const compareTemplatePath=fileURLToPath(new URL('../../templates/compare/v1.json',import.meta.url));
@@ -79,6 +81,7 @@ export function createApiServer({sdk,store,access,
   artifacts=new ArtifactStore(resolve('.data/artifacts')),
   inputs=new InputStore(resolve('.data/inputs')),
   servicePolicy=null,
+  checkout=null,
   localWallet=null,
   workspace=null,
   localControl=null,
@@ -111,11 +114,13 @@ export function createApiServer({sdk,store,access,
       if(++entry.count>120){send(res,429,{error:'rate_limited'});return}
       hits.set(ip,entry);
       const appPath=['/','/studio','/create'].includes(path)||/^\/nfa\/nfa-[1-9][0-9]*$/.test(path);
-      if(req.method==='GET'&&(appPath||/^\/assets\/[a-zA-Z0-9._-]+\.(js|css|svg|png)$/.test(path))){
-        const filename=appPath?'index.html':path.slice(1);
+      if(req.method==='GET'&&(appPath||/^\/assets\/[a-zA-Z0-9._-]+\.(js|css|svg|png|mp4)$/.test(path))){
+        const filename=appPath?(path==='/'?'landing.html':'index.html'):path.slice(1);
         const content=await readFile(resolve(webRoot,filename));
         res.writeHead(200,{'content-type':filename.endsWith('.js')?'text/javascript; charset=utf-8':
-          filename.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8',
+          filename.endsWith('.css')?'text/css; charset=utf-8':
+          filename.endsWith('.mp4')?'video/mp4':filename.endsWith('.png')?'image/png':
+          filename.endsWith('.svg')?'image/svg+xml':'text/html; charset=utf-8',
           'content-security-policy':"default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://rpc.testnet.near.org https://test.rpc.fastnear.com https://test.fastfs.io; frame-src https://testnet.mynearwallet.com",
           'x-content-type-options':'nosniff'});res.end(content);return;
       }
@@ -244,15 +249,22 @@ export function createApiServer({sdk,store,access,
         if(!Number.isSafeInteger(jobId))throw Error('Invalid job ID');
         const session=/^Bearer ([0-9a-f]{64})$/.exec(req.headers.authorization||'')?.[1];
         if(!session){send(res,401,{error:'owner_session_required'});return}
-        await access.requireOwner(session,tokenId);
         const record=await sdk.getServiceJob(tokenId,jobId);
         if(record?.job?.status!=='FINALIZED')throw Error('Work not finalized');
+        const workOwner=async()=>{
+          try{return await access.requireOwner(session,tokenId)}
+          catch(error){
+            if(!record.hired_by||!['scout','compare'].includes(record.service_id))throw error;
+            return access.requireOwner(session,record.hired_by);
+          }
+        };
+        await workOwner();
         let result;
         if(req.method==='POST'){
           const body=await input(req),releases=JSON.parse(await readFile(releaseCatalogPath,'utf8')).releases;
           result=await materializeWork({sdk,store,tokenId,jobId,startHash:body.startHash,sender:body.sender,releases});
         }else result={artifact:await store.get(record.job.output_hash),outputHash:record.job.output_hash};
-        await access.requireOwner(session,tokenId);send(res,200,result);return;
+        await workOwner();send(res,200,result);return;
       }
       if(req.method==='GET'&&/^\/studio\/artifacts\/[0-9a-f]{64}\.png$/.test(path)){
         const bytes=await artifacts.getImage(path.slice(18,-4));
@@ -327,6 +339,32 @@ export function createApiServer({sdk,store,access,
         send(res,200,{unsignedAction:prepare(sdk,body)});return;
       }
       const parts=path.split('/').filter(Boolean);
+      if(parts[0]==='v1'&&parts[1]==='checkouts'&&checkout){
+        const checkoutId=parts[2];
+        if(req.method==='GET'&&parts.length===3){
+          const result=await checkout.get(checkoutId);send(res,result?200:404,result||{error:'not_found'});return;
+        }
+        if(req.method==='POST'&&parts.length===4&&parts[3]==='confirm-payment'){
+          const record=await checkout.get(checkoutId);if(!record){send(res,404,{error:'not_found'});return}
+          send(res,200,record.kind==='token'?await checkout.confirmToken(checkoutId,(await input(req)).hash):
+            await checkout.confirmIntents(checkoutId));return;
+        }
+        if(req.method==='GET'&&parts.length===4&&parts[3]==='funding-action'){
+          send(res,200,await checkout.fundingAction(checkoutId));return;
+        }
+        if(req.method==='POST'&&parts.length===4&&parts[3]==='confirm-funding'){
+          send(res,200,await checkout.confirmFunding(checkoutId,(await input(req)).hash));return;
+        }
+        if(req.method==='POST'&&parts.length===4&&parts[3]==='reconcile'){
+          send(res,200,await checkout.reconcile(checkoutId));return;
+        }
+        if(req.method==='GET'&&parts.length===4&&parts[3]==='refund-action'){
+          send(res,200,await checkout.refundAction(checkoutId));return;
+        }
+        if(req.method==='POST'&&parts.length===4&&parts[3]==='confirm-refund'){
+          send(res,200,await checkout.confirmRefund(checkoutId,(await input(req)).hash));return;
+        }
+      }
       if(req.method==='GET'&&/^\/v1\/nfas\/nfa-[1-9][0-9]*\/research$/.test(path)){
         send(res,200,{configuration:await sdk.getResearchConfig(parts[2]),budget:await sdk.view(sdk.registryAccountId,'research_budget',{token_id:parts[2]}),
           vaultCapable:await sdk.view(sdk.registryAccountId,'research_vault_capable',{token_id:parts[2]})});return;
@@ -347,6 +385,16 @@ export function createApiServer({sdk,store,access,
         if(!['scout','compare','research'].includes(service)){send(res,404,{error:'service_not_found'});return}
         if(req.method==='POST'&&parts[5]==='quotes'&&parts.length===6){
           send(res,200,await quoteService({sdk,tokenId:id,service,body:await input(req),policy:servicePolicy}));return;
+        }
+        if(req.method==='POST'&&parts[5]==='checkout'&&parts[7]==='quotes'&&parts.length===8&&checkout){
+          const body=await input(req);
+          const quote=await quoteService({sdk,tokenId:id,service,body,policy:servicePolicy});
+          if(parts[6]==='token')send(res,200,await checkout.tokenQuote({quote,
+            tokenContract:body.tokenContract,payer:body.payer}));
+          else if(parts[6]==='intents')send(res,200,await checkout.intentsQuote({quote,
+            originAsset:body.originAsset,refundTo:body.refundTo}));
+          else send(res,404,{error:'checkout_not_found'});
+          return;
         }
         if(parts[5]==='jobs'&&parts.length===7&&/^[1-9][0-9]*$/.test(parts[6])){
           const jobId=Number(parts[6]);
@@ -413,9 +461,16 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const servicePolicy={scout:process.env.NFA_SCOUT_POLICY_JSON?JSON.parse(process.env.NFA_SCOUT_POLICY_JSON):null,
     compare:process.env.NFA_COMPARE_POLICY_JSON?JSON.parse(process.env.NFA_COMPARE_POLICY_JSON):null,
     research:process.env.NFA_RESEARCH_POLICY_JSON?JSON.parse(process.env.NFA_RESEARCH_POLICY_JSON):null};
+  const checkoutSettings=process.env.NFA_CHECKOUT_JSON?JSON.parse(process.env.NFA_CHECKOUT_JSON):null;
+  const destinationSenders=String(process.env.NFA_ONECLICK_DESTINATION_SENDERS||'').split(',').map(x=>x.trim()).filter(Boolean);
+  const checkout=checkoutSettings?new PaymentCheckout({sdk,directory:resolve(data,'checkout'),
+    merchantAccountId:checkoutSettings.merchantAccountId,assets:checkoutSettings.assets,
+    intentsClient:process.env.NFA_ONECLICK_JWT?new OneClickClient({jwt:process.env.NFA_ONECLICK_JWT}):null,
+    verifyIntentsDelivery:destinationSenders.length?args=>verifyIntentsDestination({sdk,...args,senders:destinationSenders}):null}):null;
   const server=createApiServer({sdk,store,access,renderer:new AvatarRenderer(resolve(data,'render')),
     manifests:new WorkStore(resolve(data,'manifests'),{objects,namespace:'manifests'}),artifacts:new ArtifactStore(resolve(data,'artifacts'),{objects}),
-    inputs:new InputStore(resolve(data,'inputs')),servicePolicy,deployment,readyCheck:readiness({sdk,data}),evmRpcUrl:process.env.EVM_RPC_URL});
+    inputs:new InputStore(resolve(data,'inputs')),servicePolicy,checkout,deployment,
+    readyCheck:readiness({sdk,data}),evmRpcUrl:process.env.EVM_RPC_URL});
   const stop=()=>{server.close(()=>process.exit(0));setTimeout(()=>process.exit(1),10000).unref()};
   process.once('SIGTERM',stop);process.once('SIGINT',stop);
   listenStudio(server,port,host).then(()=>console.log(`NFA API at ${origin}/studio`))

@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-11-14T18:33:28.737Z",
+  "network": "NEAR testnet",
+  "registryId": "nfagent-registry-0e9b2a.testnet",
+  "codeHash": "f9c750ad48e369b79e65f3de6c6533602b09658c3202e389d96dbfba154c1353",
+  "restrictedAdminKey": "ed25519:2SVJxkgbEbeH9MDhoaJuyv8yDLo94yQ6YvMXnztdxuw8",
+  "proposalTx": "5Dd8cNPogoBuzqEcYD4GATfK9xVNA9qfxiHtqZkjSE4u",
+  "proposedAtNs": 1794681204163996200,
+  "earliestApplyUtc": "2026-11-16T18:33:24.163Z",
+  "applied": false,
+  "fullAccessRemoved": false,
+  "next": "After the public delay, apply exact bytes using the restricted key, verify every NFA and liability, then remove FullAccess keys."
+}

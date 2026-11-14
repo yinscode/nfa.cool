@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-11-14T18:34:44.508Z",
+  "network": "NEAR testnet",
+  "label": "buyer2",
+  "tokenId": "nfa-2",
+  "owner": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "ownerEpoch": 3,
+  "projectUuid": "p0000000000000163",
+  "jobId": 51,
+  "inputHash": "sha256:8439a269ae0e428b58b58aa23275a0d17cb16cfbec196eb5681a7e4a1389539b",
+  "executionHash": "sha256:efcfd7762fd12dfc52356df4e1438876f8ed11cd0014cdf473202f3b05f13001",
+  "callId": "fee29913-8ca2-4f5b-b58d-18fa77ade1c3",
+  "priorWorkCommitments": [
+    {
+      "jobId": 48,
+      "outputHash": "sha256:fda3bc8ece84d95b66d3b72109850638c9e4114b1043f50e9105bda66910af39"
+    }
+  ],
+  "status": "FINALIZED",
+  "fault": "operator",
+  "outputHash": "sha256:ad7259f5a091b2c084e08887227943f5cb8d392679be074ac233f72712089aa3",
+  "pricedUsageMicrousd": 4922,
+  "computeCostMicrousd": 1039,
+  "feeYocto": "20000000000000000000000",
+  "incomeYocto": "53311666666666666666666",
+  "attestationUrl": "/attestations/by-call/fee29913-8ca2-4f5b-b58d-18fa77ade1c3",
+  "transactions": {
+    "buyer2ResearchPay": {
+      "hash": "CDiyaZLoUVKrhgb8pPr4mi3rhcadxPXH13bRjym1u9h8",
+      "failed": false
+    },
+    "buyer2ResearchPrepare": {
+      "hash": "DK9RN6sorY5EUbDYcGgQLvfQ6xYzav3Df2qtooPcNSNb",
+      "failed": false
+    },
+    "buyer2ResearchBind": {
+      "hash": "AeDNrSaXrkkncLYJSuAzYbiyv7EWTtvbQ3R36x1ftaf7",
+      "failed": false
+    },
+    "buyer2ResearchSettle": {
+      "hash": "29cPB4NvQasi1kLeCSXoj5hVZTddxraPMnB9pY1mUGBP",
+      "failed": false
+    }
+  },
+  "trust": "The restricted operator reports the HTTPS result; on-chain checks bind job, runtime, epoch, output and cap. No on-chain OutLayer attestation verification."
+}

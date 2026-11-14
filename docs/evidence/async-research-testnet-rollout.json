@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-14T17:42:53.574Z",
+  "network": "NEAR testnet",
+  "oldHash": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb",
+  "newHash": "f989bfe9bc179b14b4272334f4f819663df5d5186132a88a03eb3f01de3acae4",
+  "exception": "Direct deployment with existing FullAccess key; two-day public apply path remains to be rehearsed live",
+  "preserved": [
+    "both NFA identities",
+    "both vault states",
+    "Project UUIDs and runtimes",
+    "Research job 26",
+    "liabilities"
+  ],
+  "liabilityYocto": "155600240000000000000000",
+  "reserveAboveLiabilitiesYocto": "274135055494590400000028",
+  "transactions": {
+    "asyncRegistryDeploy": {
+      "hash": "5evn7PrT46Ff3kBw642oEhoAPquh6RxdzTAWK7PskQxs",
+      "failed": false
+    }
+  }
+}

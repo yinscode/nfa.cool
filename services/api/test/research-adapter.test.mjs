@@ -13,7 +13,8 @@ function setup(){
   sdk.getOutlayerProject=async()=>({state:'READY',project_uuid:'same-project',version_key:'a'.repeat(64)});
   sdk.getResearchConfig=async()=>config;sdk.getServicePolicy=async()=>onchain;sdk.getServiceCatalog=async()=>[onchain];
   sdk.getAgentState=async()=>({lifecycle:'Active',pending_op:null});sdk.getTreasury=async()=>({available:'1000000000000000000000000'});
-  sdk.view=async(_account,method)=>method==='research_vault_capable'?true:'2000000000000000000000';
+  sdk.view=async(_account,method)=>method==='research_vault_capable'?true:
+    method==='payment_key_setup'?{state:'READY',nonce:1}:'2000000000000000000000';
   return {sdk,policy:{research:{limits,marginYocto:'10000000000000000000000',maxDepositYocto:'500000000000000000000000'}},tokenId:'nfa-1',config};
 }
 test('research quote pins configuration and remains unavailable before hosted acceptance',async()=>{
@@ -26,6 +27,7 @@ test('research quote pins configuration and remains unavailable before hosted ac
   assert.equal(quote.unsignedAction.args.expected_research_config,context.config.configuration_hash);
   assert.equal(quote.unsignedAction.args.expected_policy_version,2);
   assert.equal(quote.modelBudget.reservationMicrousd,'25024');
+  assert.equal(quote.transport,'https-async');
   assert.equal(BigInt(quote.feeYocto)-BigInt(quote.replenishYocto),20000000000000000000000n);
 });
 test('customer research input cannot choose secrets, privileged methods or arbitrary URLs',async()=>{

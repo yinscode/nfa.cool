@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-11-14T18:27:20.980Z",
+  "network": "NEAR testnet",
+  "operator": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+  "restrictedKeys": [
+    {
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "methods": [
+        "issue_payment_key",
+        "reconcile_payment_key_setup"
+      ],
+      "publicKey": "ed25519:9JM5dECE9rEqi8SB3Xo8nyhppu6Yr3v7e5q6cxkrGbaP",
+      "invalidOperationRejectedTx": "AKiZXkLUo1Lk2Y4dNqUdPe4beE8iMf49eAg5GpQGTL61"
+    },
+    {
+      "receiver": "outlayer.testnet",
+      "methods": [
+        "store_secrets"
+      ],
+      "publicKey": "ed25519:FB9wrBqfe2RJeAiN4bwUy7cKsP5uKRrCbbHYQiKgwps9",
+      "invalidOperationRejectedTx": "APqaCLARTdQ8KZ7xGGWkXAXNNhKYZomyDPK8Xie9EybZ"
+    }
+  ],
+  "fullAccessRemoved": false,
+  "remainingGate": "Live delayed apply with restricted registry admin key, then full authority audit"
+}

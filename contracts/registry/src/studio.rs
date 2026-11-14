@@ -67,8 +67,12 @@ impl Registry{
         require!(a.pending_op==Some(id)&&request.id==id&&a.lifecycle==Lifecycle::Draining,"Stale resume callback");
         let Ok(bytes)=env::promise_result_checked(0,4096) else{return false};
         let Ok(status)=serde_json::from_slice::<serde_json::Value>(&bytes) else{return false};
+        // HTTPS Research never asks the vault to execute this job, so its operation
+        // counter cannot prove completion. The final async receipt and an idle vault do.
+        let async_failed=self.async_research_job(token_id.clone(),request.failed_job_id)
+            .is_some_and(|job|matches!(job.state.as_str(),"FAILED"|"RELEASED"));
         if status["controller"]!=env::current_account_id().as_str()||!status["pending"].is_null()
-            ||status["next_operation_id"].as_u64().unwrap_or(0)<=request.failed_job_id{return false}
+            ||(!async_failed&&status["next_operation_id"].as_u64().unwrap_or(0)<=request.failed_job_id){return false}
         require!(self.paid_scout_job(token_id.clone(),request.failed_job_id).unwrap().status=="FAILED","Failed job changed");
         a.pending_op=None;a.lifecycle=Lifecycle::Active;self.agents.insert(&token_id,&a);resumes().remove(&token_id);
         event("service_failure_recovered",serde_json::json!({"token_id":token_id,"id":id,"failed_job_id":request.failed_job_id}));true

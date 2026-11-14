@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-14T18:38:37.731Z",
+  "network": "NEAR testnet",
+  "readOnly": true,
+  "tokenId": "nfa-2",
+  "runtime": "a8513acd137f37ce21a820e8d2e9b92b9712970e3c3710b41a4e26df06137588",
+  "serviceAvailable": true,
+  "reason": null,
+  "feeYocto": "20000000000000000000000",
+  "httpsExecutionLimitSeconds": 90,
+  "source": "local REST quote adapter against live registry; no public hosting"
+}

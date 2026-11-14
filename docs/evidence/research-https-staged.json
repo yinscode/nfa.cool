@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-11-14T11:01:23.262Z",
+  "network": "NEAR testnet",
+  "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+  "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+  "activeHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+  "candidateHash": "3bc0201218feab5b9685326df499d2c25ce449028d811124d46109b062850ad6",
+  "newWasmHash": "3bc0201218feab5b9685326df499d2c25ce449028d811124d46109b062850ad6",
+  "secret": {
+    "profile": "research-v5",
+    "owner": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+    "accessMatches": true
+  },
+  "upload": {
+    "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/3bc0201218feab5b9685326df499d2c25ce449028d811124d46109b062850ad6.wasm",
+    "hash": "3bc0201218feab5b9685326df499d2c25ce449028d811124d46109b062850ad6",
+    "note": "FastFS upload receipt reports failure by design; published bytes were fetched and hash-verified"
+  },
+  "transactions": {
+    "researchHttpsRuntimeUpload": {
+      "hash": "ozYqGK6b1LXgx5fq8UMDGZRnPars4StkFZ6zNWxtAuB",
+      "failed": true
+    },
+    "storeResearchHttpsSecretV5": {
+      "hash": "3eLyq6Qr66EMZ5ZWjeB11bRNe62GqTTuu3iKB2rmaapx",
+      "failed": false
+    },
+    "stageResearchHttpsVersion": {
+      "hash": "CRp35vTLygDWHZhMFqm2nqfxXrrh2KJv7i9CvF9NP5DV",
+      "failed": false
+    }
+  },
+  "scope": "New guest is staged but inactive. No paid HTTPS inference or on-chain async settlement."
+}

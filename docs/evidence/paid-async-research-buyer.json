@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-11-14T18:23:59.031Z",
+  "network": "NEAR testnet",
+  "label": "buyer",
+  "tokenId": "nfa-2",
+  "owner": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "ownerEpoch": 3,
+  "projectUuid": "p0000000000000163",
+  "jobId": 49,
+  "inputHash": "sha256:8439a269ae0e428b58b58aa23275a0d17cb16cfbec196eb5681a7e4a1389539b",
+  "executionHash": "sha256:50e0a7fe1360ff5c40949cda08575faa7a717194529d3b340a1b5f18e4a3a354",
+  "callId": "fb1538ee-fe52-4727-8005-27d4f33a32d9",
+  "status": "FAILED",
+  "fault": "customer",
+  "outputHash": null,
+  "pricedUsageMicrousd": null,
+  "computeCostMicrousd": 1007,
+  "feeYocto": "20000000000000000000000",
+  "incomeYocto": "41658000000000000000000",
+  "attestationUrl": "/attestations/by-call/fb1538ee-fe52-4727-8005-27d4f33a32d9",
+  "transactions": {
+    "buyerResearchPay": {
+      "hash": "GF5qjnjntvz715ZNJqhtaw736uhFVuNGWMdWVd5qDSQQ",
+      "failed": false
+    },
+    "buyerResearchPrepare": {
+      "hash": "9aP3mpHGiy3JCn1xc6W74VDDf3t3dT5rAzz7vjTo5WNj",
+      "failed": false
+    },
+    "buyerResearchBind": {
+      "hash": "zBJaMtMJP8Px1QRJFYv6cxNhNNrp2otsQKc3VamNmuX",
+      "failed": false
+    },
+    "buyerResearchSettle": {
+      "hash": "Efs2nxHb9u6GZfXmsEDSf6wPqTbYssWWxdNtaLhGytJ9",
+      "failed": false
+    }
+  },
+  "trust": "The restricted operator reports the HTTPS result; on-chain checks bind job, runtime, epoch, output and cap. No on-chain OutLayer attestation verification."
+}

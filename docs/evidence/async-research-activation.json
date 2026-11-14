@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-14T17:43:55.840Z",
+  "network": "NEAR testnet",
+  "registryHash": "f989bfe9bc179b14b4272334f4f819663df5d5186132a88a03eb3f01de3acae4",
+  "wasmHash": "40e425829df5f22253c80a5ede821bbc13bdcafedb846f7faeb6fbb6ebc8772e",
+  "projectUuid": "p0000000000000163",
+  "ownerEpoch": 2,
+  "secretBound": true,
+  "paymentKeyState": "READY",
+  "configurationHash": "sha256:7ce02dc4d97640fd139f57c45e3d17af785d147f53ddba9753e2fbe66cf585a2",
+  "researchPolicyVersion": 3,
+  "ready": true,
+  "transactions": {
+    "activateAsyncResearchGuest": {
+      "hash": "5BLyq934JWsi1faLZLRTTbaiqduPNFP1EFxnzQQT7gZD",
+      "failed": false
+    },
+    "configureAsyncResearch": {
+      "hash": "GdtrbrPm6VTzFNSgGwygxyCDZVLPfgaZVmxSpAwM85Dc",
+      "failed": false
+    }
+  }
+}

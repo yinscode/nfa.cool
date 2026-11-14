@@ -1,0 +1,313 @@
+{
+  "milestone": "M06",
+  "complete": false,
+  "checkedAt": "2026-11-12T21:07:29.873Z",
+  "status": "Hosted no-key failure and compatibility acceptance; real inference pending",
+  "runtimeHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+  "identity": {
+    "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+    "projectUuid": "p0000000000000163",
+    "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+    "owner": "nfagent-alice-fe53d8.testnet",
+    "epoch": 2
+  },
+  "activeProject": {
+    "project_id": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+    "project_uuid": "p0000000000000163",
+    "version_key": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+    "candidate_version": null,
+    "state": "READY",
+    "action": ""
+  },
+  "upload": {
+    "url": "https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe.wasm",
+    "hash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+    "transaction": "8AqAP3ponP2etZ9Cu21vfXVNFYjtA9ubNHtzfAQtH5Xg"
+  },
+  "secret": {
+    "owner": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+    "profile": "research-v4-smoke",
+    "access": {
+      "Logic": {
+        "operator": "And",
+        "conditions": [
+          {
+            "Predecessor": {
+              "condition": {
+                "Whitelist": {
+                  "accounts": [
+                    "nfa-2.nfagent-registry-0e9b2a.testnet"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "WasmHash": {
+              "hash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe"
+            }
+          }
+        ]
+      }
+    },
+    "stored": true
+  },
+  "jobs": {
+    "smoke": {
+      "id": 24,
+      "result": {
+        "job": {
+          "id": 24,
+          "epoch": 2,
+          "requester": "nfa-studio-mwd3mksx.testnet",
+          "input_hash": "sha256:d44d8a09305b17e6eadc448c5a77304da31fe0cf6755354f3d0e75cdb590672f",
+          "fee": "14800120000000000000000",
+          "replenish": "4800120000000000000000",
+          "deposit_cap": "4800120000000000000000",
+          "version_key": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+          "limits": {
+            "max_instructions": 1000000000,
+            "max_memory_mb": 128,
+            "max_execution_seconds": 30
+          },
+          "deadline_ns": 1794517854671000000,
+          "created_at_ns": 1794516959008712700,
+          "started_at_ns": 1794516963252690700,
+          "status": "FAILED",
+          "output_hash": null,
+          "output_uri": null,
+          "reimbursement_pending": false
+        },
+        "service_id": "research",
+        "policy_version": 2,
+        "research_usage": {
+          "configuration_hash": "sha256:63bec40d78cbd5de23599d491307af92091c142b545735c4a9f6e382bcb5e0ff",
+          "configuration_version": 2,
+          "reserved_microusd": 25024,
+          "priced_usage_microusd": null,
+          "state": "NOT_STARTED",
+          "day": 20769
+        }
+      }
+    },
+    "legacyscout": {
+      "id": 26,
+      "result": {
+        "job": {
+          "id": 26,
+          "epoch": 2,
+          "requester": "nfa-studio-mwd3mksx.testnet",
+          "input_hash": "sha256:3740f4a77b0a5b83803528bf77865a6e4e45c780afe7ecbae3d552328f90794b",
+          "fee": "12400120000000000000000",
+          "replenish": "2400120000000000000000",
+          "deposit_cap": "2400120000000000000000",
+          "version_key": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+          "limits": {
+            "max_instructions": 1000000000,
+            "max_memory_mb": 64,
+            "max_execution_seconds": 10
+          },
+          "deadline_ns": 1794518461380000000,
+          "created_at_ns": 1794517564640565000,
+          "started_at_ns": 1794517569524153900,
+          "status": "FINALIZED",
+          "output_hash": "sha256:9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+          "output_uri": "nfa://work/9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+          "reimbursement_pending": false
+        },
+        "service_id": "scout",
+        "policy_version": 1,
+        "research_usage": null
+      }
+    },
+    "legacycompare": {
+      "id": 27,
+      "result": {
+        "job": {
+          "id": 27,
+          "epoch": 2,
+          "requester": "nfa-studio-mwd3mksx.testnet",
+          "input_hash": "sha256:9655f90288a9a9b71f7e8ac75ce0357529d245d5477dfc507dcc0927b29758b7",
+          "fee": "12400120000000000000000",
+          "replenish": "2400120000000000000000",
+          "deposit_cap": "2400120000000000000000",
+          "version_key": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+          "limits": {
+            "max_instructions": 1000000000,
+            "max_memory_mb": 64,
+            "max_execution_seconds": 10
+          },
+          "deadline_ns": 1794518484908000000,
+          "created_at_ns": 1794517588460889900,
+          "started_at_ns": 1794517592806687700,
+          "status": "FINALIZED",
+          "output_hash": "sha256:aceb241e34567d99e37815438d70825fc805f153c254a003e64a8cd4c5a40988",
+          "output_uri": "nfa://work/aceb241e34567d99e37815438d70825fc805f153c254a003e64a8cd4c5a40988",
+          "reimbursement_pending": false
+        },
+        "service_id": "compare",
+        "policy_version": 1,
+        "research_usage": null
+      }
+    }
+  },
+  "hosted": {
+    "smoke": {
+      "transaction": "9sMKyeXRcq3WkBuNEgCUn7iXrrbfTmowVH481HWs7fCq",
+      "hostJobId": 81009,
+      "requestId": 34000,
+      "predecessor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+      "projectUuid": "p0000000000000163",
+      "runtimeHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+      "inputHash": "9b87fabab9df7e5df02806fc50b65bc9acd80d273bc6e85a951b4cbbf17da93e",
+      "stdoutHash": "0b42101c04286894f1709c7fb636083113771974fd628c3e1c3f636106a473ca",
+      "priorWork": [],
+      "reportDataHash": "3e0d4064ec284f2a64649c83e05d5f3051c791bcc86036ea2be8a28588c31927",
+      "quoteSha256": "eb519b297663d528fad0b30b19e476698b3cbd2af00e44046f3a7343f5858dc5",
+      "paymentYocto": "4800120000000000000000",
+      "chargedYocto": "1228700000000000000000",
+      "refundedYocto": "3571420000000000000000",
+      "resources": {
+        "instructions": 260382,
+        "time_ms": 1001,
+        "compile_time_ms": 1286
+      },
+      "intelCollateralVerified": false
+    },
+    "legacyscout": {
+      "transaction": "9A14o3jERwYh97aMBkSCyAkv4SdGG9j4Red6JCYXQgwj",
+      "hostJobId": 81183,
+      "requestId": 34059,
+      "predecessor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+      "projectUuid": "p0000000000000163",
+      "runtimeHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+      "inputHash": "a208f0f82401e7b41c2941475b1f83a97f2f74a74c70aa58a21eac90854d817c",
+      "stdoutHash": "8b330b7ed2d358db4a4c3fabf542939cf912bc035e7790548ac7931c9c35512d",
+      "priorWork": [],
+      "reportDataHash": "4c5a315cf408d2186f3498a30bac56fe258f5b88ef2b37cdf0b3d438341fc8b0",
+      "quoteSha256": "a3201bc70936f102ad13387e5b6a282c52122763297a0cc766643cf3cce1d09c",
+      "paymentYocto": "2400120000000000000000",
+      "chargedYocto": "1173600000000000000000",
+      "refundedYocto": "1226520000000000000000",
+      "resources": {
+        "instructions": 280272,
+        "time_ms": 1736,
+        "compile_time_ms": null
+      },
+      "intelCollateralVerified": false
+    },
+    "legacycompare": {
+      "transaction": "92BoZu37fHStrdTnYrJ4w2kFzAMadWrPH4UsgUoXNuc5",
+      "hostJobId": 81196,
+      "requestId": 34061,
+      "predecessor": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+      "projectUuid": "p0000000000000163",
+      "runtimeHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+      "inputHash": "2f4b3767564fad38ccf897351245582fbb9e9dcb0afb77f62c331c5c050320d6",
+      "stdoutHash": "0dbd04128d19e133db04989768d25b83805584507ada6d38b70f451f1eeadd54",
+      "priorWork": [],
+      "reportDataHash": "060f3f59de6e87a4097fda85bd0b0c0c8598b28bb48e17a30722dd91e17d94e9",
+      "quoteSha256": "b3dd99f29170e4acc1a919b79bc4f1267cf7b8311e42838abaa40cb422377576",
+      "paymentYocto": "2400120000000000000000",
+      "chargedYocto": "1122700000000000000000",
+      "refundedYocto": "1277420000000000000000",
+      "resources": {
+        "instructions": 526511,
+        "time_ms": 1227,
+        "compile_time_ms": null
+      },
+      "intelCollateralVerified": false
+    }
+  },
+  "modelAllowance": {
+    "day": 20769,
+    "reserved_microusd": 50048
+  },
+  "nativeLedger": {
+    "customer_escrow": "0",
+    "vault_replenishment_pending": "0",
+    "gross_finalized_receipts": "86800840000000000000000",
+    "customer_refunds": "42000360000000000000000"
+  },
+  "researchConfiguration": {
+    "version": 2,
+    "hash": "sha256:63bec40d78cbd5de23599d491307af92091c142b545735c4a9f6e382bcb5e0ff",
+    "secrets_ref": {
+      "account_id": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+      "profile": "research-v4-smoke"
+    }
+  },
+  "nearTransactions": {
+    "researchRuntimeUpload": {
+      "hash": "8AqAP3ponP2etZ9Cu21vfXVNFYjtA9ubNHtzfAQtH5Xg",
+      "failed": true
+    },
+    "storeSmokeSecret": {
+      "hash": "Dzx7UAjLmnnSAkNioVNrkxr9jbZU6VSRao5WBVo6ooCB",
+      "failed": false
+    },
+    "stageResearchVersion": {
+      "hash": "FcTMekCLDWFmA3CqBGN8Knsre6DRCrFZw3h6ucfVZr3K",
+      "failed": false
+    },
+    "activateResearchVersion": {
+      "hash": "D5j9FukrEadL9jubjq3uKnH5NBQpJpVAqtQTG4hQNhzb",
+      "failed": false
+    },
+    "configure-smokeResearch": {
+      "hash": "7KHfyzWAqqPdB5G9nzhG72vSdaGCt8FDmK1i5hHLae1e",
+      "failed": false
+    },
+    "configure-smokePolicy": {
+      "hash": "FpoW1qmWKhkbEvmFqHBLS781wqGbNvZXGVPE4Lb8jVL",
+      "failed": false
+    },
+    "smokePay": {
+      "hash": "9dqiCUTqJXMCxMJPzKspTZp3vXqAxLQSXwoaZQX87Vrt",
+      "failed": false
+    },
+    "smokeStart": {
+      "hash": "9sMKyeXRcq3WkBuNEgCUn7iXrrbfTmowVH481HWs7fCq",
+      "failed": false
+    },
+    "resumeAfterSmoke": {
+      "hash": "4C2wJGqVyYx3y9WKQbRMfQ7jWdusfrKmcSs9mjEtPfzb",
+      "failed": false
+    },
+    "legacyscoutPay": {
+      "hash": "38AGbHTavPpchGqVeEAjrpjj4ZxXxGmhXo239iCo47B6",
+      "failed": false
+    },
+    "legacyscoutStart": {
+      "hash": "9A14o3jERwYh97aMBkSCyAkv4SdGG9j4Red6JCYXQgwj",
+      "failed": false
+    },
+    "legacycomparePay": {
+      "hash": "4Pjk5F1sxA6XaRoY77qAosKghs9c7wGWkP2NatiDAMED",
+      "failed": false
+    },
+    "legacycompareStart": {
+      "hash": "92BoZu37fHStrdTnYrJ4w2kFzAMadWrPH4UsgUoXNuc5",
+      "failed": false
+    },
+    "legacyRecallOldScout": {
+      "hash": "2kgE5PhSZ4ZaQAQdztcAfC9wHf9LoPtWSQa7bJeCYNvK",
+      "failed": false
+    }
+  },
+  "remaining": [
+    "Dedicated model credential",
+    "Real paid research, sale, buyer recall and follow-up",
+    "Final Studio/testnet recording"
+  ],
+  "limitations": [
+    "No-key smoke performs no model inference.",
+    "Full research report remains encrypted; recall returns a summary.",
+    "Intel collateral/signature trust chain was not independently verified.",
+    "FastFS upload used an intentionally failing minimal-gas data receipt; published bytes were hash-verified."
+  ]
+}

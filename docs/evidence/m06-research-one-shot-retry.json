@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-11-14T12:01:30.878Z",
+  "network": "NEAR testnet",
+  "tokenId": "nfa-2",
+  "jobId": 37,
+  "healthOverride": {
+    "reason": "User-directed one-shot NEAR-funded Research retry",
+    "observedError": "Error: OutLayer NEAR execution latency is not ready: []",
+    "at": "2026-11-14T11:57:23.937Z"
+  },
+  "payTx": "12uc4iLVhqeSffJMnVUjWTFQnGeYUz54WY3D8RunobX4",
+  "startTx": "GWgRh7wMr4i4JRdLw51PEujYybedksabGUjVa7rbSjoB",
+  "releaseTx": "8gAqH5BWwK7DrPPZnpqt3XXFRWzwo2iQT7LnNecE1ddp",
+  "requestId": 44927,
+  "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+  "versionKey": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+  "finalStatus": "FAILED",
+  "usageState": "UNKNOWN",
+  "pricedUsageMicrousd": null,
+  "hostedJob": null,
+  "hostedLookup": "No matching row among latest 100 public jobs at check time",
+  "registryLiabilitiesBalanced": true,
+  "registryLiabilitiesYocto": "155600240000000000000000",
+  "reserveAboveLiabilitiesYocto": "158004357285142600000024",
+  "interpretation": "Retry did not produce model-backed Research. The uncertain job was released; no Research output entered eligible memory."
+}

@@ -126,3 +126,42 @@ test('Scout quotes refuse checkout without an on-chain owner policy',async()=>{
   const {quoteService}=await import('../service-runtime.mjs');
   await assert.rejects(()=>quoteService({sdk,tokenId:'nfa-1',service:'scout',body:{input:source},policy}),/not enabled/);
 });
+
+test('NFA hiring quote spends income with an exact cap and pinned owner epoch',async()=>{
+  const sdk=new NfaSdk({registryAccountId:'registry.testnet',rpcUrl:'https://rpc.invalid'});
+  const project={state:'READY',project_uuid:'uuid',version_key:'a'.repeat(64)};
+  const onchain={service_id:'scout',version:2,enabled:true,schema_hash:schemaHashFor('scout'),
+    min_margin:policy.marginYocto,max_deposit:policy.maxDepositYocto,limits:policy.limits};
+  sdk.getOutlayerProject=async()=>project;sdk.getServicePolicy=async()=>onchain;
+  sdk.getAgentState=async id=>({lifecycle:'Active',pending_op:null,epoch:id==='nfa-2'?5:0});
+  sdk.getAgentIncome=async()=> '130000000000000000000000';
+  sdk.getTreasury=async()=>({available:'1000000000000000000000000'});
+  sdk.view=async()=> '100000000000000000000000';
+  const {quoteService}=await import('../service-runtime.mjs');
+  const quote=await quoteService({sdk,tokenId:'nfa-1',service:'scout',body:{input:source,hiredBy:'nfa-2'},policy});
+  assert.equal(quote.unsignedAction.methodName,'hire_reviewed_service_job');
+  assert.equal(quote.unsignedAction.deposit,'1');
+  assert.equal(quote.unsignedAction.args.source_token_id,'nfa-2');
+  assert.equal(quote.unsignedAction.args.expected_source_epoch,5);
+  assert.equal(quote.unsignedAction.args.max_fee,quote.feeYocto);
+  sdk.getAgentIncome=async()=> '1';
+  await assert.rejects(()=>quoteService({sdk,tokenId:'nfa-1',service:'scout',
+    body:{input:source,hiredBy:'nfa-2'},policy}),/lacks income/);
+});
+
+test('hiring NFA owner can read finalized Scout work from the hired NFA',async()=>{
+  const outputHash='sha256:'+'f'.repeat(64);
+  const sdk={registryAccountId:'registry.testnet',rpcUrl:'https://rpc.invalid',getServiceJob:async()=>({
+    job:{status:'FINALIZED',output_hash:outputHash},service_id:'scout',hired_by:'nfa-1'})};
+  const access={requireOwner:async(session,id)=>{if(session==='a'.repeat(64)&&id==='nfa-1')return 'buyer.testnet';
+    throw Error('Owner session required')}};
+  const server=createApiServer({sdk,store:{get:async()=>({question:'Reconstructed result'})},access});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const url=`http://127.0.0.1:${server.address().port}/studio/nfas/nfa-2/work/7`;
+  try{
+    const allowed=await fetch(url,{headers:{authorization:`Bearer ${'a'.repeat(64)}`}});
+    assert.equal(allowed.status,200);
+    assert.equal((await allowed.json()).outputHash,outputHash);
+    assert.equal((await fetch(url,{headers:{authorization:`Bearer ${'b'.repeat(64)}`}})).status,401);
+  }finally{await new Promise(resolve=>server.close(resolve))}
+});

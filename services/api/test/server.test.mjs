@@ -25,14 +25,22 @@ test('API prepares unsigned purchase and protects work after sale',async()=>{
   const post=(path,body)=>fetch(base+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
   try{
     const page=await fetch(base+'/');assert.equal(page.status,200);
-    assert.match(await page.text(),/Give your agent a job/);
+    const landing=await page.text();
+    assert.match(landing,/Own the agent/);
+    assert.match(landing,/href="\/studio"/);
     const studio=await fetch(base+'/studio');assert.equal(studio.status,200);
-    assert.match(await studio.text(),/Your agents, ready for work/);
+    const studioHtml=await studio.text();
+    assert.match(studioHtml,/Your agents, ready for work/);
     const config=await (await fetch(base+'/config')).json();
     assert.equal(config.registryAccountId,'registry.testnet');
-    const asset=(await (await fetch(base+'/')).text()).match(/src="(\/assets\/[^"]+\.js)"/);
+    const asset=studioHtml.match(/src="(\/assets\/[^"]+\.js)"/);
     assert.ok(asset,'Wallet UI bundle is served');
     assert.equal((await fetch(base+asset[1])).status,200);
+    const video=landing.match(/src="(\/assets\/[^"]+\.mp4)"/);
+    assert.ok(video,'Live evidence video is linked');
+    const media=await fetch(base+video[1]);
+    assert.equal(media.status,200);
+    assert.equal(media.headers.get('content-type'),'video/mp4');
     const prepared=await (await post('/prepare',{kind:'buy',tokenId:'nfa-1',nonce:1,price:'100'})).json();
     assert.equal(prepared.unsignedAction.deposit,'100');
     assert.equal(prepared.unsignedAction.methodName,'buy');

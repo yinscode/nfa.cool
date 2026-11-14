@@ -60,14 +60,20 @@ export async function listServices({sdk,tokenId,policy}){
   const ready=project?.state==='READY'&&typeof project.version_key==='string'&&!!project.project_uuid;
   const unblocked=agent?.lifecycle==='Active'&&agent.pending_op==null;
   const funded=treasury&&BigInt(treasury.available)>0n;
-  let researchReady=false;
-  if(policy?.research&&ready){try{await researchConfiguration({sdk,tokenId,project});researchReady=true}catch{}}
+  let researchReady=false,researchKeyReady=false;
+  if(policy?.research&&ready){
+    try{await researchConfiguration({sdk,tokenId,project});researchReady=true}catch{}
+    try{researchKeyReady=(await sdk.view(sdk.registryAccountId,'payment_key_setup',
+      {token_id:tokenId}))?.state==='READY'}catch{}
+  }
   return {items:Object.entries(serviceInfo).filter(([id])=>id!=='research'||policy?.research).map(([id,info])=>{
     const onchain=catalog.find(p=>p.service_id===id),local=effectivePolicy(localPolicy(policy,id),onchain);
     // Paid jobs run with the owner's on-chain policy limits; no on-chain policy, no checkout.
-    const available=!!((id!=='research'||researchReady)&&ready&&unblocked&&funded&&validPolicy(local)&&onchainPolicyCompatible(onchain,local,id));
+    const fundedForService=id==='research'?researchKeyReady:funded;
+    const available=!!((id!=='research'||researchReady)&&ready&&unblocked&&fundedForService&&validPolicy(local)&&onchainPolicyCompatible(onchain,local,id));
     return {id,...info,version:ready?project.version_key:null,available,
-      reason:id==='research'&&!researchReady?'research_release_not_ready':!ready?'project_not_ready':!unblocked?'agent_busy':!funded?'vault_low_runway':
+      reason:id==='research'&&!researchReady?'research_release_not_ready':!ready?'project_not_ready':!unblocked?'agent_busy':
+        !fundedForService?(id==='research'?'payment_key_not_ready':'vault_low_runway'):
         !validPolicy(local)?'quote_policy_not_configured':
         !onchain?'service_not_enabled':!onchainPolicyCompatible(onchain,local,id)?'service_policy_mismatch':null,
       schemaHash:schemaHashFor(id),schema:serviceSchemas[id],quotePolicy:validPolicy(local)?local:null,
@@ -106,29 +112,56 @@ export async function quoteService({sdk,tokenId,service,body,policy,now=Date.now
     {question:source.question,criteria:source.criteria,sources:source.sources});
   }
   if(Buffer.byteLength(inputData)>7_800)throw Error('Service input exceeds on-chain limit');
-  // The registry appends operation and assigned jobId later; reserve space for them.
-  const estimated=await sdk.view(sdk.registryAccountId.endsWith('.test.near')?'outlayer.test.near':'outlayer.testnet','estimate_execution_cost',{
-    resource_limits:local.limits,input_len:Buffer.byteLength(inputData)+(research?Buffer.byteLength(JSON.stringify(research))+1200:128)});
-  const estimate=BigInt(estimated);
-  if(estimate<=0n)throw Error('OutLayer estimate unavailable');
-  const headroom=(estimate*6n+4n)/5n; // 20% headroom for quote drift.
-  const depositCap=headroom>MIN_JOB_DEPOSIT?headroom:MIN_JOB_DEPOSIT;
+  // HTTPS Research spends a capped USD Payment Key balance. Its NEAR reserve
+  // reimburses the operator at the quote's capped rate after an observed call.
+  let estimate,depositCap;
+  if(service==='research'){
+    const setup=await sdk.view(sdk.registryAccountId,'payment_key_setup',{token_id:tokenId});
+    if(setup?.state!=='READY')throw Error('Vault-owned HTTPS Payment Key is not ready');
+    depositCap=10n*MIN_JOB_DEPOSIT;
+    estimate=depositCap;
+  }else{
+    const estimated=await sdk.view(sdk.registryAccountId.endsWith('.test.near')?'outlayer.test.near':'outlayer.testnet','estimate_execution_cost',{
+      resource_limits:local.limits,input_len:Buffer.byteLength(inputData)+128});
+    estimate=BigInt(estimated);
+    if(estimate<=0n)throw Error('OutLayer estimate unavailable');
+    const headroom=(estimate*6n+4n)/5n; // 20% headroom for quote drift.
+    depositCap=headroom>MIN_JOB_DEPOSIT?headroom:MIN_JOB_DEPOSIT;
+  }
   if(depositCap>BigInt(local.maxDepositYocto))throw Error('OutLayer estimate exceeds service cap');
   const [agent,treasury]=await Promise.all([sdk.getAgentState(tokenId),sdk.getTreasury(tokenId)]);
-  if(agent?.lifecycle!=='Active'||agent.pending_op!=null||!treasury||BigInt(treasury.available)<depositCap)
+  if(agent?.lifecycle!=='Active'||agent.pending_op!=null||!treasury||
+    (service!=='research'&&BigInt(treasury.available)<depositCap))
     throw Error('Agent busy or vault lacks execution runway');
   const fee=depositCap+BigInt(local.marginYocto);
+  let hiring=null;
+  if(body?.hiredBy!==undefined){
+    const sourceId=body.hiredBy;
+    if(service==='research')throw Error('Research work is not yet shareable with a hiring NFA');
+    if(typeof sourceId!=='string'||!/^nfa-[1-9][0-9]*$/.test(sourceId)||sourceId===tokenId)
+      throw Error('Invalid hiring NFA');
+    const [source,income]=await Promise.all([sdk.getAgentState(sourceId),sdk.getAgentIncome(sourceId)]);
+    if(source?.lifecycle!=='Active'||source.pending_op!=null||!Number.isSafeInteger(source.epoch)||
+      BigInt(income??'0')<fee)throw Error('Hiring NFA is busy or lacks income');
+    hiring={sourceTokenId:sourceId,sourceEpoch:source.epoch,maxFeeYocto:fee.toString()};
+  }
   const deadlineNs=Number(BigInt(Math.trunc(now+15*60_000))*1_000_000n);
   const inputHash=sha(inputData);
   return {service,tokenId,inputData,inputHash,versionKey:project.version_key,
     estimateYocto:estimate.toString(),feeYocto:fee.toString(),replenishYocto:depositCap.toString(),
     depositCapYocto:depositCap.toString(),limits:local.limits,deadlineNs,
-    policyVersion:onchain.version,...(research?{researchConfigHash:research.configuration_hash,
+    policyVersion:onchain.version,...(research?{transport:'https-async',computeLimitMicrousd:'30000',
+      httpsExecutionLimitSeconds:90,
+      researchConfigHash:research.configuration_hash,
       memory:{usesPriorWork:body?.useMemory!==false,detail:'Up to three earlier finalized Research jobs of this NFA are supplied as verified source quotations only; set useMemory:false to opt out. This job\'s own verified quotations may inform later jobs.'},
       modelBudget:{currency:'USD',reservationMicrousd:String(research.settings.max_input_tokens*research.settings.input_microusd_per_token+
         research.settings.max_output_tokens*research.settings.output_microusd_per_token),
         maxCostMicrousd:String(research.settings.max_cost_microusd),basis:'configured token rates, not a provider invoice'}}:{}),
-    unsignedAction:sdk.requestReviewedServiceJob(tokenId,service,inputHash,deadlineNs,fee.toString(),
+    ...(hiring?{hiring}:{}),
+    unsignedAction:hiring?sdk.hireReviewedServiceJob(hiring.sourceTokenId,tokenId,service,inputHash,deadlineNs,
+        fee.toString(),depositCap.toString(),depositCap.toString(),local.limits,project.version_key,
+        onchain.version,hiring.sourceEpoch,hiring.maxFeeYocto,research?.configuration_hash):
+      sdk.requestReviewedServiceJob(tokenId,service,inputHash,deadlineNs,fee.toString(),
         depositCap.toString(),depositCap.toString(),local.limits,project.version_key,onchain.version,research?.configuration_hash)};
 }
 export const quoteScout=args=>quoteService({...args,service:'scout'});
@@ -148,5 +181,6 @@ export async function prepareServiceStart({sdk,tokenId,service,jobId,inputData,l
     ||BigInt(Date.now())*1_000_000n>=BigInt(job.deadline_ns))
     throw Error('No matching paid service request');
   return {jobId,inputHash:job.input_hash,unsignedAction:legacy?
-    sdk.startPaidScout(tokenId,jobId,inputData):sdk.startServiceJob(tokenId,jobId,inputData)};
+    sdk.startPaidScout(tokenId,jobId,inputData):service==='research'?
+      sdk.prepareAsyncResearchJob(tokenId,jobId,inputData):sdk.startServiceJob(tokenId,jobId,inputData)};
 }

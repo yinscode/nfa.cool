@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-14T17:54:51.467Z",
+  "scope": "Local sandbox; exact testnet predecessor bytes",
+  "oldHash": "f989bfe9bc179b14b4272334f4f819663df5d5186132a88a03eb3f01de3acae4",
+  "newHash": "f9c750ad48e369b79e65f3de6c6533602b09658c3202e389d96dbfba154c1353",
+  "preserved": {
+    "owner": "bob.test.near",
+    "epoch": 1,
+    "vault": "nfa-1.registry.test.near",
+    "liabilities": "31000000000000000000000",
+    "sellerCredit": "1000000000000000000000",
+    "paidJobId": 1
+  },
+  "assertions": [
+    "old release minted the same keyless vault",
+    "seller credit and customer escrow existed before upgrade",
+    "early public apply was rejected",
+    "direct sandbox deployment preserved identity, balances, vault state and paid job",
+    "new async storage starts empty",
+    "stale proposal was cancelled"
+  ]
+}

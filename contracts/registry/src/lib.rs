@@ -180,6 +180,8 @@ impl Registry {
     #[init]
     pub fn new(admin: AccountId, reporter: AccountId, guardian: AccountId) -> Self {
         require!(!env::state_exists(), "Already initialized");
+        // Existing deployments have no key here and must run migrate_liabilities once.
+        ledger_totals().insert(&"liabilities".to_string(), &0);
         Self { nft: NonFungibleToken::new(b"o", env::current_account_id(), Some(b"m"), Some(b"e"), Some(b"a")),
             metadata: NFTContractMetadata { spec: NFT_METADATA_SPEC.to_owned(), name: "nfa.gent".into(),
                 symbol: "NFA".into(), icon: None, base_uri: None, reference: None, reference_hash: None },
@@ -291,6 +293,8 @@ impl Registry {
             expires_at_ns.saturating_sub(env::block_timestamp()) <= 31_536_000_000_000_000,
             "Expiry must be within one year");
         require!((method == "NEAR_TRANSFER" && recipient.is_some()) ||
+            (method == "NFA_HIRE" && recipient.as_ref().is_some_and(|target|
+                target.as_str()!=token_id && self.agents.get(&target.to_string()).is_some())) ||
             (method == "SCOUT_RUN" && recipient.is_none()), "Unsupported grant");
         let key = grant_key(&token_id, &delegate, &method);
         studio::index_grant(&token_id,&delegate,&method);
@@ -643,6 +647,61 @@ impl Registry {
             "job_storage_fee":U128(job_storage_fee()),"start_window_ns":START_WINDOW_NS.to_string()})
     }
 
+    /// One-time upgrade migration. The sequential token IDs cover every minted agent and
+    /// outstanding provision; payout keys are supplied from a complete RPC storage scan.
+    /// The expected payout sum is an independent check against that scan.
+    pub fn migrate_liabilities(&mut self, payout_accounts: Vec<AccountId>, expected_payouts: U128,
+        expected_total: U128) -> serde_json::Value {
+        require!(env::predecessor_account_id() == self.admin, "Admin only");
+        require!(!liability_initialized(), "Liabilities already initialized");
+        require!(self.next_token_number <= 1000, "Migration requires a bounded token set");
+        require!(payout_accounts.len() <= 1000, "Too many payout accounts");
+        let escrow = outlayer::migration_escrow();
+        let mut income = 0u128;
+        let mut legacy_escrow = 0u128;
+        let mut recall_deposits = 0u128;
+        for number in 1..self.next_token_number {
+            let token_id = format!("nfa-{number}");
+            income = income.checked_add(incomes().get(&token_id).unwrap_or(0)).unwrap();
+            if let Some(agent) = self.agents.get(&token_id) {
+                if let Some(id) = agent.pending_op {
+                    let key = op_key(&token_id, id);
+                    if let Some(job) = scout_jobs().get(&key) {
+                        if job.status == "REQUESTED" {
+                            legacy_escrow = legacy_escrow.checked_add(job.fee.0).unwrap();
+                        }
+                    }
+                    recall_deposits = recall_deposits.checked_add(outlayer::migration_recall(&key)).unwrap();
+                }
+            }
+        }
+        let mut seen = std::collections::HashSet::new();
+        let mut payout_total = 0u128;
+        for account in payout_accounts {
+            require!(seen.insert(account.clone()), "Duplicate payout account");
+            let payout = payouts().get(&account).unwrap_or_default();
+            payout_total = payout_total.checked_add(payout.available.0).unwrap();
+            if let Some((_, amount)) = payout.pending {
+                payout_total = payout_total.checked_add(amount.0).unwrap();
+            }
+        }
+        require!(payout_total == expected_payouts.0, "Payout scan differs");
+        let total = escrow.checked_add(income).unwrap().checked_add(legacy_escrow).unwrap()
+            .checked_add(recall_deposits).unwrap().checked_add(payout_total).unwrap();
+        require!(total == expected_total.0, "Migration total differs");
+        let storage = u128::from(env::storage_usage()).checked_mul(env::storage_byte_cost().as_yoctonear()).unwrap();
+        require!(env::account_balance().as_yoctonear() >= storage.saturating_add(total)
+            .saturating_add(100_000_000_000_000_000_000_000), "Registry cannot cover migrated liabilities");
+        ledger_totals().insert(&"liabilities".to_string(), &total);
+        let result = serde_json::json!({"escrow":U128(escrow),"legacy_escrow":U128(legacy_escrow),
+            "recall_deposits":U128(recall_deposits),"income":U128(income),
+            "payouts":U128(payout_total),"total":U128(total)});
+        event("liabilities_migrated", result.clone());
+        result
+    }
+
+    pub fn liability_migration_required(&self) -> bool { !liability_initialized() }
+
     #[payable]
     pub fn update_manifest(&mut self, token_id: TokenId, manifest_hash: String, manifest_uri: String) {
         assert_one_yocto(); let mut agent = self.active_owner(&token_id);
@@ -922,8 +981,11 @@ fn provision_deposits() -> LookupMap<TokenId, u128> { LookupMap::new(&b"provisio
 fn ledger_totals() -> LookupMap<String, u128> { LookupMap::new(&b"ledger:totals:v1"[..]) }
 /// NEAR this registry holds on behalf of others: escrowed job fees, unclaimed agent
 /// income, refund and seller credits, recall deposits and failed-provision refunds.
-/// Counting starts at deployment of this code; earlier balances are not included.
-pub(crate) fn liability() -> u128 { ledger_totals().get(&"liabilities".to_string()).unwrap_or(0) }
+/// Upgrades must initialize this from the previous contract's balances first.
+fn liability_initialized() -> bool { ledger_totals().get(&"liabilities".to_string()).is_some() }
+pub(crate) fn liability() -> u128 {
+    ledger_totals().get(&"liabilities".to_string()).unwrap_or_else(||env::panic_str("Liability migration required"))
+}
 pub(crate) fn add_liability(amount: u128) {
     ledger_totals().insert(&"liabilities".to_string(), &liability().saturating_add(amount));
 }
@@ -1030,6 +1092,97 @@ mod tests {
         let payload:serde_json::Value=serde_json::from_str(args["input_data"].as_str().unwrap()).unwrap();
         assert_eq!(payload["context"]["vaultAccountId"],"nfa-1.registry.testnet");assert_eq!(payload["research"]["configuration_hash"],cfg.configuration_hash);
         assert_eq!(r.outlayer_project("nfa-1".into()).unwrap().project_uuid,"p0001");
+    }
+    #[test]
+    fn async_research_settles_once_and_buyer_inherits_finalized_context(){
+        let (mut r,input,fee,deposit)=research_setup();
+        outlayer::tests_support::ready_key("nfa-1",0);
+        let cfg=r.research_config("nfa-1".into()).unwrap();
+        let limits=outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10};
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let job=r.request_reviewed_service_job("nfa-1".into(),"research".into(),
+            format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),U128(deposit),
+            limits.clone(),"a".repeat(64),1,Some(cfg.configuration_hash.clone()));
+        testing_env!(context("customer.testnet",0).block_timestamp(601).build());
+        let execution=r.prepare_async_research_job("nfa-1".into(),job,input.clone());
+        assert_eq!(r.paid_scout_job("nfa-1".into(),job).unwrap().status,"ASYNC_PREPARED");
+        assert!(near_sdk::test_utils::get_created_receipts().is_empty(),"Preparing must not dispatch a second run");
+        let before=r.paid_scout_ledger();assert_eq!(before.customer_escrow.0,fee);
+        testing_env!(context("alice.testnet",1).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.nft_transfer(id("bob.testnet"),"nfa-1".into(),None,None))).is_err());
+        let hash=format!("sha256:{}",hex(&env::sha256(execution.as_bytes())));
+        let call="11111111-2222-3333-4444-555555555555".to_string();
+        testing_env!(context("customer.testnet",0).block_timestamp(602).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.bind_async_research_call(
+            "nfa-1".into(),job,call.clone(),hash.clone(),"a".repeat(64),0))).is_err());
+        testing_env!(context("reporter.testnet",0).block_timestamp(602).build());
+        r.bind_async_research_call("nfa-1".into(),job,call.clone(),hash.clone(),"a".repeat(64),0);
+        let output_hash=format!("sha256:{}","b".repeat(64));
+        let output=serde_json::json!({"schemaVersion":1,"jobId":job,"status":"ok",
+            "outputHash":output_hash,"outputUri":format!("nfa://work/{}","b".repeat(64)),
+            "inferenceOutcome":"succeeded","pricedUsageMicrousd":2000});
+        assert!(r.settle_async_research_job("nfa-1".into(),job,call.clone(),hash,"a".repeat(64),0,Some(output),1000));
+        assert_eq!(r.paid_scout_job("nfa-1".into(),job).unwrap().status,"FINALIZED");
+        assert_eq!(r.research_usage("nfa-1".into(),job).unwrap().state,"PRICED_USAGE");
+        assert_eq!(r.paid_scout_ledger().customer_escrow.0,0);
+        assert!(r.payout(id("reporter.testnet")).available.0>0);
+        assert!(r.agent_income("nfa-1".into()).0>0);
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.settle_async_research_job(
+            "nfa-1".into(),job,call,"sha256:wrong".into(),"a".repeat(64),0,None,1000))).is_err());
+        testing_env!(context("alice.testnet",1).block_timestamp(603).build());
+        r.nft_transfer(id("bob.testnet"),"nfa-1".into(),None,None);
+        testing_env!(context("other-customer.testnet",fee).block_timestamp(604).build());
+        let next=r.request_reviewed_service_job("nfa-1".into(),"research".into(),
+            format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),U128(deposit),
+            limits,"a".repeat(64),1,Some(cfg.configuration_hash));
+        testing_env!(context("other-customer.testnet",0).block_timestamp(605).build());
+        let next_execution=r.prepare_async_research_job("nfa-1".into(),next,input);
+        let value:serde_json::Value=serde_json::from_str(&next_execution).unwrap();
+        assert_eq!(value["context"]["ownerEpoch"],1);
+        assert_eq!(value["context"]["priorWork"][0]["jobId"],job);
+        assert_eq!(value["context"]["priorWork"][0]["outputHash"],output_hash);
+    }
+    #[test]
+    fn async_research_timeout_refunds_and_rejects_late_result(){
+        let (mut r,input,fee,deposit)=research_setup();outlayer::tests_support::ready_key("nfa-1",0);
+        let before_refund=r.payout(id("customer.testnet")).available.0;
+        let cfg=r.research_config("nfa-1".into()).unwrap();
+        testing_env!(context("customer.testnet",fee).block_timestamp(600).build());
+        let job=r.request_reviewed_service_job("nfa-1".into(),"research".into(),
+            format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),U128(deposit),
+            outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10},
+            "a".repeat(64),1,Some(cfg.configuration_hash));
+        testing_env!(context("customer.testnet",0).block_timestamp(601).build());
+        let execution=r.prepare_async_research_job("nfa-1".into(),job,input);
+        let hash=format!("sha256:{}",hex(&env::sha256(execution.as_bytes())));
+        let call="11111111-2222-3333-4444-555555555555".to_string();
+        testing_env!(context("reporter.testnet",0).block_timestamp(602).build());
+        r.bind_async_research_call("nfa-1".into(),job,call.clone(),hash.clone(),"a".repeat(64),0);
+        testing_env!(context("keeper.testnet",0).block_timestamp(900_000_000_600).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.release_async_research_job("nfa-1".into(),job))).is_err());
+        testing_env!(context("keeper.testnet",0).block_timestamp(900_000_000_601).build());
+        r.release_async_research_job("nfa-1".into(),job);
+        assert_eq!(r.paid_scout_job("nfa-1".into(),job).unwrap().status,"FAILED");
+        assert_eq!(r.research_usage("nfa-1".into(),job).unwrap().state,"UNKNOWN");
+        assert_eq!(r.paid_scout_ledger().customer_escrow.0,0);
+        assert_eq!(r.payout(id("customer.testnet")).available.0,before_refund+fee);
+        testing_env!(context("reporter.testnet",0).block_timestamp(900_000_000_602).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||r.settle_async_research_job(
+            "nfa-1".into(),job,call,hash,"a".repeat(64),0,None,1000))).is_err());
+        testing_env!(context("alice.testnet",1).block_timestamp(900_000_000_603).build());
+        let _=r.resume_failed_service("nfa-1".into(),job);
+        let resume=r.agent("nfa-1".into()).unwrap().pending_op.unwrap();
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),
+            vec![PromiseResult::Successful(serde_json::to_vec(&serde_json::json!({
+                "controller":"registry.testnet","pending":{"Evm":{}},"next_operation_id":job})).unwrap())]);
+        assert!(!r.on_service_resume("nfa-1".into(),resume));
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),Default::default(),
+            vec![PromiseResult::Successful(serde_json::to_vec(&serde_json::json!({
+                "controller":"registry.testnet","pending":null,"next_operation_id":job})).unwrap())]);
+        assert!(r.on_service_resume("nfa-1".into(),resume),"An idle vault may recover a failed HTTPS job without a vault execution counter");
+        assert_eq!(r.agent("nfa-1".into()).unwrap().lifecycle,Lifecycle::Active);
     }
     #[test]
     fn old_vault_requires_explicit_successful_compatibility_probe(){
@@ -1217,6 +1370,91 @@ mod tests {
         r.nft_transfer(id("bob.testnet"),"nfa-1".into(),None,None);
         testing_env!(context("bob.testnet",0).build());
         assert!(r.owner_memory_receipt("nfa-1".into(),job_id).is_some());
+    }
+
+    #[test]
+    fn hired_job_spends_capped_income_and_refund_follows_hiring_nft() {
+        let (mut r,old,_,fee,deposit)=paid_setup();
+        testing_env!(context("keeper.testnet",0).block_timestamp(600).build());
+        r.expire_unstarted_paid_scout("nfa-1".into(),old);
+        let source="nfa-2".to_string();
+        testing_env!(context("bob.testnet",NearToken::from_near(1).as_yoctonear()).build());
+        r.nft.internal_mint(source.clone(),id("bob.testnet"),Some(TokenMetadata::default()));
+        r.agents.insert(&source,&Agent{vault_id:id("nfa-2.registry.testnet"),epoch:0,
+            lifecycle:Lifecycle::Active,next_op_id:1,pending_op:None,manifest_hash:"sha256:abc".into(),
+            manifest_uri:"ipfs://b".into(),listing_price:None,transfer_from:None,transfer_to:None});
+        incomes().insert(&source,&fee);add_liability(fee);
+        let input=serde_json::json!({"question":"Why is the vault stable?","sources":[]}).to_string();
+        let input_hash=format!("sha256:{}",hex(&env::sha256(input.as_bytes())));
+        let limits=outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10};
+        let before=liability();
+        let storage_before=env::storage_usage();
+        testing_env!(context("bob.testnet",1).block_timestamp(600).storage_usage(storage_before).build());
+        r.grant_delegate(source.clone(),id("worker.testnet"),"NFA_HIRE".into(),Some(id("nfa-1")),U128(fee*2),1000);
+        let storage_after_grant=env::storage_usage();
+        testing_env!(context("worker.testnet",1).block_timestamp(600).storage_usage(storage_after_grant).build());
+        let job_id=r.hire_reviewed_service_job(source.clone(),"nfa-1".into(),"scout".into(),input_hash,
+            1000,U128(fee),U128(deposit),U128(deposit),limits,"a".repeat(64),1,None,0,U128(fee));
+        assert_eq!(r.agent_income(source.clone()),U128(0));
+        assert_eq!(liability(),before);
+        assert_eq!(r.grant(source.clone(),id("worker.testnet"),"NFA_HIRE".into()).unwrap().remaining,U128(fee));
+        assert_eq!(r.service_job("nfa-1".into(),job_id).unwrap()["hired_by"],source);
+        let storage_after_request=env::storage_usage();
+        testing_env!(context("alice.testnet",1).block_timestamp(600).storage_usage(storage_after_request).build());
+        r.cancel_unstarted_job("nfa-1".into(),job_id);
+        assert!(u128::from(env::storage_usage()-storage_after_grant)<=JOB_STORAGE_BYTES,
+            "hired job exceeded paid storage bound");
+        assert_eq!(r.agent_income(source.clone()),U128(fee));
+        assert_eq!(r.payout(id("bob.testnet")).available,U128(0));
+        testing_env!(context("bob.testnet",1).build());
+        r.nft_transfer(id("carol.testnet"),source.clone(),None,None);
+        let attempt=|registry:&mut Registry,epoch,cap|registry.hire_reviewed_service_job(source.clone(),
+            "nfa-1".into(),"scout".into(),format!("sha256:{}","a".repeat(64)),1000,
+            U128(fee),U128(deposit),U128(deposit),
+            outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10},
+            "a".repeat(64),1,None,epoch,U128(cap));
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||attempt(&mut r,0,fee))).is_err());
+        testing_env!(context("worker.testnet",1).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||attempt(&mut r,1,fee))).is_err(),
+            "old-epoch delegate retained authority after sale");
+        testing_env!(context("carol.testnet",1).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||attempt(&mut r,0,fee))).is_err());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||attempt(&mut r,1,fee-1))).is_err());
+        assert_eq!(r.agent_income(source.clone()),U128(fee));
+        r.claim_income(source.clone(),U128(fee));
+        assert_eq!(r.payout(id("carol.testnet")).available,U128(fee));
+    }
+    #[test]
+    fn hired_job_partial_refund_returns_to_source_income() {
+        let (mut r,old,input,fee,deposit)=paid_setup();
+        testing_env!(context("keeper.testnet",0).block_timestamp(600).build());
+        r.expire_unstarted_paid_scout("nfa-1".into(),old);
+        let source="nfa-2".to_string();
+        testing_env!(context("bob.testnet",NearToken::from_near(1).as_yoctonear()).build());
+        r.nft.internal_mint(source.clone(),id("bob.testnet"),Some(TokenMetadata::default()));
+        r.agents.insert(&source,&Agent{vault_id:id("nfa-2.registry.testnet"),epoch:0,
+            lifecycle:Lifecycle::Active,next_op_id:1,pending_op:None,manifest_hash:"sha256:abc".into(),
+            manifest_uri:"ipfs://b".into(),listing_price:None,transfer_from:None,transfer_to:None});
+        incomes().insert(&source,&fee);add_liability(fee);
+        let initial=liability();
+        testing_env!(context("bob.testnet",1).block_timestamp(600).build());
+        let job_id=r.hire_reviewed_service_job(source.clone(),"nfa-1".into(),"scout".into(),
+            format!("sha256:{}",hex(&env::sha256(input.as_bytes()))),1000,U128(fee),U128(deposit),
+            U128(deposit),outlayer::SkillLimits{max_instructions:1_000_000,max_memory_mb:64,max_execution_seconds:10},
+            "a".repeat(64),1,None,0,U128(fee));
+        testing_env!(context("keeper.testnet",0).block_timestamp(700).build());
+        let _=r.start_service_job("nfa-1".into(),job_id,input);
+        testing_env!(context("nfa-1.registry.testnet",0).block_timestamp(700).build());
+        let _=r.on_outlayer_job("nfa-1".into(),job_id,Some(serde_json::json!({
+            "schemaVersion":1,"jobId":job_id,"status":"failed","fault":"customer"})));
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(vec![])]);
+        let _=r.on_outlayer_replenished("nfa-1".into(),job_id);
+        let refund=fee-deposit-job_storage_fee();
+        assert_eq!(r.agent_income(source),U128(refund));
+        assert_eq!(r.payout(id("bob.testnet")).available,U128(0));
+        assert_eq!(r.service_job("nfa-1".into(),job_id).unwrap()["refund_credit"],refund.to_string());
+        assert_eq!(liability(),initial-deposit-job_storage_fee());
     }
 
     #[test]
@@ -2109,6 +2347,42 @@ mod tests {
     }
 
     // ---- H3: storage and liabilities ----
+    #[test]
+    fn upgraded_registry_migrates_existing_escrow_income_and_credits_once(){
+        let mut r=minted();r.next_token_number=2;
+        let token="nfa-1".to_owned();
+        let mut agent=r.agents.get(&token).unwrap();agent.pending_op=Some(7);r.agents.insert(&token,&agent);
+        scout_jobs().insert(&op_key(&token,7),&ScoutJob{id:7,epoch:0,requester:id("customer.testnet"),
+            brief_hash:"brief".into(),source_hash:"source".into(),fee:U128(2_000),deadline_ns:999,
+            status:"REQUESTED".into(),output_hash:None,output_uri:None});
+        let mut ledger=outlayer::PaidLedger::default();ledger.customer_escrow=U128(3_000);
+        LookupMap::<u8,outlayer::PaidLedger>::new(&b"OLL"[..]).insert(&0,&ledger);
+        incomes().insert(&token,&4_000);
+        payouts().insert(&id("customer.testnet"),&Payout{available:U128(5_000),pending:Some((1,U128(6_000))),next_id:1});
+        payouts().insert(&id("seller.testnet"),&Payout{available:U128(7_000),pending:None,next_id:0});
+        ledger_totals().remove(&"liabilities".to_string());
+        assert!(r.liability_migration_required());
+        testing_env!(context("admin.testnet",0).build());
+        let result=r.migrate_liabilities(vec![id("customer.testnet"),id("seller.testnet")],U128(18_000),U128(27_000));
+        assert_eq!(result["total"],"27000");
+        assert_eq!(r.registry_ledger()["liabilities"],"27000");
+        assert!(!r.liability_migration_required());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.migrate_liabilities(vec![],U128(0),U128(0)))).is_err());
+    }
+    #[test]
+    fn upgrade_blocks_liability_spending_until_migration(){
+        let mut r=minted();r.next_token_number=2;
+        payouts().insert(&id("alice.testnet"),&Payout{available:U128(1_000),pending:None,next_id:0});
+        ledger_totals().remove(&"liabilities".to_string());
+        testing_env!(context("alice.testnet",1).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.withdraw_proceeds(U128(1)))).is_err());
+        testing_env!(context("admin.testnet",0).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.migrate_liabilities(vec![],U128(1_000),U128(1_000)))).is_err());
+        assert!(r.liability_migration_required());
+    }
     // Job storage bound: request growth (new requester) plus the larger of settlement or expiry.
     const REQUEST_BYTES_BOUND:u64=500;
     #[test]
@@ -2343,6 +2617,36 @@ mod tests {
             assert!(payload.get("useMemory").is_none(),"the flag is consumed by the registry");
             testing_env!(context("alice.testnet",1).block_timestamp(600).build());r.cancel_unstarted_job_for_tests("nfa-1".into(),id);
         }
+    }
+
+    #[test]
+    fn payment_key_issuance_blocks_sale_until_reconciled_and_approval_expires_on_transfer(){
+        let mut r=minted();let token="nfa-1".to_owned();
+        LookupMap::<TokenId,outlayer::OutlayerProject>::new(&b"OLP"[..]).insert(&token,&outlayer::OutlayerProject{project_id:"nfa-1.registry.testnet/scout".into(),
+            project_uuid:"p1".into(),version_key:"a".repeat(64),candidate_version:None,state:"READY".into(),action:String::new()});
+        let ciphertext="A".repeat(120);let hash=hex(&env::sha256(ciphertext.as_bytes()));
+        testing_env!(context("alice.testnet",1).block_timestamp(1).build());
+        r.approve_payment_key(token.clone(),1,hash);
+        testing_env!(context("admin.testnet",0).block_timestamp(2).build());
+        let _=r.issue_payment_key(token.clone(),ciphertext.clone());
+        testing_env!(context("alice.testnet",1).block_timestamp(3).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.nft_transfer(id("bob.testnet"),token.clone(),None,None))).is_err());
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Failed]);
+        assert!(!r.on_payment_key_issued(token.clone(),1));
+        assert_eq!(r.payment_key_setup(token.clone()).unwrap().state,"UNCERTAIN");
+        testing_env!(context("alice.testnet",1).block_timestamp(4).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.nft_transfer(id("bob.testnet"),token.clone(),None,None))).is_err());
+        testing_env!(context("registry.testnet",0).build(),test_vm_config(),RuntimeFeesConfig::test(),
+            Default::default(),vec![PromiseResult::Successful(b"false".to_vec())]);
+        assert!(!r.on_payment_key_issued(token.clone(),1));
+        testing_env!(context("alice.testnet",1).block_timestamp(5).build());
+        r.nft_transfer(id("bob.testnet"),token.clone(),None,None);
+        testing_env!(context("admin.testnet",0).block_timestamp(6).build());
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(||
+            r.issue_payment_key(token,ciphertext))).is_err());
     }
 
     #[test]

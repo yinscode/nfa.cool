@@ -1,0 +1,20 @@
+{
+  "network": "NEAR testnet",
+  "registry": "nfagent-registry-0e9b2a.testnet",
+  "oldRegistryHash": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "proposedRegistryHash": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb",
+  "proposedVaultHash": "5a37a47242d4d38994c7849d11a227146e2816a1e09420336892c12c7a5050ce",
+  "proposal": {
+    "code_hash": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb",
+    "proposed_at_ns": 1794652731412358700
+  },
+  "eligibleAfterNs": "1794825531412358656",
+  "identity": {
+    "tokenId": "nfa-2",
+    "owner": "nfagent-alice-fe53d8.testnet",
+    "epoch": 2,
+    "vault": "nfa-2.nfagent-registry-0e9b2a.testnet"
+  },
+  "proposalTransaction": "2fV3e4B89SvGzsoCCwVSpCTBThFrg6ukAewcqripngF5",
+  "scope": "Proposal only. No code deployed, Payment Key issued or USDC.e funded."
+}

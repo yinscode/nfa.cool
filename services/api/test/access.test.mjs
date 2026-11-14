@@ -35,7 +35,7 @@ test('work integrity and access follow the current NFT epoch',async()=>{
 
 test('owner proof verifies NEP-413 digest and a NEAR FullAccess key',async()=>{
   const seed=new Uint8Array(32).fill(7),publicKey='ed25519:'+utils.serialize.base_encode(ed25519.getPublicKey(seed));
-  const message='nfa.gent access\nnonce:known',nonce=Buffer.alloc(32,3),recipient='http://127.0.0.1:3000',
+  const message='nfa.cool access\nnonce:known',nonce=Buffer.alloc(32,3),recipient='http://127.0.0.1:3000',
     callbackUrl=recipient+'/',signature=Buffer.from(ed25519.sign(nep413Digest({message,nonce,recipient,callbackUrl}),seed)).toString('base64');
   const seen=[];
   const fetchImpl=async (_url,options)=>{seen.push(JSON.parse(options.body).params);return {ok:true,json:async()=>({result:{permission:'FullAccess'}})}};

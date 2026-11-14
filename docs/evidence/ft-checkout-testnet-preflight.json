@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-13T11:31:07.796Z",
+  "network": "NEAR testnet",
+  "token": "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af",
+  "tokenSymbol": "USDC",
+  "tokenDecimals": 6,
+  "merchant": "038327209480812fdc542213402f46ace8bf755341aac768c0ba0d961187ed41",
+  "payer": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "merchantNear": "800000000000000000000000",
+  "payerUSDC": "0",
+  "storageRegistrationYocto": "1250000000000000000000",
+  "transactions": {
+    "fundCheckoutMerchant": "6zkwzmLLzXvPuD8Ne2FQBQhxS3zbjNw5JBZGfqWbb2qg",
+    "registerUSDC-merchant": "4P6THVWCRejkATj2JTB6odCyfPjM6nN3uPtGKiUmFiRo",
+    "registerUSDC-payer": "6Q7zrKeBwFu7Ve9WaTRs4NkNs7M2a5NnzanSLo7Qytqc"
+  },
+  "scope": "Merchant funded and merchant/payer registered for Circle testnet USDC. Payment acceptance pending faucet USDC."
+}

@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-11-14T12:28:43.998Z",
+  "network": "NEAR testnet",
+  "scope": "Temporary operator-owned HTTPS transport diagnostic; not NFA Research acceptance",
+  "payer": "nfa-studio-mwd3mksx.testnet",
+  "token": "usdc.fakes.testnet",
+  "payerBalanceMicrousd": "156250",
+  "swap": {
+    "poolId": 54,
+    "inputYoctoNear": "300000000000000",
+    "quoteMicrousd": "656250",
+    "outputBalanceMicrousd": "656250",
+    "transactions": {
+      "registerWrappedNear": "Dd4bVaU5KY9EH6CTUPuhDyqeoWpJ54UsutcgVXtWPPaJ",
+      "registerRefExchange": "46deaxMXMdypJDzshDxLmfweXMM9ybcVS3YjHYaVZsaF",
+      "wrapNear": "GtUCtLsou5wzsV5stxengsYczgT6Y1TVUiY19STbyYCc",
+      "depositWrappedNearToRef": "AYarzkTzgy6izDYLmHM87oDrWLVzVeYKEh6HeBTTNDZj",
+      "swapWrappedNearForUsdcE": "8Hvig6fRJcMZbq5xwKwkwXzuzWogCCAMjy19cYy1LeVQ",
+      "withdrawUsdcEFromRef": "4PsWKpLeyqzFQGoL918yUCBcmp8b4aT3QkLpeJrsUvmU"
+    }
+  },
+  "paymentKey": {
+    "owner": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+    "nonce": 1,
+    "projectIds": [
+      "nfa-2.nfagent-registry-0e9b2a.testnet/scout"
+    ],
+    "maxPerCallMicrousd": "100000",
+    "issuedTx": "DyE1Bg66cit3prjhzasoigtwLFsAXWatF43NE6PvbMKV",
+    "fundedTx": "B2mVwbRTkcz17PupdCFQSX1TMf4tDs2Lxve2QridqViP",
+    "initialBalanceMicrousd": "500000",
+    "spentMicrousd": "1001",
+    "reservedMicrousd": "0",
+    "availableMicrousd": "498999"
+  },
+  "httpsCall": {
+    "callId": "b81e58d3-cfea-4ed8-bfcc-55433d057d33",
+    "status": "completed",
+    "jobId": 1000000001,
+    "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+    "wasmHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+    "inputHash": "5c65100d7953c247fd93f7ba762068259eef8b3c1e64080ff35a6826f98b7c07",
+    "outputHash": "sha256:4ae899d96f5cffab58367763a89e9b33fb53016c618497022f49fa781037cfd6",
+    "computeCostMicrousd": "1001",
+    "attestationUrl": "/attestations/by-call/b81e58d3-cfea-4ed8-bfcc-55433d057d33"
+  },
+  "limitation": "HTTPS uses the operator payment key owner as the storage cell and caller; it cannot read vault memory or the vault-bound Research secret."
+}

@@ -223,6 +223,38 @@ async function main(){
       await assert.rejects(()=>call(alice,'recall_owner_memory',{token_id:'nfa-1',job_id:paidResults.scoutId,
         deposit:'3000000000000000000000'},'3000000000000000000000'));
       paidResults.transactionGas.recall=gas(recall);
+      // The buyer spends the acquired NFA's income on a second NFA's reviewed work.
+      await call(alice,'create_agent',{request_id:'hired-target',manifest_hash:manifestHash,
+        manifest_uri:'nfa://manifest/hired-target'},(6n*YOCTO).toString());
+      assert.equal((await eventually(()=>sdk.get('nfa-2'))).ownerAccountId,alice.id);
+      const hiredVersion='c'.repeat(64),hiredLimits={max_instructions:1_000_000_000,max_memory_mb:64,max_execution_seconds:10};
+      await call(alice,'provision_outlayer',{token_id:'nfa-2',wasm_url:'https://example.org/nfa-hired.wasm',
+        version_key:hiredVersion,deposit:'10000000000000000000000'});
+      await until(()=>sdk.getOutlayerProject('nfa-2'),p=>p?.state==='READY');
+      await call(alice,'configure_service',{token_id:'nfa-2',service_id:'scout',schema_hash:'sha256:'+'5'.repeat(64),
+        enabled:true,min_margin:'10000000000000000000000',max_deposit:'500000000000000000000000',limits:hiredLimits});
+      const hiredInput=JSON.stringify({question:'What happened after the NFT sale?',sources:[{title:'Sale',
+        url:'https://example.org/sale',text:'The buyer controls the persistent NFA and may spend its earned income.'}]});
+      const hiredHash='sha256:'+createHash('sha256').update(hiredInput).digest('hex');
+      const hiringIncome=BigInt((await sdk.view(registry.id,'agent_income',{token_id:'nfa-1'})).toString());
+      const hiredFee='15000000000000000000000',hiredReserve='3000000000000000000000';
+      assert.ok(hiringIncome>=BigInt(hiredFee));
+      const hireAction=sdk.hireReviewedServiceJob('nfa-1','nfa-2','scout',hiredHash,ns(1500),hiredFee,
+        hiredReserve,hiredReserve,hiredLimits,hiredVersion,1,buyer.ownerEpoch,hiredFee);
+      await assert.rejects(()=>call(alice,hireAction.methodName,hireAction.args,hireAction.deposit));
+      await call(bob,'grant_delegate',{token_id:'nfa-1',delegate:worker.id,method:'NFA_HIRE',
+        recipient:'nfa-2',budget:hiredFee,expires_at_ns:ns(1500)});
+      const hire=await call(worker,hireAction.methodName,hireAction.args,hireAction.deposit);
+      await until(()=>sdk.view(registry.id,'grant',{token_id:'nfa-1',delegate:worker.id,method:'NFA_HIRE'}),
+        grant=>grant?.remaining==='0');
+      const hiredId=(await until(()=>sdk.getAgentState('nfa-2'),a=>a?.pending_op!=null)).pending_op;
+      await call(worker,'start_service_job',{token_id:'nfa-2',id:hiredId,input_data:hiredInput},'0');
+      const hiredJob=await until(()=>sdk.getServiceJob('nfa-2',hiredId),j=>j?.job?.status==='FINALIZED');
+      assert.equal(hiredJob.hired_by,'nfa-1');
+      assert.equal(hiredJob.job.requester,worker.id);
+      assert.equal(BigInt((await sdk.view(registry.id,'agent_income',{token_id:'nfa-1'})).toString()),
+        hiringIncome-BigInt(hiredFee));
+      paidResults.hiring={source:'nfa-1',target:'nfa-2',jobId:hiredId,transactionGas:gas(hire)};
     }
     await assert.rejects(()=>access.requireOwner(oldSession,'nfa-1'),/Ownership changed/);
     assert.equal(await access.requireOwner(await session(bob),'nfa-1'),bob.id);
@@ -251,6 +283,8 @@ async function main(){
       transactionGas:{create:gas(created),job:gas(requested),rollback:gas(rollback),sale:gas(sold),
         failedPayout:gas(failed),sellerWithdrawal:gas(withdrawn)},
       paidResults,assertions:['provisioned keyless vault','paid Scout output','income follows sale','seller payout',
+        'buyer grants a capped hire to a worker, which buys a second NFA service from source income',
+        'old owner is denied NFA hiring',
         'old session and old owner rejected','failed vault transfer callback','transfer-call rollback','upgrade preserves state']};
     const metricsPath=resolve(process.env.NFA_SANDBOX_METRICS_OUTPUT||'output/sandbox-metrics.json');
     await mkdir(dirname(metricsPath),{recursive:true});

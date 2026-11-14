@@ -1,0 +1,138 @@
+{
+  "checkedAt": "2026-11-12T22:43:55.996Z",
+  "network": "NEAR testnet",
+  "registry": "nfagent-registry-0e9b2a.testnet",
+  "oldHash": "0f02c8a935199f998922552067f92f5bfc6b2ae58edf89c5bc30bb3e034e63d0",
+  "newHash": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "transactions": {
+    "hiringRegistryTopUp": {
+      "hash": "KELCC2HA7PSqcRVeZJSvj6vFnXK8r8SdKVwXY6VzPzX",
+      "failed": false
+    },
+    "hiringRegistryDeploy": {
+      "hash": "7R4n5uhp29NPRcBJw6XMUfGZMfy8rGfaBFZkNcGeirKo",
+      "failed": false
+    }
+  },
+  "liabilities": "127600240000000000000000",
+  "reserveAboveLiabilitiesYocto": "175854357285142600000016",
+  "before": {
+    "nfa-1": {
+      "owner": "nfagent-alice-fe53d8.testnet",
+      "epoch": 4,
+      "vault": "nfa-1.nfagent-registry-0e9b2a.testnet",
+      "address": null,
+      "projectUuid": null,
+      "runtime": null,
+      "income": "0",
+      "manifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "vaultStatus": {
+        "controller": "nfagent-registry-0e9b2a.testnet",
+        "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "path": "eth-sepolia-v1",
+        "chain_id": 11155111,
+        "next_operation_id": 2,
+        "next_evm_nonce": 0,
+        "pending": null,
+        "last_receipt": null,
+        "research_interface": 1,
+        "last_near": null,
+        "recovery_interface": 1,
+        "upgrade_proposal": null
+      },
+      "pendingOp": null
+    },
+    "nfa-2": {
+      "owner": "nfagent-alice-fe53d8.testnet",
+      "epoch": 2,
+      "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+      "projectUuid": "p0000000000000163",
+      "runtime": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+      "income": "46000000000000000000000",
+      "manifestHash": "sha256:5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e",
+      "vaultStatus": {
+        "controller": "nfagent-registry-0e9b2a.testnet",
+        "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "path": "eth-sepolia-v1",
+        "chain_id": 11155111,
+        "next_operation_id": 29,
+        "next_evm_nonce": 2,
+        "pending": null,
+        "last_receipt": [
+          1,
+          "0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+          12118521,
+          true
+        ],
+        "research_interface": 1,
+        "last_near": null,
+        "recovery_interface": 1,
+        "upgrade_proposal": null
+      },
+      "pendingOp": null
+    }
+  },
+  "after": {
+    "nfa-1": {
+      "owner": "nfagent-alice-fe53d8.testnet",
+      "epoch": 4,
+      "vault": "nfa-1.nfagent-registry-0e9b2a.testnet",
+      "address": null,
+      "projectUuid": null,
+      "runtime": null,
+      "income": "0",
+      "manifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "vaultStatus": {
+        "controller": "nfagent-registry-0e9b2a.testnet",
+        "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "path": "eth-sepolia-v1",
+        "chain_id": 11155111,
+        "next_operation_id": 2,
+        "next_evm_nonce": 0,
+        "pending": null,
+        "last_receipt": null,
+        "research_interface": 1,
+        "last_near": null,
+        "recovery_interface": 1,
+        "upgrade_proposal": null
+      },
+      "pendingOp": null
+    },
+    "nfa-2": {
+      "owner": "nfagent-alice-fe53d8.testnet",
+      "epoch": 2,
+      "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+      "projectUuid": "p0000000000000163",
+      "runtime": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+      "income": "46000000000000000000000",
+      "manifestHash": "sha256:5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e",
+      "vaultStatus": {
+        "controller": "nfagent-registry-0e9b2a.testnet",
+        "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "path": "eth-sepolia-v1",
+        "chain_id": 11155111,
+        "next_operation_id": 29,
+        "next_evm_nonce": 2,
+        "pending": null,
+        "last_receipt": [
+          1,
+          "0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+          12118521,
+          true
+        ],
+        "research_interface": 1,
+        "last_near": null,
+        "recovery_interface": 1,
+        "upgrade_proposal": null
+      },
+      "pendingOp": null
+    }
+  },
+  "scope": "Registry code and state only. Token and Intents merchant payments are not live."
+}

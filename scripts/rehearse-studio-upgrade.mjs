@@ -32,6 +32,11 @@ try{
   assert.ok(before,'Old contract must mint before upgrade');
   const nft=await sdk.view(registryId,'nft_token',{token_id:'nfa-1'});
   const upgraded=await registry.deployContract(newCode);let after;
+  for(let i=0;i<50;i++){
+    try{if(await sdk.view(registryId,'liability_migration_required'))break}catch{}
+    await pause(200);
+  }
+  await call(registry,'migrate_liabilities',{payout_accounts:[],expected_payouts:'0',expected_total:'0'});
   for(let i=0;i<50;i++){try{after=await sdk.get('nfa-1');break}catch{await pause(200)}}
   assert.equal(after.ownerAccountId,nft.owner_id);assert.equal(after.ownerEpoch,before.epoch);
   assert.equal(after.vaultAccountId,before.vault_id);assert.equal(after.manifestHash,before.manifest_hash);

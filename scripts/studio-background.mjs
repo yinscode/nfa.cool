@@ -20,11 +20,11 @@ async function status(state){
 }
 async function start(){
   const previous=await saved(),previousStatus=await status(previous);
-  if(previousStatus==='running'){console.log(`NFA Studio running at http://127.0.0.1:${previous.port}/studio`);return}
+  if(previousStatus==='running'){console.log(`NFA site running at http://127.0.0.1:${previous.port}/ (Studio: /studio)`);return}
   if(previousStatus==='unconfirmed')throw Error(`A recorded Studio process is still alive but not ready. Inspect ${logPath}; no duplicate was started.`);
   const port=studioPort();await assertStudioPortAvailable(port);
   const binary=resolve(root,process.env.NEAR_SANDBOX_BIN_PATH||'.deps/bin/near-sandbox');
-  for(const file of [binary,join(root,'apps/web/dist/index.html'),join(root,'output/sandbox-nfa-registry.wasm'),join(root,'output/sandbox-outlayer-mock.wasm')])await access(file);
+  for(const file of [binary,join(root,'apps/web/dist/index.html'),join(root,'apps/web/dist/landing.html'),join(root,'output/sandbox-nfa-registry.wasm'),join(root,'output/sandbox-outlayer-mock.wasm')])await access(file);
   await mkdir(directory,{recursive:true,mode:0o700});
   const log=await open(logPath,'a',0o600),instanceId=randomUUID(),controlToken=randomUUID()+randomUUID();
   let child;
@@ -40,7 +40,7 @@ async function start(){
   await writeFile(statePath,JSON.stringify(state,null,2)+'\n',{mode:0o600});
   for(let attempt=0;attempt<90;attempt++){
     if(await status(state)==='running'){
-      console.log(`NFA Studio running at http://127.0.0.1:${port}/studio\nBackground PID ${state.pid}; log: ${logPath}\nStop with npm run studio:stop`);return;
+      console.log(`NFA site running at http://127.0.0.1:${port}/ (Studio: /studio)\nBackground PID ${state.pid}; log: ${logPath}\nStop with npm run studio:stop`);return;
     }
     if(child.exitCode!==null||!alive(state.pid))break;
     await pause(500);
@@ -65,7 +65,7 @@ try{
     case 'start':await start();break;
     case 'stop':await stop();break;
     case 'status':{const state=await saved(),current=await status(state);console.log(current==='running'?
-      `NFA Studio running at http://127.0.0.1:${state.port}/studio`:`NFA Studio ${current}`);break}
+      `NFA site running at http://127.0.0.1:${state.port}/ (Studio: /studio)`:`NFA Studio ${current}`);break}
     default:throw Error('Usage: node scripts/studio-background.mjs start|status|stop');
   }
 }catch(error){console.error(error.message);process.exitCode=1}

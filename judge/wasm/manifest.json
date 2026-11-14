@@ -1,20 +1,20 @@
 {
   "note": "Built by scripts/build-judge-wasm.sh. Hashes are checked by npm run judge; builds are path-dependent, so a rebuild elsewhere can differ.",
-  "sourceCommit": "2ccb350c95a499d08c24d7210473832bfda450da",
-  "sourceDirty": false,
+  "sourceCommit": "f20f9ee993e9d2dfcf9f67ce8292cd93151d8ba4",
+  "sourceDirty": true,
   "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
   "files": {
     "registry.wasm": {
-      "bytes": 1375803,
-      "sha256": "e3d5e6052d57b3407e7985ae3282c1aa4b913f0d47a259252a7363591cea77e8"
+      "bytes": 1443619,
+      "sha256": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb"
     },
     "vault.wasm": {
-      "bytes": 363305,
-      "sha256": "200821c58802e52ac795fbd1a594a66d6f6de8703862019972b9ee93bc33c6e7"
+      "bytes": 379010,
+      "sha256": "5a37a47242d4d38994c7849d11a227146e2816a1e09420336892c12c7a5050ce"
     },
     "registry-sandbox.wasm": {
-      "bytes": 1375803,
-      "sha256": "94fe5f5f01ab0f81dce053a2452fe5df4f0e4f25b12ee1d9a1f79babd7bf8505"
+      "bytes": 1443618,
+      "sha256": "a8481e1c8563b989b6e7eb31caabe8ea44cd8780d88951b68a599a04519dad45"
     },
     "outlayer-mock.wasm": {
       "bytes": 324974,

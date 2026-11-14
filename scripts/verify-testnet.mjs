@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-// Read-only, keyless re-derivation of NFA.gent's live testnet facts (NEAR testnet + Sepolia).
+// Read-only, keyless re-derivation of nfa.cool's live testnet facts (NEAR testnet + Sepolia).
 // Compares what the chains say now with the recorded evidence. Sends no transactions.
 //   npm run verify:testnet
 // Env: NEAR_RPC_URL (default FastNEAR testnet), EVM_RPC_URL (default a public Sepolia node).
 import {readFile,writeFile} from 'node:fs/promises';
 
 const nearRpc=process.env.NEAR_RPC_URL||'https://test.rpc.fastnear.com';
-const evmRpc=process.env.EVM_RPC_URL||'https://ethereum-sepolia-rpc.publicnode.com';
+const evmRpc=process.env.EVM_RPC_URL||'https://sepolia.gateway.tenderly.co';
 const m2=JSON.parse(await readFile('docs/evidence/m02-handover.json','utf8'));
-const m6=JSON.parse(await readFile('docs/evidence/m06-preparation.json','utf8'));
+const m6=JSON.parse(await readFile('docs/evidence/m06-reviewed-preparation.json','utf8'));
 const registry=process.env.NFA_REGISTRY_ID||m6.identity.vault.split('.').slice(1).join('.');
 const tokenId=m6.identity.vault.split('.')[0];
 const checks=[];

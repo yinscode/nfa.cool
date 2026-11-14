@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-14T17:33:38.763Z",
+  "network": "NEAR testnet",
+  "scope": "Validated model-backed HTTPS diagnostic only; no paid NFA job settlement",
+  "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+  "projectId": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+  "wasmHash": "40e425829df5f22253c80a5ede821bbc13bdcafedb846f7faeb6fbb6ebc8772e",
+  "jobId": 1000000003,
+  "callId": "9c01962a-ebb1-4a56-9bee-04c24c7a2214",
+  "inputHash": "797592ec1e548c8f0d6d498ca4a3d524680807ff62423a33c83e3093210fbc1c",
+  "outputHash": "sha256:4642d6e9080522d06415f27ba6cafbbc8f3eb974ef284b64a3ff0a81fca5eac2",
+  "pricedUsageMicrousd": 3670,
+  "computeCostMicrousd": "1026",
+  "attestationUrl": "/attestations/by-call/9c01962a-ebb1-4a56-9bee-04c24c7a2214",
+  "accepted": true
+}

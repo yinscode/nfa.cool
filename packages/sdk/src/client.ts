@@ -26,6 +26,7 @@ const limits=(x:SkillLimits)=>{if(!Number.isSafeInteger(x.max_instructions)||x.m
 // A JS number at Unix nanosecond scale loses sub-microsecond precision; expiry
 // decisions are in seconds. The contract checks the final integer against block time.
 const op=(x:number)=>{if(!Number.isSafeInteger(x)||x<1)throw Error('Invalid operation ID');return x};
+const ownerEpoch=(x:number)=>{if(!Number.isSafeInteger(x)||x<0)throw Error('Invalid owner epoch');return x};
 const fee=(x:number)=>{if(!Number.isSafeInteger(x)||x<1||x>100_000_000_000)throw Error('Invalid EVM fee');return x};
 const ns=(x:number)=>{if(!Number.isFinite(x)||!Number.isInteger(x)||x<=0)throw Error('Invalid nanosecond timestamp');return x};
 
@@ -97,7 +98,8 @@ export class NfaSdk {
   getServicePolicy(id:string,serviceId:'scout'|'compare'|'research'){
     return this.view<Record<string,unknown>|null>(this.registryAccountId,'service_policy',{token_id:token(id),service_id:serviceId})
   }
-  getAgentState(id:string){return this.view<{lifecycle:string;pending_op:number|null}>(this.registryAccountId,'agent',{token_id:token(id)})}
+  getAgentState(id:string){return this.view<{lifecycle:string;pending_op:number|null;epoch:number}>(this.registryAccountId,'agent',{token_id:token(id)})}
+  getAgentIncome(id:string){return this.view<string>(this.registryAccountId,'agent_income',{token_id:token(id)})}
   getPaidLedger(){return this.view<Record<string,string>>(this.registryAccountId,'paid_scout_ledger')}
   getMemoryReceipt(id:string,jobId:number){return this.view<Record<string,unknown>|null>(this.registryAccountId,'owner_memory_receipt',{token_id:token(id),id:jobId})}
   async getTreasury(id:string){const agent=await this.get(id);return this.view<Record<string,string>>(agent.vaultAccountId,'treasury')}
@@ -168,6 +170,28 @@ export class NfaSdk {
       throw Error('Invalid service input');
     return this.prepare('start_service_job',{token_id:token(id),id:jobId,input_data:inputData},'0');
   }
+  prepareAsyncResearchJob(id:string,jobId:number,inputData:string){
+    if(!Number.isSafeInteger(jobId)||jobId<1||new TextEncoder().encode(inputData).length>8192)
+      throw Error('Invalid Research input');
+    return this.prepare('prepare_async_research_job',{token_id:token(id),id:jobId,input_data:inputData},'0');
+  }
+  getAsyncResearchJob(id:string,jobId:number){
+    return this.view(this.registryAccountId,'async_research_job',{token_id:token(id),id:op(jobId)});
+  }
+  bindAsyncResearchCall(id:string,jobId:number,callId:string,executionHash:string,versionKey:string,epoch:number){
+    return this.prepare('bind_async_research_call',{token_id:token(id),id:op(jobId),call_id:callId,
+      execution_hash:hash(executionHash),version_key:wasmHash(versionKey),epoch:ownerEpoch(epoch)},'0');
+  }
+  settleAsyncResearchJob(id:string,jobId:number,callId:string,executionHash:string,versionKey:string,
+    epoch:number,output:unknown,computeCostMicrousd:number){
+    if(!Number.isSafeInteger(computeCostMicrousd)||computeCostMicrousd<0)throw Error('Invalid USD compute charge');
+    return this.prepare('settle_async_research_job',{token_id:token(id),id:op(jobId),call_id:callId,
+      execution_hash:hash(executionHash),version_key:wasmHash(versionKey),epoch:ownerEpoch(epoch),
+      output,compute_cost_microusd:computeCostMicrousd},'0');
+  }
+  releaseAsyncResearchJob(id:string,jobId:number){
+    return this.prepare('release_async_research_job',{token_id:token(id),id:op(jobId)},'0');
+  }
   requestReviewedServiceJob(id:string,serviceId:'scout'|'compare'|'research',inputHash:string,deadlineNs:number,
     fee:string,replenish:string,depositCap:string,resourceLimits:SkillLimits,versionKey:string,policyVersion:number,researchConfigHash?:string){
     if(!Number.isSafeInteger(policyVersion)||policyVersion<0||!['scout','compare','research'].includes(serviceId))throw Error('Invalid reviewed quote');
@@ -176,6 +200,19 @@ export class NfaSdk {
       deadline_ns:ns(deadlineNs),fee:amount(fee),replenish:amount(replenish),deposit_cap:amount(depositCap),
       limits:limits(resourceLimits),expected_version:wasmHash(versionKey),expected_policy_version:policyVersion,
       ...(serviceId==='research'?{expected_research_config:hash(researchConfigHash!)}:{})},fee);
+  }
+  hireReviewedServiceJob(sourceId:string,id:string,serviceId:'scout'|'compare'|'research',inputHash:string,
+    deadlineNs:number,fee:string,replenish:string,depositCap:string,resourceLimits:SkillLimits,
+    versionKey:string,policyVersion:number,sourceEpoch:number,maxFee:string,researchConfigHash?:string){
+    if(sourceId===id||!Number.isSafeInteger(sourceEpoch)||sourceEpoch<0||
+      !Number.isSafeInteger(policyVersion)||policyVersion<0||BigInt(maxFee)<BigInt(fee))throw Error('Invalid NFA hiring quote');
+    if(serviceId==='research'&&!researchConfigHash)throw Error('Pinned research configuration required');
+    return this.prepare('hire_reviewed_service_job',{source_token_id:token(sourceId),token_id:token(id),
+      service_id:serviceId,input_hash:hash(inputHash),deadline_ns:ns(deadlineNs),fee:amount(fee),
+      replenish:amount(replenish),deposit_cap:amount(depositCap),limits:limits(resourceLimits),
+      expected_version:wasmHash(versionKey),expected_policy_version:policyVersion,
+      expected_source_epoch:sourceEpoch,max_fee:amount(maxFee),
+      ...(serviceId==='research'?{expected_research_config:hash(researchConfigHash!)}:{})});
   }
   startPaidScout(id:string,jobId:number,inputData:string){
     if(!Number.isSafeInteger(jobId)||jobId<1||inputData.length>8192)throw Error('Invalid paid Scout input');

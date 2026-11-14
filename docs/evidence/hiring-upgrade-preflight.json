@@ -1,0 +1,110 @@
+{
+  "checkedAt": "2026-11-12T22:43:36.291Z",
+  "network": "NEAR testnet",
+  "registry": "nfagent-registry-0e9b2a.testnet",
+  "oldCodeSha256": "0f02c8a935199f998922552067f92f5bfc6b2ae58edf89c5bc30bb3e034e63d0",
+  "newCodeSha256": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "account": {
+    "balanceYocto": "14650623557183892500000016",
+    "storageBytes": 1432680,
+    "availableAboveStorageYocto": "323823557183892500000016"
+  },
+  "payoutAccounts": [
+    "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+    "nfa-studio-mwd3mksx.testnet",
+    "nfagent-alice-fe53d8.testnet"
+  ],
+  "payouts": {
+    "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d": {
+      "available": "2000000000000000000000",
+      "pending": null
+    },
+    "nfa-studio-mwd3mksx.testnet": {
+      "available": "29600240000000000000000",
+      "pending": null
+    },
+    "nfagent-alice-fe53d8.testnet": {
+      "available": "50000000000000000000000",
+      "pending": null
+    }
+  },
+  "agents": {
+    "nfa-1": {
+      "owner": "nfagent-alice-fe53d8.testnet",
+      "epoch": 4,
+      "vault": "nfa-1.nfagent-registry-0e9b2a.testnet",
+      "address": null,
+      "projectUuid": null,
+      "runtime": null,
+      "income": "0",
+      "manifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "vaultStatus": {
+        "controller": "nfagent-registry-0e9b2a.testnet",
+        "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "path": "eth-sepolia-v1",
+        "chain_id": 11155111,
+        "next_operation_id": 2,
+        "next_evm_nonce": 0,
+        "pending": null,
+        "last_receipt": null,
+        "research_interface": 1,
+        "last_near": null,
+        "recovery_interface": 1,
+        "upgrade_proposal": null
+      }
+    },
+    "nfa-2": {
+      "owner": "nfagent-alice-fe53d8.testnet",
+      "epoch": 2,
+      "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "address": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+      "projectUuid": "p0000000000000163",
+      "runtime": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+      "income": "46000000000000000000000",
+      "manifestHash": "sha256:5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e",
+      "vaultStatus": {
+        "controller": "nfagent-registry-0e9b2a.testnet",
+        "reporter": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "guardian": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+        "path": "eth-sepolia-v1",
+        "chain_id": 11155111,
+        "next_operation_id": 29,
+        "next_evm_nonce": 2,
+        "pending": null,
+        "last_receipt": [
+          1,
+          "0x99d7ac1c6c68122c52a231c1592fead10989592cfbdf78ab227fa24559e0c274",
+          12118521,
+          true
+        ],
+        "research_interface": 1,
+        "last_near": null,
+        "recovery_interface": 1,
+        "upgrade_proposal": null
+      }
+    }
+  },
+  "paidLedger": {
+    "customer_escrow": "0",
+    "vault_replenishment_pending": "0",
+    "gross_finalized_receipts": "86800840000000000000000",
+    "customer_refunds": "42000360000000000000000"
+  },
+  "ledger": {
+    "liabilities": "127600240000000000000000",
+    "storage_fees": "24000000000000000000000",
+    "job_storage_fee": "8000000000000000000000",
+    "start_window_ns": "1800000000000"
+  },
+  "breakdown": {
+    "payouts": "81600240000000000000000",
+    "income": "46000000000000000000000",
+    "paidEscrow": "0",
+    "legacyEscrow": "0",
+    "recallDeposits": "0",
+    "total": "127600240000000000000000"
+  },
+  "projectedStorageCostYocto": "14437090000000000000000000",
+  "requiredTopUpYocto": "14066682816107499999984"
+}

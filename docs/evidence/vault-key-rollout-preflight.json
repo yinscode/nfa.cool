@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-11-14T12:49:01.179Z",
+  "network": "NEAR testnet",
+  "tokenId": "nfa-2",
+  "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+  "owner": "nfagent-alice-fe53d8.testnet",
+  "ownerEpoch": 2,
+  "projectUuid": "p0000000000000163",
+  "activeWasm": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+  "stagedResearchWasm": "3bc0201218feab5b9685326df499d2c25ce449028d811124d46109b062850ad6",
+  "registryCodeHash": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "vaultCodeHash": "200821c58802e52ac795fbd1a594a66d6f6de8703862019972b9ee93bc33c6e7",
+  "proposedRegistryCodeHash": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb",
+  "proposalEligibleAt": "2026-11-16T10:38:51.412Z",
+  "blockTime": "2026-11-14T12:48:58.203Z",
+  "delayElapsed": false,
+  "setupState": null,
+  "paymentKey": {
+    "owner": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "nonce": 1,
+    "projectIds": [
+      "nfa-2.nfagent-registry-0e9b2a.testnet/scout"
+    ],
+    "maxPerCallMicrousd": "100000",
+    "ciphertextHash": "7cedb5a29618d0b3387a74f0e4d43d7007951aae8e0298818982042d37ff2a6b",
+    "issued": false
+  },
+  "token": "usdc.fakes.testnet",
+  "payer": "nfa-studio-mwd3mksx.testnet",
+  "balanceMicrousd": "593750",
+  "secretProfile": "research-v5",
+  "secretGrantMatches": true,
+  "modelConfigured": true,
+  "upgradeRehearsal": "docs/evidence/payment-key-upgrade-rehearsal.json",
+  "liabilityReconciliation": "docs/evidence/live-liability-reconciliation.json",
+  "readyExceptForDelay": true
+}

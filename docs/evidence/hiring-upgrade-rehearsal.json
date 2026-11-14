@@ -1,0 +1,38 @@
+{
+  "oldCodeSha256": "0f02c8a935199f998922552067f92f5bfc6b2ae58edf89c5bc30bb3e034e63d0",
+  "newCodeSha256": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "vaultCodeSha256": "200821c58802e52ac795fbd1a594a66d6f6de8703862019972b9ee93bc33c6e7",
+  "localUpgradeTransaction": "4137Jxeobbygz5C48Myk4wwXDisMGQh3QgcXQz73jR3c",
+  "balances": {
+    "income": "22000000000000000000000",
+    "escrow": "30000000000000000000000",
+    "payouts": {
+      "alice.test.near": {
+        "available": "1000000000000000000000",
+        "pending": null,
+        "next_id": 0
+      },
+      "customer.test.near": {
+        "available": "22000000000000000000000",
+        "pending": null,
+        "next_id": 0
+      }
+    },
+    "payoutTotal": "23000000000000000000000",
+    "liabilities": "75000000000000000000000"
+  },
+  "preserved": {
+    "owner": "bob.test.near",
+    "epoch": 1,
+    "vault": "nfa-1.registry.test.near",
+    "manifestHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "assertions": [
+    "deployed exact current testnet registry bytes",
+    "finalized legacy work to create income",
+    "expired legacy work to create a refund credit",
+    "sold NFA to create a seller credit",
+    "new code preserved tracked liabilities including escrow, income, refund and seller credits",
+    "owner, epoch, vault, manifest and income survived registry upgrade"
+  ]
+}

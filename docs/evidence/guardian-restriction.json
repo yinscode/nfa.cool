@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-11-12T21:11:16.635Z",
+  "network": "NEAR testnet",
+  "operator": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+  "keys": [
+    {
+      "token": "nfa-1",
+      "receiver": "nfa-1.nfagent-registry-0e9b2a.testnet",
+      "methods": [
+        "propose_upgrade",
+        "cancel_upgrade",
+        "emergency_upgrade"
+      ],
+      "publicKey": "ed25519:GuMPUumo6WYVafK3HnppWMPpVPgPc9xbC4ngdwrMgaKw",
+      "proposal": "76TMVaoXGvtjBU86koDTyT2y31SkBrHFQBKnJifyw1zo",
+      "cancel": "5GRfV3yociNMXhc29qEGWyYnXXZ68qichagcdQz5ovhk",
+      "proposalCleared": true
+    },
+    {
+      "token": "nfa-2",
+      "receiver": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "methods": [
+        "propose_upgrade",
+        "cancel_upgrade",
+        "emergency_upgrade"
+      ],
+      "publicKey": "ed25519:81sReRdw7h3F2VP5wAZCvKjwX41CNWk4Tjr4zWKuPJi2",
+      "proposal": "7QfZfp8CzbRvaafxACapxRmhU6pKvAyBGfUV5VkByk96",
+      "cancel": "7MgHUfuu85VD37Q6pHzadDLfFWrKD1wV2xybkFXzk6Gn",
+      "proposalCleared": true
+    }
+  ],
+  "fullAccessRemoved": false
+}

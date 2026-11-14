@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-11-13T12:01:16.301Z",
+  "network": "NEAR testnet",
+  "token": "3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af",
+  "tokenSymbol": "USDC",
+  "tokenDecimals": 6,
+  "merchant": "038327209480812fdc542213402f46ace8bf755341aac768c0ba0d961187ed41",
+  "payer": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "registry": "nfagent-registry-0e9b2a.testnet",
+  "registryHash": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "rateAtomicPerNear": "3000000",
+  "setupTransactions": {
+    "fundCheckoutMerchant": "6zkwzmLLzXvPuD8Ne2FQBQhxS3zbjNw5JBZGfqWbb2qg",
+    "registerUSDC-merchant": "4P6THVWCRejkATj2JTB6odCyfPjM6nN3uPtGKiUmFiRo",
+    "registerUSDC-payer": "6Q7zrKeBwFu7Ve9WaTRs4NkNs7M2a5NnzanSLo7Qytqc"
+  },
+  "completed": {
+    "checkoutId": "8624a057-6716-4ef9-ae50-44e7cdeeb045",
+    "jobId": 30,
+    "state": "COMPLETE",
+    "amountAtomic": "37201",
+    "paymentHash": "7Z26wBFxTvnccpevxzAwEzdB2uhTEHFpC8ejndMcocPB",
+    "fundingHash": "AACF2Hk9GgVaJXLa4knEQvsWYU38pdNVwQ8hZgtR5vGk",
+    "startHash": "BhKXNysV8tti434imfKss1Z61pbRLJjB8kFRmsDH1e3t",
+    "outputHash": "sha256:8aa08ee539f8907df9b930ded3abe32d2edc0282a610e34568e155e260d8fc85",
+    "projectUuid": "p0000000000000163"
+  },
+  "refunded": {
+    "checkoutId": "914f1be6-e237-4ec9-a4df-3af417e63762",
+    "jobId": 31,
+    "state": "REFUNDED",
+    "amountAtomic": "37201",
+    "paymentHash": "5XHwSv3YSPmuUX3ND1Yw8mK84xb7RjwfFxSQYmTDQBKW",
+    "fundingHash": "GJMkHkZdbrh3x5u8acQw7kRrg8gom8xqEVDLwymw7G82",
+    "cancelHash": "877wMxkwim2wGfU6toABs88PYLE4Ab9NXUMqFY7vi5gw",
+    "refundHash": "E5J1rzMbDCagWkgGDk8rHS5bcai6XSRFs6agKQgzu312",
+    "refundCreditYocto": "12400120000000000000000"
+  },
+  "payerBalanceBeforeAtomic": "20000000",
+  "payerBalanceAfterAtomic": "19962799",
+  "merchantBalanceAtomic": "37201",
+  "merchantNativeRefundCreditYocto": "12400120000000000000000",
+  "merchantNativeRefundClaimHash": "Bw7LT7RTLKcxZSbShWhRbFzbPCHPoxc1By6AZfmiHqmj",
+  "registryLiabilitiesYocto": "145600240000000000000000",
+  "scope": "Circle testnet USDC direct FT checkout through the operator acceptance runner; one finalized Scout and one owner-cancelled Scout with full USDC refund. The REST API was not publicly hosted. Test rate is illustrative."
+}

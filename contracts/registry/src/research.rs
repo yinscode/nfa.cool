@@ -67,7 +67,7 @@ impl Registry {
             allowed_host(&r.host)&&r.path_prefix.starts_with('/')&&r.path_prefix.len()<=100&&
             !r.path_prefix.bytes().any(|b|b"?%#\\".contains(&b))&&!r.path_prefix.contains("..")),"Invalid research sources");
         require!(!settings.model.is_empty()&&settings.model.len()<=120&&settings.model.bytes().all(|b|b.is_ascii_alphanumeric()||b"-_/.:".contains(&b)),"Invalid model");
-        require!(settings.max_input_tokens>0&&settings.max_input_tokens<=24_000&&settings.max_output_tokens>0&&settings.max_output_tokens<=512&&
+        require!(settings.max_input_tokens>0&&settings.max_input_tokens<=24_000&&settings.max_output_tokens>0&&settings.max_output_tokens<=2048&&
             settings.input_microusd_per_token<=1000&&settings.output_microusd_per_token<=1000&&
             settings.max_cost_microusd>0&&settings.max_cost_microusd<=1_000_000&&
             settings.daily_budget_microusd>=settings.max_cost_microusd&&settings.daily_budget_microusd<=10_000_000,"Research budget cap");

@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-11-12T21:09:44.422Z",
+  "network": "NEAR testnet",
+  "operator": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+  "keys": [
+    {
+      "receiver": "nfagent-registry-0e9b2a.testnet",
+      "methods": [
+        "mark_evm_broadcast",
+        "reconcile_evm",
+        "retry_evm_signature"
+      ],
+      "publicKey": "ed25519:Gp59CAyvW5GkxVdsunGPb9Eevxw6HCJ5NR7diZyfGgU8",
+      "contractRejectionTransaction": "9JBqbfrpEdTrf9DD1oiBGLNybZPRk1TzPEuxgjEFK6pu"
+    },
+    {
+      "receiver": "nfa-1.nfagent-registry-0e9b2a.testnet",
+      "methods": [
+        "report_evm_receipt"
+      ],
+      "publicKey": "ed25519:ABZmcmJwMGPP8NWugzkuNW8D9qu3JJxh8CByM6MwJf9v",
+      "contractRejectionTransaction": "3nJb73KXtRdu92Uovq3LFouatafqBoeyAmAA3WmdsSQV"
+    },
+    {
+      "receiver": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "methods": [
+        "report_evm_receipt"
+      ],
+      "publicKey": "ed25519:Cer753sAafXbqiDHowo4v4QG2WpKHTu4YG9uo161Z1SB",
+      "contractRejectionTransaction": "9UdTMDWYW58L6uZLG6GZfVEV29M67JNtdCWs7x5Gt5o7"
+    }
+  ],
+  "transactions": {
+    "addReporterKeyregistry": {
+      "hash": "DJp6JMPGZDArswmbY2qVL5Sw5Udrqz58z5egStB5Gz2S",
+      "failed": false
+    },
+    "addReporterKeynfa-1": {
+      "hash": "F7SggM9PsmTz3VbkRqQvi2uqq4mbs7k7Ezzv8w8LFpkC",
+      "failed": false
+    },
+    "addReporterKeynfa-2": {
+      "hash": "9sGbuhpws8TJKeNEaSnMb8CCpJUPefwVCVECB5Tsn2Ha",
+      "failed": false
+    }
+  },
+  "fullAccessRemoval": "deferred until registry administration and all guardian methods are exercised with restricted keys"
+}

@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-11-14T18:22:00.086Z",
+  "network": "NEAR testnet",
+  "tokenId": "nfa-2",
+  "seller": "nfagent-alice-fe53d8.testnet",
+  "buyer": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "oldEpoch": 2,
+  "newEpoch": 3,
+  "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+  "evmAddress": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+  "projectUuid": "p0000000000000163",
+  "firstResearchJobId": 48,
+  "firstResearchOutputHash": "sha256:fda3bc8ece84d95b66d3b72109850638c9e4114b1043f50e9105bda66910af39",
+  "buyerRecallCallId": "6b703e38-916b-40e1-83bc-c56a3c7f22a6",
+  "buyerRecallOutputHash": "sha256:fda3bc8ece84d95b66d3b72109850638c9e4114b1043f50e9105bda66910af39",
+  "refundReplayDenied": true,
+  "staleSellerUpgradeDenied": true,
+  "sellerRecallDenied": true,
+  "transactions": {
+    "proposeSameVaultCode": {
+      "hash": "28xj7YxdaqZCn1EMoBwMgfFGuKTRq845uuj4HMgFpCCe",
+      "failed": false
+    },
+    "sellerApproveVaultUpgrade": {
+      "hash": "2eNUZa4BkW15dsWphuZVcTN77aviD2JF5zDjKk23D7Vd",
+      "failed": false
+    },
+    "listResearchNfa": {
+      "hash": "kbPQMkLVbibpHzxR7ybUYp7z7maij8DcQrHB3FfTc5W",
+      "failed": false
+    },
+    "buyResearchNfa": {
+      "hash": "2wEpiqPGBW7gMBxDHAXrvuawJVGKmC347rQYyiSHxPXz",
+      "failed": false
+    },
+    "failedJobSecondReleaseDenied": {
+      "hash": "HtFnivBneZEMtDeWWdUcA5crFNMkNqVgSbtkhq7RhCkf",
+      "failed": true
+    },
+    "staleSellerVaultUpgradeDenied": {
+      "hash": "CtJUxXmTdC5u6YjJPzcZ885QPBRwQySSc8q9PdkKtAZ1",
+      "failed": false
+    },
+    "oldOwnerUpgradeApprovalDenied": {
+      "hash": "J5wLDEUfVnhNbkNvkX9zsWXn41X8CFr8nisjwCdsa7rM",
+      "failed": true
+    },
+    "cancelStaleVaultProposal": {
+      "hash": "B1fZxJ2SfkyGnPMDjuF1TY4759E2n51N5Tb4EUNY6ti2",
+      "failed": false
+    },
+    "sellerRecallDenied": {
+      "hash": "6GP8eU8Bf3yxc47rjBihYgARvMxkVwRkGQJFKyrhZxNs",
+      "failed": true
+    }
+  }
+}

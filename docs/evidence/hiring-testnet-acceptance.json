@@ -1,0 +1,50 @@
+{
+  "checkedAt": "2026-11-12T22:47:56.861Z",
+  "network": "NEAR testnet",
+  "registry": "nfagent-registry-0e9b2a.testnet",
+  "registryHash": "b733b54b7ea955c6f95042f3ecbe27ad2391dbaa83409416d2dc9cdc790295b4",
+  "source": "nfa-1",
+  "target": "nfa-2",
+  "jobId": 29,
+  "requester": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+  "feeYocto": "30000000000000000000000",
+  "reserveYocto": "10000000000000000000000",
+  "sourceIncomeBeforeHire": "42000000000000000000000",
+  "sourceIncomeAfterHire": "12000000000000000000000",
+  "targetIncome": "58000000000000000000000",
+  "grantRemaining": "0",
+  "outputHash": "sha256:b790537e1a38dd0273f4a080cbd0a6e2ebbb0978bab5e5d06f044abd123dcaad",
+  "projectUuid": "p0000000000000163",
+  "liabilities": "151600240000000000000000",
+  "transactions": {
+    "grantLegacyWorker": {
+      "hash": "Ei6qWDoDGScoNGJiSiYb6H8MpUmgiui7yUTCtcYTKwDk",
+      "failed": false
+    },
+    "fundLegacyJob": {
+      "hash": "HBXuBCYCoSYhA5MnTSZ6TANZDEjEypWAyt9LCoPyF2aN",
+      "failed": false
+    },
+    "finishLegacyJob": {
+      "hash": "ALFrgX7UeeXsBtzxAjnRrghogeotBC2qjCveKkghJwKo",
+      "failed": false
+    },
+    "grantHiredScout": {
+      "hash": "GyA7LDEHNFGXRS5wRajTwZM2PjNfaVCgjDUaPqfvAe15",
+      "failed": false
+    },
+    "hireScout": {
+      "hash": "3DN9UA2iic3JhbXs3FifzH9ePt49SHp64CCF5ndUMKwg",
+      "failed": false
+    },
+    "startHiredScout": {
+      "hash": "2DfkonKWH5WFgGDGgGEyeZojXi8ukjQDeAAZHsySRery",
+      "failed": false
+    },
+    "exhaustedHireDenied": {
+      "hash": "D4RiBgMkq782gpp67fojipdEBGnQKGPgeA5udtrw3bK3",
+      "failed": true
+    }
+  },
+  "scope": "Live testnet Scout hiring from accrued NFA income. No FT or Intents payment."
+}

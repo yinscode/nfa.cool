@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-14T17:55:36.439Z",
+  "network": "NEAR testnet",
+  "oldHash": "f989bfe9bc179b14b4272334f4f819663df5d5186132a88a03eb3f01de3acae4",
+  "newHash": "f9c750ad48e369b79e65f3de6c6533602b09658c3202e389d96dbfba154c1353",
+  "preserved": [
+    "NFA identity",
+    "pending recovery request",
+    "refunded Research job 42",
+    "Project and vault",
+    "liabilities"
+  ],
+  "liabilityYocto": "167600240000000000000000",
+  "deployTx": "7kJk3ayTbZxY9X3JkZhc5XnUuUA3gBWb4rmnYNrqtVLb",
+  "exception": "Direct deployment with existing FullAccess key; public two-day path remains pending"
+}

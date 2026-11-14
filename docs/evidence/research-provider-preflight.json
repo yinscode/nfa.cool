@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-11-14T11:02:13Z",
+  "provider": "near-ai",
+  "request": "GET https://cloud-api.near.ai/v1/models",
+  "httpStatus": 200,
+  "configuredModelListed": true,
+  "modelsReturned": 64,
+  "credentialExposed": false,
+  "scope": "Read-only provider credential/model check. No inference request or OutLayer execution."
+}

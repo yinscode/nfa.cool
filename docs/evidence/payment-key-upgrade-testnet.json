@@ -1,0 +1,73 @@
+{
+  "checkedAt": "2026-11-14T12:54:06.041Z",
+  "network": "NEAR testnet",
+  "registryHash": "5a6f3f0b37c0a2178c65ba48018366da62f220b22881a02eac07ad8470f71fbb",
+  "vaultHash": "5a37a47242d4d38994c7849d11a227146e2816a1e09420336892c12c7a5050ce",
+  "paymentKey": {
+    "state": "READY",
+    "nonce": 1,
+    "ciphertextHash": "7cedb5a29618d0b3387a74f0e4d43d7007951aae8e0298818982042d37ff2a6b"
+  },
+  "identity": {
+    "owner": "nfagent-alice-fe53d8.testnet",
+    "epoch": 2,
+    "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "manifestHash": "sha256:5575545d4b9f515c2339c95887502ab4f25f825313e43d4caca102da2f4e8d2e"
+  },
+  "project": {
+    "id": "nfa-2.nfagent-registry-0e9b2a.testnet/scout",
+    "versionKey": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+    "state": "READY"
+  },
+  "transactions": {
+    "proposePaymentKeyRegistryUpgrade": {
+      "hash": "5WWTb4EKQUvLDvSxUv4HB8U39wn7xLQkqPuHyu9uZovN",
+      "failed": false
+    },
+    "cancelSupersededPaymentKeyProposal": {
+      "hash": "J4ggf5MnxQHiqVzajxLXs3PLdUnFH3JWagV2Db9auXEy",
+      "failed": false
+    },
+    "proposePaymentKeyRegistryUpgradeV2": {
+      "hash": "2fV3e4B89SvGzsoCCwVSpCTBThFrg6ukAewcqripngF5",
+      "failed": false
+    },
+    "paymentKeyRegistryReserve": {
+      "hash": "CGBnSi3tzWsgjbywcKra9NauS8WzQJ4QQtLD6BwMBNLC",
+      "failed": false
+    },
+    "directDeployPaymentKeyRegistry": {
+      "hash": "E3RjfgjbQRvYwcv4PQaGZDLWNFXgimpTq9h8gVLpUcFa",
+      "failed": false
+    },
+    "cancelProposalAfterDirectDeploy": {
+      "hash": "H8qvXhAsYSxiqq2nPd9CE8PHCJU14Z8zNYWLPm9eqJbw",
+      "failed": false
+    },
+    "proposePaymentKeyVaultUpgrade": {
+      "hash": "GiisPa7QRnfXrDkrn9fop26u9hxYytbsG8GCQZoXmrQr",
+      "failed": false
+    },
+    "approvePaymentKeyVaultUpgrade": {
+      "hash": "CrvgetKTkLVY73y24Fxg3KVZhW8zKjbdaS5VHqFZjCeq",
+      "failed": false
+    },
+    "applyPaymentKeyVaultUpgrade": {
+      "hash": "5cEyGkTPacvGUJ9C3bVS8XKiCpoEthBt93Vj8oUVZxLp",
+      "failed": true
+    },
+    "applyPaymentKeyVaultUpgrade300T": {
+      "hash": "AMNTZcyggPNrwcxXawUrgeu35yjGWoFKwQPD9byaM6Nk",
+      "failed": false
+    },
+    "approveVaultPaymentKey": {
+      "hash": "2YeQG2HK4WE3n2BcfcZjxaokYLxAEpXLfp9q4SgMCXic",
+      "failed": false
+    },
+    "issueVaultPaymentKey": {
+      "hash": "CkmFv2D3atKJsKfnqMUH7CxZmrbc3iCag2wW4kx7zWmi",
+      "failed": false
+    }
+  },
+  "scope": "Code, state and zero-balance key issuance only. HTTPS execution and Research acceptance are separate."
+}

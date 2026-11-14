@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-11-14T13:14:10.712Z",
+  "network": "NEAR testnet",
+  "scope": "Vault-owned HTTPS diagnostics only; no on-chain paid NFA settlement",
+  "paymentKey": {
+    "owner": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "nonce": 1,
+    "initialBalanceMicrousd": "500000",
+    "availableMicrousd": "496975",
+    "reservedMicrousd": "0"
+  },
+  "research": {
+    "callId": "f300841e-3067-4cf6-8767-b7afdb91be36",
+    "status": "failed",
+    "wasmHash": "3bc0201218feab5b9685326df499d2c25ce449028d811124d46109b062850ad6",
+    "jobId": 1000000000,
+    "computeCostMicrousd": "1008",
+    "instructions": 6534090,
+    "timeMs": 2482,
+    "error": "Component execution failed: error while executing at wasm backtrace:\n    0:  0x8a160 - wit-component:shim!indirect-wasi:io/streams@0.2.2-[method]output-stream.blocking-write-and-flush\n    1:  0x3758d - <unknown>!<wasm function 604>\n    2:  0x17a45 - <unknown>!<wasm function 191>\n    3:   0xb071 - <unknown>!<wasm function 159>\n    4:  0x1d860 - <unknown>!<wasm function 241>\n    5:  0x1fdfc - <unknown>!<wasm function 264>\n    6:  0x1fdb5 - <unknown>!<wasm function 263>\n    7:   0x2897 - <unknown>!<wasm function 45>\n    8:  0x8698d - wit-component:adapter:wasi_snapshot_preview1!wasi:cli/run@0.2.3#run",
+    "modelResultVerified": false
+  },
+  "recall": {
+    "callId": "1c2ee2d1-cc2c-41e2-bad7-c4ccdc79cfd1",
+    "status": "completed",
+    "wasmHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+    "jobId": 26,
+    "expectedHash": "sha256:9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+    "outputHash": "sha256:9c62bb81b9514d2af6506585814a9f668dec22ec7632ee879855a01f43d32473",
+    "computeCostMicrousd": "1001",
+    "commitmentMatched": true
+  },
+  "repair": {
+    "wasmHash": "f959f859af13e783e35df24c857b8e4a54739f7a6525248cffd4c2fe1d5b26b9",
+    "stagedEvidence": "docs/evidence/research-http-fix-staged.json",
+    "cause": "wasi-http-client 0.2.1 sent the full HTTP body in one blocking write; WASI permits at most 4096 bytes",
+    "fix": "Vendored client writes the request body in chunks of at most 4096 bytes"
+  },
+  "researchRetry": {
+    "callId": "9649b87c-6622-43f4-a459-27b1cf421b5c",
+    "status": "completed",
+    "wasmHash": "f959f859af13e783e35df24c857b8e4a54739f7a6525248cffd4c2fe1d5b26b9",
+    "jobId": 1000000002,
+    "inferenceOutcome": "succeeded",
+    "outputStatus": "failed",
+    "fault": "customer",
+    "pricedUsageMicrousd": 2793,
+    "computeCostMicrousd": "1016",
+    "accepted": false,
+    "scope": "HTTPS model diagnostic only; no NFA settlement"
+  }
+}

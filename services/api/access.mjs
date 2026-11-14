@@ -36,7 +36,7 @@ export class AccessService {
   challenge(accountId,tokenId,{studio=false}={}){
     if(!/^[a-z0-9._-]{2,64}$/.test(accountId)||!/^nfa-[1-9][0-9]*$/.test(tokenId))throw Error('Invalid account/token');
     const id=randomBytes(16).toString('hex'), nonce=randomBytes(32), expiresAt=this.now()+60_000;
-    const message=`nfa.gent access\norigin:${this.origin}\nregistry:${this.sdk.registryAccountId}\naccount:${accountId}\ntoken:${tokenId}\nnonce:${id}\nexpires:${expiresAt}`;
+    const message=`nfa.cool access\norigin:${this.origin}\nregistry:${this.sdk.registryAccountId}\naccount:${accountId}\ntoken:${tokenId}\nnonce:${id}\nexpires:${expiresAt}`;
     const recipient=this.origin,callbackUrl=this.origin+(studio?'/studio?token='+encodeURIComponent(tokenId):'/');
     this.challenges.set(id,{accountId,tokenId,message,nonce,recipient,callbackUrl,expiresAt});
     return {challengeId:id,message,nonce:nonce.toString('base64'),recipient,callbackUrl,expiresAt};

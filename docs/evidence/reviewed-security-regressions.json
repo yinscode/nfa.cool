@@ -1,0 +1,77 @@
+{
+  "checkedAt": "2026-11-12T21:00:19.251Z",
+  "network": "NEAR testnet",
+  "runtimeHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe",
+  "smokeJobId": 24,
+  "refundReplay": {
+    "payout": {
+      "available": "29600240000000000000000",
+      "pending": null,
+      "next_id": 1
+    },
+    "ledger": {
+      "customer_escrow": "0",
+      "vault_replenishment_pending": "0",
+      "gross_finalized_receipts": "62000600000000000000000",
+      "customer_refunds": "42000360000000000000000"
+    }
+  },
+  "staleUpgrade": {
+    "oldOwner": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+    "newOwner": "nfagent-alice-fe53d8.testnet",
+    "oldEpoch": 3,
+    "newEpoch": 4,
+    "vault": "nfa-1.nfagent-registry-0e9b2a.testnet",
+    "codeHash": "200821c58802e52ac795fbd1a594a66d6f6de8703862019972b9ee93bc33c6e7",
+    "oldApprovalResult": false,
+    "proposalCleared": true
+  },
+  "transactions": {
+    "secondSmokeReleaseDenied": {
+      "hash": "5eyeKUM991PFEse4dMRPVBt6LGzrM6Kfq3P8VsbKfgK4",
+      "failed": true,
+      "value": null
+    },
+    "proposeSameVaultCode": {
+      "hash": "Ec2bx9ri35uwh4B9PmAb1SFiQ9h8Cb65kUw7apEpwnDJ",
+      "failed": false,
+      "value": null
+    },
+    "sellerApprovesUpgrade": {
+      "hash": "GCTMX8QnoNDFUq9uJ85vFqka4o5ZXqBas3Wd2qhXXEYM",
+      "failed": false,
+      "value": null
+    },
+    "listSecurityNfa": {
+      "hash": "FiPHXiF5rmzRQcF7PazXTQ2e67cDQXvEfXiNENPE7xaS",
+      "failed": false,
+      "value": null
+    },
+    "buySecurityNfa": {
+      "hash": "5mdJEe4shGF6zY7S5wgMRARwYYZWZ6XqpyPqbtCpC3jY",
+      "failed": false,
+      "value": null
+    },
+    "staleVaultUpgradeDenied": {
+      "hash": "AW6DPtJgfwNBogkMdP3afxX9bScQiwbC3jz7j2WbbxhN",
+      "failed": true,
+      "value": null
+    },
+    "staleVaultUpgradeChecked": {
+      "hash": "9ZqeyQ8AZvwqdoq4KSiY48DPdCK814JvWyZauctrn5y6",
+      "failed": false,
+      "value": false
+    },
+    "oldOwnerUpgradeApprovalDenied": {
+      "hash": "AwPpGMSjs6oX4CCnGsR9eBqqewypJaifN48D7daVmavS",
+      "failed": true,
+      "value": null
+    },
+    "cancelSecurityUpgrade": {
+      "hash": "5uRJamjtJopFjnLbrL7p87p1BWabhxfcRKcgsW5M7nvq",
+      "failed": false,
+      "value": null
+    }
+  },
+  "scope": "Replay of a failed hosted job and stale owner upgrade approval; local reserve refund-loop property test remains separate."
+}

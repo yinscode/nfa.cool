@@ -1,0 +1,132 @@
+{
+  "milestone": "M06",
+  "complete": false,
+  "checkedAt": "2026-11-13T13:15:44.033Z",
+  "network": "NEAR testnet",
+  "identity": {
+    "tokenId": "nfa-2",
+    "vault": "nfa-2.nfagent-registry-0e9b2a.testnet",
+    "projectUuid": "p0000000000000163",
+    "owner": "nfagent-alice-fe53d8.testnet",
+    "runtimeHash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe"
+  },
+  "research": {
+    "provider": "near-ai",
+    "model": "z-ai/glm-5.3-flash",
+    "credential": "private file; value omitted",
+    "secretProfile": "research-v4",
+    "secretStoreTx": "FYrLy5Fyp8d2PooZZemvsFC3a58YFs31XYEyC8Q1RoiM",
+    "configTx": "Gyzb6s1m9s9BCfjPk9RGxuhpfzJ8dWaHsY3HFMX8ssvk",
+    "policyTx": "569UC1sniY56zNe9UfTheNKXQiKooffxRCAAAV4u2nUE",
+    "access": {
+      "Logic": {
+        "operator": "And",
+        "conditions": [
+          {
+            "Predecessor": {
+              "condition": {
+                "Whitelist": {
+                  "accounts": [
+                    "nfa-2.nfagent-registry-0e9b2a.testnet"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "WasmHash": {
+              "hash": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "attempts": [
+    {
+      "jobId": 32,
+      "payTx": "44dSKwRJueJkAcsUTn8jvuhzeP7yQvvXEJR6Lv9uYafc",
+      "startTx": "4H9qnFHnLuuQt28XQfQt4AP36QBPTL7Qrb9f1ih8ueSF",
+      "releaseTx": "7pdFgb5RJ6b3aboheHdJbDmsjvHMBYGJ5p9t2SLua4Fx",
+      "finalStatus": "FAILED",
+      "usageState": "UNKNOWN",
+      "pricedUsageMicrousd": null,
+      "outlayerJobId": 92148,
+      "outlayerStatus": "failed",
+      "outlayerError": "resolve_execution: Execution request not found",
+      "executionTimeMs": 1862,
+      "requestAt": "2026-11-13T12:29:44.629Z",
+      "promiseFailedAt": "2026-11-13T12:31:45.758Z",
+      "outlayerRecordCreatedAt": "2026-11-13T12:32:34.457Z",
+      "elapsedToPromiseFailureSeconds": 121,
+      "elapsedToWorkerRecordSeconds": 170
+    },
+    {
+      "jobId": 33,
+      "payTx": "929G4bAuYaipxw16LEQgPMN2D32us8jjroxCtijdKE7w",
+      "startTx": "5iLJAvchAqnoYnGARwqSQeFwndefs5xV4efcBiQU8yLF",
+      "releaseTx": "AzipKrA5e6TFzv6JLdb4qfJLHYh1nurXKg2dMfoHnYL9",
+      "finalStatus": "FAILED",
+      "usageState": "UNKNOWN",
+      "pricedUsageMicrousd": null,
+      "outlayerJobId": 92190,
+      "outlayerStatus": "failed",
+      "outlayerError": "resolve_execution: Execution request not found",
+      "executionTimeMs": 2250,
+      "requestAt": "2026-11-13T12:34:53.724Z",
+      "promiseFailedAt": "2026-11-13T12:36:54.182Z",
+      "outlayerRecordCreatedAt": "2026-11-13T12:37:29.032Z",
+      "elapsedToPromiseFailureSeconds": 120,
+      "elapsedToWorkerRecordSeconds": 155
+    },
+    {
+      "jobId": 34,
+      "payTx": "BkxBp5EvJXSKXeSJuu4WzMRcmfFJwMUtC2JpKz9HStC6",
+      "startTx": "YwFbPrTfrPs8YeB3HdC6GQ8fz9oPrWufQb9PirfdWCU",
+      "releaseTx": "GsHfQ3JonDPJCBiczowcqXtGdiWSWfWHn1XZUhM6JzZc",
+      "finalStatus": "FAILED",
+      "usageState": "UNKNOWN",
+      "pricedUsageMicrousd": null,
+      "outlayerJobId": 92625,
+      "outlayerStatus": "failed",
+      "outlayerError": "resolve_execution: Execution request not found",
+      "executionTimeMs": 1930,
+      "requestAt": "2026-11-13T13:05:19.014Z",
+      "promiseFailedAt": "2026-11-13T13:07:20.112Z",
+      "outlayerRecordCreatedAt": "2026-11-13T13:07:40.787Z",
+      "elapsedToPromiseFailureSeconds": 121,
+      "elapsedToWorkerRecordSeconds": 142
+    }
+  ],
+  "postRelease": {
+    "nfaIdle": true,
+    "ownerUnchanged": true,
+    "nativeLedgerBalanced": true,
+    "liabilitiesYocto": "153600240000000000000000",
+    "reserveAboveLiabilitiesYocto": "164434357285142600000023"
+  },
+  "remaining": [
+    "Diagnose OutLayer resolution failure before another paid attempt",
+    "Finalize a model-backed Research job with PRICED_USAGE",
+    "Sell NFA, verify buyer recall and second Research job, verify seller denial",
+    "Record continuous live demo"
+  ],
+  "notes": [
+    "The provider credential and model passed a direct minimal HTTPS probe, which is not hosted Research acceptance.",
+    "OutLayer reports failure while submitting resolve_execution; the public error does not establish the cause of the missing request.",
+    "Released attempts never entered eligible memory. Model usage remains UNKNOWN, so no model billing or profit claim is made.",
+    "Each request promise failed after about 121 seconds; OutLayer hosted job records appeared 142-170 seconds after request, after the pending request was gone. The timing supports delayed hosted processing but does not expose its internal cause.",
+    "A paid Scout canary on the same vault and Project finalized, but took about 106 seconds end to end. The real-model failures and canary therefore point to hosted processing latency rather than a key-specific failure; the exact internal stage remains unobserved."
+  ],
+  "diagnosticScout": {
+    "jobId": 35,
+    "payTx": "AoZTmFDsnhzDuxQLtCxjgCzQ27yhiT7ZZ91HSDfUG4iZ",
+    "startTx": "C7SazyoEpV5HBHtBeYDYYF8sYA4EKGdY8wFP8Y9DuFdG",
+    "finalStatus": "FINALIZED",
+    "outlayerJobId": 92686,
+    "requestAt": "2026-11-13T13:11:01.258Z",
+    "completedAt": "2026-11-13T13:12:46.758Z",
+    "elapsedSeconds": 106,
+    "executionTimeMs": 1241
+  }
+}

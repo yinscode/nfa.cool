@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-12T21:03:42.615Z",
+  "network": "NEAR testnet",
+  "admin": "01871de834e09e380684d3cdbdfd4a3d029051ce76957865bbccc19471b35ae8",
+  "restrictedKey": "ed25519:2SVJxkgbEbeH9MDhoaJuyv8yDLo94yQ6YvMXnztdxuw8",
+  "receiver": "nfagent-registry-0e9b2a.testnet",
+  "methods": [
+    "propose_registry_upgrade",
+    "apply_registry_upgrade",
+    "cancel_registry_upgrade"
+  ],
+  "codeHash": "0f02c8a935199f998922552067f92f5bfc6b2ae58edf89c5bc30bb3e034e63d0",
+  "proposal": "39VHNEPv6MPsCv1TpXTHa2xeYFaWmn5N8x3w56L6QteX",
+  "earlyApply": "59gvWL6jbAmqNA6MjdM6BcfCkTKadh5cgdDGxNou7c36",
+  "delayEnforced": true,
+  "cancel": "7gNKm5YZA2SaMFnEmg8E18JCmfnoTtJkRM2hZhZoNSrt",
+  "proposalCleared": true,
+  "localAfterDelayCheck": "contracts/registry/src/lib.rs registry_upgrade_waits_for_the_public_delay",
+  "fullAccessRemoved": false
+}

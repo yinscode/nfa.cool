@@ -6,7 +6,6 @@ import {NfaSdk} from '@nfa/sdk';
 import {EvmJournal} from '../services/worker/evm-journal.mjs';
 import {NearIntentWallet} from '../services/worker/near-intent.mjs';
 import {settleEvmTick,sepoliaHoldings} from '../services/worker/evm-settler.mjs';
-import {createPrivateKey,createPublicKey} from 'node:crypto';
 
 const tokenId=process.argv[2],send=process.argv.includes('--send'),watch=process.argv.includes('--watch');
 if(!/^nfa-[1-9][0-9]*$/.test(tokenId||'')||process.argv.slice(3).some(x=>!['--send','--watch'].includes(x)))
@@ -29,21 +28,27 @@ if(!send){
     await sepoliaHoldings({address:identity.foreignWallet.address,rpcUrl:evmRpc}):null}));
 }else{
   const reporterId=process.env.NFA_SETTLEMENT_REPORTER_ACCOUNT_ID;
-  const keyFile=process.env.NFA_SETTLEMENT_REPORTER_KEY_FILE;
-  if(!reporterId||!keyFile)throw Error('Reporter account and private key file required');
-  const secret=JSON.parse(await readFile(keyFile,'utf8'));
-  if(secret.account_id!==reporterId)throw Error('Reporter key account mismatch');
-  let encodedKey=secret.secret_key;
-  if(!encodedKey&&secret.private_key_pkcs8_pem){
-    const privateKey=createPrivateKey(secret.private_key_pkcs8_pem),pub=createPublicKey(privateKey).export({format:'der',type:'spki'}).subarray(-32);
-    const seed=privateKey.export({format:'der',type:'pkcs8'}).subarray(-32);
-    encodedKey='ed25519:'+utils.serialize.base_encode(Buffer.concat([seed,pub]));
+  if(!reporterId)throw Error('NFA_SETTLEMENT_REPORTER_ACCOUNT_ID required');
+  const keyDir=resolve(process.env.NFA_SETTLEMENT_REPORTER_KEY_DIR||'deployments');
+  const accounts=new Map();
+  for(const [name,receiver,methods] of [['registry',sdk.registryAccountId,['mark_evm_broadcast','reconcile_evm','retry_evm_signature']],
+    [tokenId,`${tokenId}.${sdk.registryAccountId}`,['report_evm_receipt']]]){
+    const record=JSON.parse(await readFile(resolve(keyDir,`reporter-${name}.key.json`),'utf8'));
+    if(record.account_id!==reporterId||record.receiver_id!==receiver||
+      JSON.stringify(record.method_names)!==JSON.stringify(methods))throw Error(`Restricted reporter key ${name} mismatches the receiver`);
+    const pair=KeyPair.fromString(record.secret_key);
+    if(pair.getPublicKey().toString()!==record.public_key)throw Error(`Reporter key ${name} public key mismatch`);
+    const live=(await rpc('query',{request_type:'view_access_key',finality:'final',account_id:reporterId,public_key:record.public_key})).permission;
+    if(live?.FunctionCall?.receiver_id!==receiver||JSON.stringify(live.FunctionCall.method_names)!==JSON.stringify(methods))
+      throw Error(`Reporter key ${name} has unexpected on-chain permission`);
+    const store=new keyStores.InMemoryKeyStore();await store.setKey('testnet',reporterId,pair);
+    const near=await connect({networkId:'testnet',nodeUrl:rpcUrl,deps:{keyStore:store}});
+    accounts.set(receiver,await near.account(reporterId));
   }
-  const keys=new keyStores.InMemoryKeyStore();await keys.setKey('testnet',reporterId,KeyPair.fromString(encodedKey));
-  const near=await connect({networkId:'testnet',nodeUrl:rpcUrl,deps:{keyStore:keys}}),account=await near.account(reporterId);
   const data=resolve(process.env.NFA_DATA_DIR||'.data');
   const wallet=new NearIntentWallet({directory:resolve(data,'evm-reporter'),accountId:reporterId,rpc,
-    sign:async a=>{const [hash,signed]=await account.signTransaction(a.receiverId,[transactions.functionCall(a.methodName,a.args,BigInt(a.gas),0n)]);
+    sign:async a=>{const account=accounts.get(a.receiverId);if(!account)throw Error('Reporter receiver is not allowlisted');
+      const [hash,signed]=await account.signTransaction(a.receiverId,[transactions.functionCall(a.methodName,a.args,BigInt(a.gas),0n)]);
       return {hash:utils.serialize.base_encode(hash),signedTxBase64:Buffer.from(signed.encode()).toString('base64')}}});
   const journal=new EvmJournal(resolve(data,'evm-settlement'));
   let stopped=false;process.once('SIGINT',()=>{stopped=true});process.once('SIGTERM',()=>{stopped=true});

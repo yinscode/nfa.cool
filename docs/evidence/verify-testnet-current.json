@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "tool": "npm run verify:testnet",
+  "checkedAt": "2026-11-14T18:38:07.195Z",
+  "readOnly": true,
+  "nearRpc": "https://test.rpc.fastnear.com",
+  "evmRpc": "https://sepolia.gateway.tenderly.co",
+  "registry": "nfagent-registry-0e9b2a.testnet",
+  "tokenId": "nfa-2",
+  "result": "pass",
+  "checks": [
+    {
+      "id": "vault.stable",
+      "result": "match",
+      "observed": "nfa-2.nfagent-registry-0e9b2a.testnet",
+      "expected": "nfa-2.nfagent-registry-0e9b2a.testnet"
+    },
+    {
+      "id": "sepolia-address.stable",
+      "result": "match",
+      "observed": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+      "expected": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9"
+    },
+    {
+      "id": "project.stable",
+      "result": "match",
+      "observed": "p0000000000000163",
+      "expected": "p0000000000000163"
+    },
+    {
+      "id": "owner.recorded",
+      "result": "changed",
+      "observed": "3b3960f01e584368c8b317260a484709684b1580bf88da345eabed58df39a18d",
+      "expected": "nfagent-alice-fe53d8.testnet",
+      "note": "ownership changed after the evidence; the epoch must have grown"
+    },
+    {
+      "id": "epoch.monotonic",
+      "result": "match",
+      "observed": 3,
+      "expected": ">= 2"
+    },
+    {
+      "id": "runtime.recorded",
+      "result": "changed",
+      "observed": "a8513acd137f37ce21a820e8d2e9b92b9712970e3c3710b41a4e26df06137588",
+      "expected": "578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe"
+    },
+    {
+      "id": "vault.controller",
+      "result": "match",
+      "observed": "nfagent-registry-0e9b2a.testnet",
+      "expected": "nfagent-registry-0e9b2a.testnet"
+    },
+    {
+      "id": "vault.evm-nonce",
+      "result": "match",
+      "observed": 2,
+      "expected": ">= 2 (two settled self-transfers)"
+    },
+    {
+      "id": "vault.keyless",
+      "result": "match",
+      "observed": 0,
+      "expected": 0
+    },
+    {
+      "id": "sepolia.finalized-nonce",
+      "result": "match",
+      "observed": 2,
+      "expected": ">= 2"
+    },
+    {
+      "id": "sepolia.nonce-0",
+      "result": "match",
+      "observed": {
+        "status": "0x1",
+        "from": "0xadfc9988d9a5ac351f7cad7fc46d99b270a374c9",
+        "nonce": 0,
+        "block": 12118352
+      },
+      "expected": {
+        "status": "0x1",
+        "from": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+        "nonce": 0,
+        "block": 12118352
+      }
+    },
+    {
+      "id": "sepolia.nonce-1",
+      "result": "match",
+      "observed": {
+        "status": "0x1",
+        "from": "0xadfc9988d9a5ac351f7cad7fc46d99b270a374c9",
+        "nonce": 1,
+        "block": 12118521
+      },
+      "expected": {
+        "status": "0x1",
+        "from": "0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9",
+        "nonce": 1,
+        "block": 12118521
+      }
+    }
+  ],
+  "trust": "Public RPC answers are trusted here; compare with another provider by setting NEAR_RPC_URL / EVM_RPC_URL."
+}

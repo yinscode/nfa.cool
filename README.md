@@ -208,14 +208,19 @@ NEAR AI and real testnet payments. These evidence levels are labeled separately.
 
 ## Hackathon scope and prior work
 
-The modular character generator and art assets began as earlier local work
-(`../nfa-generator`) and are treated as a baseline. The NEAR NFT registry,
-keyless vault, Chain Signatures identity, OutLayer service integration,
-ownership handover, accounting, SDK, Studio and testnet acceptance form the
-NEAR HACKATHON work. This standalone repository's Git history starts with an
-import on 12 November 2026; that import commit is not a pre-hackathon baseline
-tag. The subsequent local history and [milestones](docs/MILESTONES.md) record
-the NEAR integration work.
+Everything in this repository was built during the NEAR HACKATHON window
+(1–14 November 2026); there is no pre-hackathon baseline.
+
+- **Character generator and NFT artwork.** The modular generator (`generate.cjs`,
+  `prepare-assets.cjs`), its source atlases, trait assets and rendered characters were
+  created with Codex during the window, in a separate working folder (`../nfa-generator`).
+  Their file creation timestamps there are 10 November 2026, 20:42–21:13 (UTC+7). They were
+  imported into this repository on 12 November 2026.
+- **NEAR integration and product.** The NFT registry, keyless vault, Chain Signatures
+  identity, OutLayer services, NEAR AI Research, ownership handover, hiring, accounting, SDK,
+  REST/MCP agent interface, Studio, site and testnet acceptance were built in this
+  repository. Its Git history starts with that 12 November import, and the later commits
+  and [milestones](docs/MILESTONES.md) record the work.
 
 ### Built with
 

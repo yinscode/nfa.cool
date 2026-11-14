@@ -1,6 +1,6 @@
 # nfa.cool — own the whole agent
 
-**NFA means Non Fungible Agent: NF~~T~~ becomes NFA.** It is a transferable
+**NFA means Non Fungible Agent.** It is a transferable
 agent business on NEAR. Its NFT controls a stable
 vault, approved services, work history and unclaimed income. When the NFT is
 sold, the buyer takes over the same operating agent.

@@ -27,7 +27,6 @@ async function api(path,body){
 }
 const wallet=()=>config.readOnly?null:window.nfaWallet;
 function updateNetwork(){
-  $('network-badge').textContent=config.network==='sandbox'?'LOCAL SANDBOX':config.readOnly?'TESTNET · PUBLIC VIEW':'NEAR TESTNET';
   $('view-network').value=viewMode?'testnet':'workspace';
   $('network-detail').textContent=config.network==='sandbox'?(config.workspace?.persistent?'Persistent local chain · your NFAs survive restart':'Temporary local chain · restarting this older server resets its NFAs'):config.readOnly?'Live public chain reads in your browser · signing disabled':'Live testnet · transactions use testNEAR';
   const updated=import.meta.env.VITE_NFA_UPDATED_STUDIO_URL||'http://127.0.0.1:3102';

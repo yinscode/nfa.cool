@@ -21,7 +21,7 @@ export async function startWallet(){
       const data=await r.json();if(!r.ok)throw Error(data.error);return data};
     const adapter={get accountId(){return account},connect(){change(config.localSandbox.accounts[0])},async signOut(){change(null)},
       signAndSendTransaction:action=>post('/dev/wallet/transaction',{action}),signMessage:challenge=>post('/dev/wallet/message',{challenge})};
-    document.querySelector('footer').textContent='LOCAL SANDBOX · OutLayer mock · No real or testnet funds';
+    document.querySelector('footer').textContent='Demo workspace · OutLayer mock · No real or testnet funds';
     window.nfaWallet=adapter;window.dispatchEvent(new Event('nfa-wallet-changed'));return adapter;
   }
   const selector=await setupWalletSelector({network:'testnet',modules:[setupMyNearWallet()]});

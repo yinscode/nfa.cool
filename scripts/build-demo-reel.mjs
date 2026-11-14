@@ -40,7 +40,7 @@ try{
     const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><rect width="1280" height="720" fill="#f4f3ed"/>
       <g font-family="Arial,sans-serif"><text x="65" y="62" font-size="23" fill="#526d5e">nfa.cool / RELEASE EVIDENCE</text>
       <text x="65" y="150" font-size="52" fill="#223c32">${esc(title)}</text>${content}
-      <rect y="659" width="1280" height="61" fill="#244b3c"/><text x="45" y="700" font-size="22" fill="white">LOCAL SANDBOX / OUTLAYER MOCK / NO REAL OR TESTNET FUNDS</text></g></svg>`;
+      <rect y="659" width="1280" height="61" fill="#244b3c"/><text x="45" y="700" font-size="22" fill="white">LOCAL DEMO / OUTLAYER MOCK / NO REAL OR TESTNET FUNDS</text></g></svg>`;
     const file=join(directory,`${index}.png`);await sharp(Buffer.from(svg)).png().toFile(file);frames.push(file);
     if(index===4){
       const shot=sharp('docs/release-buyer-profile.jpg'),metadata=await shot.metadata();

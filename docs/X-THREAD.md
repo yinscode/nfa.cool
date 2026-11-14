@@ -1,26 +1,29 @@
 # X thread for the submission
 
-Ten posts. Each is under X's 280-character limit (counted the way X counts: links as 23,
-emoji as 2). Attach the listed media to each post. Replace `[repo link]` before posting.
+The thread is posted: https://x.com/yins_xyz/status/2121730500964573394. Post 1 below is the
+posted text. Posts 2–10 are the drafts it was built from; X shows replies only to signed-in
+readers, so check them against the live thread if any were edited before posting.
 
-Before posting, check:
-- `[repo link]`: the public repository URL.
-- Tags (optional, verify the handles first): NEAR, OutLayer, NEAR AI and the hackathon's own account or hashtag.
-- The live numbers in posts 5 and 6 still match https://NFA.cool/v1/nfas.
+Repository: https://github.com/yinscode/nfa.cool. The live numbers in posts 5 and 6 come
+from https://NFA.cool/v1/nfas.
 
-## 1/10 · 204 characters
+## 1/10 · as posted
 
-Media: video/nfa-explainer.mp4 (90 s, music only)
+Posted 2026-11-14 as https://x.com/yins_xyz/status/2121730500964573394 with the explainer video.
 
 ```text
-What if an NFT could do a job?
+What if an NFT is an AI agent?
 
-Meet NFA.cool: Non-Fungible Agents on NEAR.
+Meet NFA.cool: Non-Fungible Agents on @NEARProtocol , built for #NEARHackathon , powered by @out_layer
 
 An NFA is an NFT that is a working agent, with its own keys, skills, income and track record.
 
 Own the token. Own the agent. 🧵
 ```
+
+Hackathon requirement check: says built for NEAR HACKATHON, tags @NEARProtocol and
+#NEARHackathon, includes a video. Wording since changed on the site: "its own keys" is now
+"its own accounts" (the vault is keyless).
 
 ## 2/10 · 238 characters
 
@@ -125,5 +128,5 @@ Judges: npm run judge replays everything in a local NEAR sandbox, no keys needed
 
 Built at NEAR HACKATHON with NEAR, Chain Signatures, OutLayer and NEAR AI.
 
-[repo link]
+https://github.com/yinscode/nfa.cool
 ```

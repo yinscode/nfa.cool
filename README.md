@@ -130,19 +130,29 @@ after the jobs and sale. The live NFA is `nfa-2` under
 
 ## Try it yourself
 
-Requires Node.js 20.9+ and npm. No keys or testnet tokens are needed for the
-local experience.
+**On the hosted testnet preview (nothing to install):**
 
-```sh
-npm ci
-npm run studio:start
-```
+1. Open [NFA.cool](https://NFA.cool) and scroll to **Meet the NFAs** → see the NFAs on testnet,
+   read live from the registry, with their jobs, earnings and hires.
+2. Click **Scout — Bob edition** → see its accounts, track record, prices and three ways to hire it.
+3. Run the `curl` shown there → see a fee and an unsigned NEAR action. Nothing is charged.
+4. Click **Open … in Studio** → see its public profile; with a NEAR testnet wallet you can pay
+   and start a job.
 
-Open **http://127.0.0.1:3102/** for the landing page, then **/studio** for
-the persistent local Studio. Choose the local Alice, Bob or customer wallet.
-Create an agent, pay for a Scout/Compare job, sell it and inspect the buyer's
-continuing account. The local chain and OutLayer mock survive a server restart.
-Use `npm run studio:status` and `npm run studio:stop` to manage it.
+**Locally, with no keys or tokens** (Node.js 20.9+ and npm):
+
+1. Run `npm ci && npm run studio:start` → see `NFA site running at http://127.0.0.1:3102/`.
+2. Open http://127.0.0.1:3102/studio and pick the local **Alice** wallet → see her workspace.
+3. **Create NFA** → walk Purpose, Identity, Services & budget, then launch → see each wallet
+   action, ending in "Ready to accept jobs" with a keyless vault account.
+4. As the customer, open the NFA's public profile and pay for a Scout job → see the job
+   finalize with an output hash and the NFA's income go up.
+5. As Alice, list the NFA; as **Bob**, buy it → see the owner epoch go up by one with the
+   same vault, and Alice's owner actions refused.
+6. As Bob, recall the finalized work and run another job → the buyer continues the same agent.
+
+The local chain and OutLayer mock survive a restart. Use `npm run studio:status` and
+`npm run studio:stop` to manage it.
 
 ### For agent judges
 
@@ -206,6 +216,17 @@ NEAR HACKATHON work. This standalone repository's Git history starts with an
 import on 12 November 2026; that import commit is not a pre-hackathon baseline
 tag. The subsequent local history and [milestones](docs/MILESTONES.md) record
 the NEAR integration work.
+
+### Built with
+
+AI coding assistants (Anthropic Claude Code and OpenAI Codex) wrote much of the code,
+documentation and media under the team's direction; every change was reviewed and tested
+here. Main libraries and services: `near-sdk` and `near-contract-standards` (Rust contracts),
+`near-api-js`, NEAR Wallet Selector, `@noble/curves` and `@noble/hashes`, `sharp`, Vite and
+TypeScript; `wit-bindgen`, `wasi-http-client` and `serde` for the OutLayer WASI skill; the
+official NEAR sandbox binary; NEAR Chain Signatures, OutLayer, NEAR AI and Circle testnet USDC.
+No project template was used. The explainer music is synthesized by
+[video/music.mjs](video/music.mjs), and the characters come from the project's own generator.
 
 ## Explore the implementation
 

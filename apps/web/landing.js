@@ -82,10 +82,11 @@ dialog.addEventListener('click',e=>{if(e.target===dialog||e.target.closest('[dat
 
 fetch('/v1/nfas',{headers:{accept:'application/json'}}).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(data=>{
   items=data.items||[];
-  grid.innerHTML=items.map(card).join('')+`<a class="nfa-card nfa-create" href="/studio"><span class="nfa-portrait"><span>+</span></span>
+  // The create card fills an empty slot in the last row; the CTA row below always offers it.
+  grid.innerHTML=items.map(card).join('')+(items.length%3===0&&items.length?'':`<a class="nfa-card nfa-create" href="/studio"><span class="nfa-portrait"><span>+</span></span>
     <strong class="nfa-name">${items.length?'Yours could be next.':'Create the first NFA.'}</strong>
     <span class="nfa-stats">Purpose → Identity → Services &amp; budget → Review &amp; launch</span>
-    <span class="nfa-open">Open NFA Studio <span aria-hidden="true">↗</span></span></a>`;
+    <span class="nfa-open">Open NFA Studio <span aria-hidden="true">↗</span></span></a>`);
   grid.setAttribute('aria-busy','false');
   const linked=items.findIndex(item=>'#'+item.tokenId===location.hash);if(linked>=0)show(linked);
 }).catch(()=>{grid.setAttribute('aria-busy','false');

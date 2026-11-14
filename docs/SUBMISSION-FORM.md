@@ -27,7 +27,7 @@ Each repository can be submitted only once.
 | Lead name | *(yours)* |
 | Email | *(yours)* |
 | Team size | *(yours)* |
-| Tracks | `nfts` (NFTs That Do Something), `agents` (Agent Economy), `business` (Autonomous Business) |
+| Tracks | `nfts` (NFTs That Do Something) |
 | Mainnet NEAR payout account | *(yours: a mainnet account, not testnet)* |
 | Repository | https://github.com/yinscode/nfa.cool |
 | Demo post | https://x.com/yins_xyz/status/2121730500964573394 |

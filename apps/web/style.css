@@ -7,3 +7,63 @@ textarea{display:block;width:100%;border:1px solid #cfdcd0;border-radius:10px;pa
 
 .collection-avatar{width:76px;height:76px;object-fit:contain;border-radius:12px;float:right;margin:0 0 10px 10px}.collection-card{overflow:auto}
 .brand{color:inherit;text-decoration:none}
+
+/* ---- Studio polish: theme-aligned controls and layout (docs/THEME.md) ---- */
+main{max-width:1120px}
+button{border-radius:100px;padding:11px 18px;font-weight:700;transition:background .15s,transform .15s,box-shadow .15s}
+button:not(:disabled):hover{filter:brightness(.94)}
+button:not(:disabled):active{transform:translateY(1px)}
+.secondary{background:#e8f2e6;color:#204b38}
+.secondary:not(:disabled):hover{background:#d8ead4}
+button:focus-visible,a:focus-visible{outline:3px solid #8acb87;outline-offset:2px}
+nav{gap:4px}
+nav button{padding:9px 15px}
+nav button:not(.active):not(.secondary):hover{background:#eef3ea;color:#204b38}
+#wallet{display:inline-flex;align-items:center;gap:7px;background:#f1f4ee;border-radius:100px;padding:7px 12px;font-weight:600}
+#wallet:before{content:'';width:7px;height:7px;border-radius:50%;background:#c3cec0}
+/* Form controls */
+input,textarea,select{border:1px solid #d3ddd1;border-radius:12px;background-color:#fffefa;transition:border-color .15s,box-shadow .15s}
+input:hover,textarea:hover,select:hover{border-color:#a9c5ae}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#5d9a75;box-shadow:0 0 0 4px #8acb8733}
+select{-webkit-appearance:none;appearance:none;cursor:pointer;font-weight:600;padding-right:42px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23204b38' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:15px}
+select:disabled{cursor:not-allowed;opacity:.6}
+select option{font-weight:500;color:#1f3029}
+input[type=radio],input[type=checkbox]{accent-color:#204b38}
+label{color:#3f5247}
+/* Network strip: compact pill selector */
+.network-strip{background:#edf2ea}
+.network-strip label{font-weight:700;color:#3f5247}
+.network-strip select{width:auto;min-width:220px;border-radius:100px;padding:7px 36px 7px 14px;background-position:right 12px center;background-size:13px;background-color:#fffefa;border-color:#cfdccd}
+/* Page intros: one consistent scale */
+.intro h1,.compact-intro h1{font-size:clamp(28px,3.2vw,38px);line-height:1.1}
+.intro{margin-bottom:24px}
+/* Studio home */
+.studio-top{align-items:center}
+.studio-top>div:last-child{background:#f4f7f1;border:1px solid #e2e9df;border-radius:18px;padding:16px 18px}
+.studio-top>div:last-child label{margin-top:0}
+.card .row{justify-content:space-between;align-items:center}
+.card .row h2{margin:0}
+.cards{gap:16px}
+.collection-card{background:#fffefa;transition:box-shadow .2s,transform .2s}
+.collection-card:hover{box-shadow:0 14px 34px #204b3814;transform:translateY(-2px)}
+.collection-card h3{font-family:Manrope,'Helvetica Neue',Inter,sans-serif;letter-spacing:-.03em;margin-bottom:6px}
+.collection-card .small{display:inline-block;margin-right:6px}
+.owner-line{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+.collection-avatar{background:#f3e8ee;border-radius:16px}
+/* Profile: search row and key/value lists */
+.search{align-items:center}
+.search button{white-space:nowrap}
+.kv{grid-template-columns:150px minmax(0,1fr);row-gap:10px}
+.kv dt{font-size:13px}
+.kv dd{font-size:13px;overflow-wrap:anywhere;word-break:normal}
+/* Wizard */
+.wizard-steps button{border-radius:100px}
+.purpose-card{transition:border-color .15s,background .15s}
+.purpose-card:hover{border-color:#a9c5ae}
+details.card summary{list-style:none;display:flex;align-items:center;gap:8px}
+details.card summary:before{content:'';width:8px;height:8px;border-right:2px solid #5d9a75;border-bottom:2px solid #5d9a75;transform:rotate(-45deg);transition:transform .2s}
+details.card[open] summary:before{transform:rotate(45deg)}
+@media(max-width:750px){.network-strip select{min-width:0;width:100%}.kv{grid-template-columns:110px minmax(0,1fr)}}
+.profile-character{max-width:132px}.profile-identity .kv{clear:both;padding-top:6px}

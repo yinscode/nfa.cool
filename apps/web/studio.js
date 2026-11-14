@@ -216,7 +216,7 @@ export function startStudio({api,wallet,signed,config={}}){
     try{const page=await api('/studio/discover?from='+browseFrom);
       for(const n of page.items){const card=document.createElement('article');card.className='collection-card';
         const art=showArt({publicCharacter:n.publicCharacter});
-        card.innerHTML=`${art?`<img class="collection-avatar" src="${escape(art)}" alt="NFA character">`:''}<h3>${escape(n.displayName||n.tokenId)}</h3><span class="small">${escape(n.tokenId)}</span><span class="badge">${escape(n.lifecycle)}</span><p>${escape(n.setupStatus||'Inspect setup')}</p><p class="small">Owner ${escape(n.ownerAccountId)}</p><div class="actions"><button data-open>Manage / inspect</button><button class="secondary" data-profile>Public profile</button></div>`;
+        card.innerHTML=`${art?`<img class="collection-avatar" src="${escape(art)}" alt="NFA character">`:''}<h3>${escape(n.displayName||n.tokenId)}</h3><span class="small">${escape(n.tokenId)}</span><span class="badge">${escape(n.lifecycle)}</span><p>${escape(n.setupStatus||'Inspect setup')}</p><p class="small owner-line" title="${escape(n.ownerAccountId)}">Owner ${escape(n.ownerAccountId.length>28?n.ownerAccountId.slice(0,10)+'…'+n.ownerAccountId.slice(-6):n.ownerAccountId)}</p><div class="actions"><button data-open>Manage / inspect</button><button class="secondary" data-profile>Public profile</button></div>`;
         card.querySelector('[data-open]').onclick=()=>{$('studio-token').value=n.tokenId;load()};
         card.querySelector('[data-profile]').onclick=()=>window.dispatchEvent(new CustomEvent('nfa-profile',{detail:n.tokenId}));$('studio-discovered').append(card);
       }

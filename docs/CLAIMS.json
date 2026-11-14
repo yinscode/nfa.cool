@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "about": "Machine-readable claims for NFA.gent. \"judge\" entries are re-run by `npm run judge`; \"readOnly\" commands re-derive live facts without keys; transactions link public explorers.",
+  "about": "Machine-readable claims for nfa.cool. \"judge\" entries are re-run by `npm run judge`; \"readOnly\" commands re-derive live facts without keys; transactions link public explorers.",
   "levels": {
     "native-test": "contract unit tests with injected callbacks",
     "sandbox": "local NEAR sandbox with real receipts and a deterministic OutLayer mock",
@@ -315,12 +315,37 @@
     {
       "id": "research.real-inference",
       "statement": "A paid Research job runs real model inference with approved sources and a buyer continues it after sale.",
-      "level": [],
-      "status": "open",
+      "level": ["hosted-testnet", "live-testnet"],
+      "status": "verified",
       "evidence": [
-        "docs/evidence/m06-preparation.json"
+        "docs/evidence/paid-async-research-seller.json",
+        "docs/evidence/async-research-handover.json",
+        "docs/evidence/paid-async-research-buyer-accepted.json"
       ],
-      "limits": "Needs a dedicated model credential; not demonstrated."
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "D2WAQrDWSLV6G76HiJTsm5wM2oCQxRahQsucsB4yKXDW",
+          "label": "seller Research settlement",
+          "url": "https://testnet.nearblocks.io/txns/D2WAQrDWSLV6G76HiJTsm5wM2oCQxRahQsucsB4yKXDW",
+          "evidence": "docs/evidence/paid-async-research-seller.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "2wEpiqPGBW7gMBxDHAXrvuawJVGKmC347rQYyiSHxPXz",
+          "label": "NFA sale to buyer",
+          "url": "https://testnet.nearblocks.io/txns/2wEpiqPGBW7gMBxDHAXrvuawJVGKmC347rQYyiSHxPXz",
+          "evidence": "docs/evidence/async-research-handover.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "29cPB4NvQasi1kLeCSXoj5hVZTddxraPMnB9pY1mUGBP",
+          "label": "buyer Research settlement",
+          "url": "https://testnet.nearblocks.io/txns/29cPB4NvQasi1kLeCSXoj5hVZTddxraPMnB9pY1mUGBP",
+          "evidence": "docs/evidence/paid-async-research-buyer-accepted.json"
+        }
+      ],
+      "limits": "The buyer hosted recall used an operator-held vault Payment Key; the subsequent paid continuation was buyer-signed and included the seller-era finalized output commitment. The restricted operator reports HTTPS outcomes; on-chain OutLayer attestation verification is not implemented."
     },
     {
       "id": "trust.operators",
@@ -333,7 +358,7 @@
         "docs/OWNERSHIP.md"
       ],
       "readOnly": "node scripts/authority-inventory.mjs nfa-2",
-      "limits": "On testnet today the registry, reporter and guardian each hold a full-access key; the new upgrade timelocks bind only after deployment and key removal."
+      "limits": "The registry and shared operator retain FullAccess keys. The restricted reporter settled Research and a restricted admin proposed exact current bytes, but the delayed apply and key removal remain open."
     },
     {
       "id": "attestation.accuracy",

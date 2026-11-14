@@ -14,16 +14,17 @@ the seller's personal credentials.
 | --- | --- | --- | --- |
 | Scout | Question and supplied source text/URLs | Extractive, cited brief and content hash | Hosted testnet passed; REST quote and wallet checkout |
 | Compare | Question, criteria and supplied option texts | Ranked evidence coverage and content hash | Hosted testnet passed in the same OutLayer Project |
-| Research | Question and approved source title/HTTPS URL records | Retrieved-source/model report committed in encrypted memory | Typed adapter and WASI implemented; hosted no-key check passed; real inference pending |
+| Research | Question and approved source title/HTTPS URL records | Retrieved-source/model report committed in encrypted memory | Seller and buyer paid model jobs finalized on testnet; exact guest verified in local catalog |
 | Monitor | Allowlisted targets, condition, duration | Scheduled alerts and evidence receipts | Design; needs recurring job scheduler and prepaid budget |
 | Curator | Items and scoring policy | Ranked collection with provenance | Design; separate guest, fee and output schema |
 | Analyst | Uploaded dataset and bounded query | Reproducible report | Design; private data policy and size limits needed |
 | Concierge | Explicit allowed API adapter and task | Receipt for an approved action | Design; credential handoff and permissions needed |
 | Treasury watcher | Vault and asset watch rules | Read-only risk or balance report | Design; never grant a reporting service spend access |
 
-The active testnet component retains Scout/Compare and adds a candidate Research
-handler. Research public quotes remain gated until real inference and buyer
-continuation pass; see [RESEARCH-ACCEPTANCE.md](RESEARCH-ACCEPTANCE.md). Discovery advertises
+The active testnet component retains Scout/Compare and adds a verified Research
+handler. A local REST quote against the live registry reports Research available
+with a configured policy and vault Payment Key; public hosting remains deferred.
+See [RESEARCH-ACCEPTANCE.md](RESEARCH-ACCEPTANCE.md). Discovery advertises
 any service, Scout included, as callable only when the owner configures its
 on-chain policy and the API has a matching quote policy. Paid jobs run with the
 policy's resource limits exactly and an execution deposit of at least 0.001 NEAR;
@@ -160,6 +161,11 @@ other asset payment adapters, royalties and additional chains separate in separa
 testnet acceptance; these adapters are still separate work.
 
 ## Optional x402 checkout after the NEAR funded path
+
+The separate direct NEP-141 checkout, 1Click quote adapter, and NFA-income hiring
+implementation are tracked in [PAYMENT-AND-HIRING.md](PAYMENT-AND-HIRING.md).
+NFA hiring and direct Circle testnet USDC checkout have live acceptance receipts.
+The Intents checkout path remains local code only and has no live payment receipt.
 
 The x402 v2 `exact` NEAR scheme lets a payer authorize one NEP-141
 `ft_transfer` with a NEP-366 signed delegate action; a configured facilitator

@@ -1,6 +1,7 @@
-# NFA.gent — review brief for Claude
+# nfa.cool — review brief for Claude
 
-Snapshot: 12 November 2026. Code baseline: `a4ba743` on local `main`.
+Updated status: 15 November 2026. Original review baseline: 12 November 2026,
+`a4ba743` on local `main`.
 Repository: `/Users/user/000/_N/nfa`.
 
 ## What NFA is
@@ -56,11 +57,11 @@ changes increment an epoch, invalidating old scoped grants and app sessions.
 - **Scout:** deterministic cited findings from supplied text. **Compare:**
   deterministic evidence-coverage comparison of supplied options. Neither is a
   browsing or LLM service.
-- **Research candidate:** distinct typed retrieval/inference adapter, approved
+- **Research verified guest:** distinct typed retrieval/inference adapter, approved
   HTTPS sources, bounded model calls, runtime-bound secret references, durable
   attempt reservation and finalized prior-work context. Its HTTP-capable WASI
-  component runs on OutLayer, but actual hosted retrieval/model inference has
-  not yet passed end-to-end acceptance.
+  component runs on OutLayer. Paid seller and buyer model jobs finalized on
+  testnet after an NFT sale; the restricted operator reports hosted results.
 - Separate accounting for native NEAR escrow, execution replenishment, refunds,
   service earnings, NFT seller proceeds and configured USD model allowances.
   Model usage pricing is not a provider invoice; net profit is not asserted.
@@ -74,21 +75,22 @@ changes increment an epoch, invalidating old scoped grants and app sessions.
 | M03 — typed research integration | Contracts, SDK/API and configuration/secret bindings implemented. Exact prior registry bytes and old-vault upgrade compatibility rehearsed before deployment. |
 | M04 — WASI runtime | Built and pinned. Six native guest tests pass. Hosted Scout/Compare outputs match reviewed codecs; runtime/input/report-data bindings and actual OutLayer compute charges checked. |
 | M05 — memory and billing | Isolated NEAR receipt tests passed with a deterministic OutLayer fixture: sale, seller denial, buyer recall, finalized-only context, unknown-result refund/resume and separate ledgers. This fixture is not a hosted model/TEE test. |
-| M06 — real paid research/demo | **Partial.** Registry/vault upgraded; new component active on the same Project. Hosted no-key job returned `NOT_STARTED`, credited the full customer NEAR refund, and resumed through explicit owner action. Scout/Compare and recall of pre-sale Scout work passed under the new runtime. Real research inference and its buyer continuation remain open. |
+| M06 — real paid research/demo | Paid seller job `48` and buyer job `51` finalized with priced NEAR AI inference; the vault, Sepolia address and Project UUID persisted through sale. Bob's hosted recall matched seller work and his signed paid job included its finalized commitment. A labeled live receipt replay is available. Public hosting and the delayed restricted admin apply remain open. |
 
-Current checks: **70 JavaScript tests, 42 registry tests, 15 vault tests and six
+Current checks: **98 JavaScript tests, 88 registry tests, 26 vault tests and eight
 guest tests**, plus web/SDK builds, upgrade rehearsal and receipt integrations.
 Distinguish these evidence levels rather than treating every pass as live
-acceptance. Implementation and evidence changes are committed locally.
+acceptance. Live receipts and release artifacts are in this checkout; inspect
+the current Git status before assuming a commit contains them.
 
-Current live identity, as captured in `docs/evidence/m06-preparation.json`:
+Current live identity, as captured in the seller/buyer Research receipts:
 
 | Field | Value |
 | --- | --- |
 | Registry | `nfagent-registry-0e9b2a.testnet` |
 | NFT | `nfa-2` |
 | Vault | `nfa-2.nfagent-registry-0e9b2a.testnet` |
-| Owner / epoch | `nfagent-alice-fe53d8.testnet` / `2` |
+| Owner / epoch | Bob `3b3960f0…a18d` / `3` |
 | OutLayer UUID | `p0000000000000163` |
 | Sepolia address | `0xADfC9988d9A5ac351F7Cad7fc46D99B270A374c9` |
 
@@ -98,9 +100,9 @@ one-use vault must not be funded. Local sandbox `nfa-2` is a different instance.
 
 ## What happens next
 
-1. Supply a dedicated model credential, provider (`near-ai` or `openai`) and
-   reviewed model ID in the ignored `.env.research` file. No model key is
-   currently configured. Check provider rates before pricing real inference.
+1. Diagnose the two OutLayer `resolve_execution` failures documented in
+   `docs/evidence/m06-real-model-attempts.json`. The dedicated NEAR AI key,
+   model and encrypted profile are configured privately.
 2. Run an actual paid Research job in the vault-owned Project. Verify source
    quotations, model usage, native compute charges, output commitment and memory.
 3. Sell the NFT, reject the previous owner's commands, recall eligible research

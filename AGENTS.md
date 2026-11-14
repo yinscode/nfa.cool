@@ -1,4 +1,4 @@
-# AGENTS.md — evaluating NFA.gent
+# AGENTS.md — evaluating nfa.cool
 
 **What it is.** An NFA is an NFT that controls a persistent agent account. That account
 includes a NEAR vault, a Chain Signatures Sepolia address, a vault-owned OutLayer Project
@@ -24,7 +24,7 @@ any failure. Each step re-derives a claim locally:
 | `unit-js` | Workers, API, SDK, settlement, locks, claims-ledger consistency | Node 20.9+ |
 | `contracts-*` | Native registry and vault tests: callbacks, races, recovery, timelocks | `cargo` (skipped if missing) |
 | `prebuilt-wasm` | The committed WASMs in `judge/wasm` match their manifest | — |
-| `sandbox` | Keyless vault, paid Scout, sale, former owner refused, transfer-call rollback, payouts | NEAR sandbox |
+| `sandbox` | Keyless vault, paid Scout, sale, capped delegated NFA hiring, former owner refused, transfer-call rollback, payouts | NEAR sandbox |
 | `recovery` | No customer or delegate can freeze an NFA; slot pricing, refunds, liabilities | NEAR sandbox |
 | `research` | Memory survives sale; only finalized work enters context; separate ledgers | NEAR sandbox |
 | `rehearsal` | New code upgrades actual prior deployed bytes, preserving state | NEAR sandbox |
@@ -90,20 +90,35 @@ The judge marks each claim `verified` only when all of its checks ran and passed
 - the EVM reporter and its RPC quorum;
 - OutLayer's attestation, which proves the code and input, not factual accuracy.
 
-On testnet today, the registry, reporter and guardian each hold a full-access key.
+On testnet today, the registry and shared operator account still hold
+FullAccess keys. Receiver-specific reporter, maintenance and guardian
+FunctionCall keys and a restricted registry admin key have been tested. The
+restricted reporter settled both paid Research jobs. The admin key proposed
+the exact current registry bytes; its public 48-hour apply delay ends at the
+time recorded in `docs/evidence/restricted-self-upgrade-scheduled.json`.
+The old keys await a successful delayed apply before removal.
 
-**Not shipped yet:**
+**Release status:**
 
-- the fixes from the 2026-11-12 review are not deployed to testnet;
-- Research with a real model is not demonstrated;
+- the reviewed fixes are deployed; see `docs/evidence/reviewed-testnet-rollout.json`
+  and `docs/evidence/reviewed-security-regressions.json`;
+- capped NFA-to-NFA hiring is deployed and has a paid hosted Scout receipt; see
+  `docs/evidence/hiring-testnet-rollout.json` and `docs/evidence/hiring-testnet-acceptance.json`;
+- direct FT checkout has live Circle testnet USDC payment, completed-job and refund receipts;
+- Intents checkout has local mocked-finality tests but no live payment;
+- Research seller and buyer jobs completed with real NEAR AI inference and
+  priced usage; the registry trusts the restricted HTTPS reporter and does not
+  verify an OutLayer attestation on-chain;
 - no public hosting;
 - no payment to an external Sepolia recipient (only self-transfers).
 
 ## Do not
 
 - Do not use files under `deployments/` or `.data/`: they hold local keys and signed journals.
-- Do not run `scripts/m0*-*.mjs`, `studio-testnet.mjs` or `settle-evm.mjs --send`: they write
-  to testnet with operator keys. Everything above is read-only or sandboxed.
+- Do not run `scripts/m0*-*.mjs`, `scripts/rollout-reviewed-testnet.mjs`,
+  `scripts/reviewed-security-regressions.mjs`, `studio-testnet.mjs` or
+  `settle-evm.mjs --send` during a read-only evaluation: they write to testnet.
+  Everything in the verification commands above is read-only or sandboxed.
 
 More: `README.md`, `docs/reviews/2026-11-12-claude-review.md` (independent review and fix status),
 `docs/DEMO-SCRIPT.md` (text walkthrough of the recorded demo).

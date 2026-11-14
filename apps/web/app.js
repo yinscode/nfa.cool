@@ -1,3 +1,4 @@
+import '@near-wallet-selector/modal-ui/styles.css';
 import {legacyWorkspaceRedirect} from './workspace-redirect.mjs';
 try{
   const response=await fetch('/config');if(!response.ok)throw Error('Workspace configuration is unavailable');

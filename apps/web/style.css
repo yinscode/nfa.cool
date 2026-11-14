@@ -6,3 +6,4 @@ textarea{display:block;width:100%;border:1px solid #cfdcd0;border-radius:10px;pa
 @media(max-width:800px){.wizard-layout{grid-template-columns:1fr}.wizard-preview{position:static;grid-row:1;padding:14px}.wizard-preview .art{max-width:150px}.wizard-preview h2{font-size:17px}.wizard-steps{overflow-x:auto}.wizard-steps button{white-space:nowrap}.network-strip{flex-direction:column;align-items:stretch;gap:8px}.network-strip label{justify-content:space-between}header nav{order:3;width:100%}header{height:auto;min-height:76px;flex-wrap:wrap;padding-top:14px;padding-bottom:14px}}
 
 .collection-avatar{width:76px;height:76px;object-fit:contain;border-radius:12px;float:right;margin:0 0 10px 10px}.collection-card{overflow:auto}
+.brand{color:inherit;text-decoration:none}

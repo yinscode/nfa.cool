@@ -1,5 +1,11 @@
 # NFA independent review — 2026-11-12
 
+Historical review snapshot. The later paid Research acceptance, buyer
+continuation, restricted reporter and testnet recovery rollout are recorded in
+[Research acceptance](../RESEARCH-ACCEPTANCE.md) and
+[submission status](../SUBMISSION.md). Findings and test counts below describe
+the 12 November baseline unless a later fix note says otherwise.
+
 Baseline `dbba27f` (code `a4ba743`). Review only: nothing deployed, signed or funded; no keys,
 `.env.research` or signed journals were opened. Contracts and WASI guest reviewed line by line.
 Off-chain services were reviewed by a second pass, and its key claims were spot-checked.
@@ -581,3 +587,23 @@ Validation: `npm run build` and all ten steps of `npm run judge` passed locally
 The sandbox also passed memory/billing, handover, prior-bytecode upgrade and MCP
 create/hire/sell acceptance. Updated judge WASMs were built from this source.
 No testnet transactions were sent for this follow-up.
+
+## Codex deployment follow-up — 2026-11-13
+
+The statement above is the historical status of the local fix review. The
+reviewed registry and both vaults are now deployed on testnet. A one-time
+liability migration initialized **0.11580012 NEAR** from prior income and
+payout rows. A sandbox upgrade from the exact prior testnet registry also
+included nonzero pending escrow, earnings, refund and seller credits. The
+rebuilt guest is pinned to hash `578af9bf7adb3a8d40b749ece673b8a8f25d777f7ed2c881a294628f4e3a7dfe`.
+
+Live regression receipts cover duplicate release rejection after a full
+hosted refund and stale owner vault-upgrade approval after a sale; the latter
+returned `false`, left code unchanged, and the proposal was canceled. Fresh
+Scout/Compare jobs and a recall of older work passed on the same Project.
+See [rollout](../evidence/reviewed-testnet-rollout.json),
+[regressions](../evidence/reviewed-security-regressions.json) and
+[hosted checkpoint](../evidence/m06-reviewed-preparation.json). Real model-backed
+Research and buyer continuation remain open pending a dedicated near-ai
+credential and model ID. FullAccess keys remain until the delayed apply path
+is completed with restricted authority.

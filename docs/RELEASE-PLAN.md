@@ -1,6 +1,11 @@
 # NFA release work — six milestones
 
-Started 2026-11-12. This is the execution checklist for the six approved next
+Started 2026-11-12. Updated 2026-11-15: M01–M06 acceptance passed, including
+two paid real-model Research jobs across the NFA sale and a labeled testnet
+evidence replay. Public hosting remains deferred. A restricted registry
+administration proposal is waiting for its 48-hour apply gate; FullAccess
+keys remain until that rehearsal finishes. The task notes below preserve
+their original checkpoint wording. This is the execution checklist for the six approved next
 steps. The original T001–T043 acceptance criteria remain authoritative; an
 implementation check does not stand in for a hosted or wallet acceptance check.
 
@@ -8,10 +13,10 @@ implementation check does not stand in for a hosted or wallet acceptance check.
 | --- | --- | --- | --- |
 | R001 | T024, T035–T036 | Stable deployable web/API, durable data, readiness, public origin and external-wallet acceptance | Deferred by user; deployment code retained |
 | R002 | T004, T011–T015, T034 | Restart-safe Sepolia submission/reporter worker, holdings and complete transfer acceptance | Live Sepolia/NEAR handover acceptance passed; reporter remains trusted |
-| R003 | T016–T020 | Bounded research skill, reviewed retrieval/inference, eligible memory continuity and paid execution | Typed contracts/SDK/API, pinned WASI and local memory/billing acceptance complete; hosted legacy probe passed; real model/transfer acceptance remains |
+| R003 | T016–T020 | Bounded research skill, reviewed retrieval/inference, eligible memory continuity and paid execution | Two paid hosted Research jobs finalized across sale; buyer recall and prior-work continuation verified; reporter trust disclosed |
 | R004 | T021–T024, T042 | Versioned service package, validator, REST/OpenAPI and runnable SDK example | Implemented; local create/pay/resume verified |
 | R005 | T019, T027, T032, T035 | Revenue/cost/reserve/withdrawable views and buyer inventory | Implemented; browser and receipt checks passed |
-| R006 | T037–T038 | Reproducible judge demo, evidence manifest, architecture and submission material | Draft/local replay complete; next recording uses local Studio with live testnets |
+| R006 | T037–T038 | Reproducible judge demo, evidence manifest, architecture and submission material | Local replay and labeled live testnet receipt replay complete; continuous wallet recording deferred |
 
 ## Active scope after deferring public hosting
 

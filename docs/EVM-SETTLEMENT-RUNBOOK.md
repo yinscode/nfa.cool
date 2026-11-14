@@ -1,12 +1,14 @@
 # Sepolia submission and recovery
 
 Set `NEAR_RPC_URL`, `NFA_REGISTRY_ID`, `EVM_RPC_URL`,
-`NFA_SETTLEMENT_REPORTER_ACCOUNT_ID`, `NFA_SETTLEMENT_REPORTER_KEY_FILE` and
-`NFA_DATA_DIR`. The key file has the standard NEAR `account_id`/`secret_key`
-shape, stays private and must match the vault's configured reporter. No key is
-accepted from an HTTP customer. Give the reporter a FunctionCall access key limited to
-`mark_evm_broadcast`, `reconcile_evm` and `report_evm_receipt`, never a full-access key
-(`node scripts/authority-inventory.mjs nfa-2` reports it). Reporter signing is serialized
+`NFA_SETTLEMENT_REPORTER_ACCOUNT_ID`, `NFA_SETTLEMENT_REPORTER_KEY_DIR` and
+`NFA_DATA_DIR`. The private directory contains one registry key and one vault
+key per token, each limited to its exact receiver and methods. The settler
+checks live access-key permissions before signing. No key is accepted from an
+HTTP customer. Three restricted reporter keys were verified on testnet; the
+shared operator FullAccess key remains until the delayed registry apply path
+is exercised ([reporter evidence](evidence/reporter-restriction.json),
+[guardian evidence](evidence/guardian-restriction.json)). Reporter signing is serialized
 per account with a pid lock, so concurrent settlers cannot collide on one access-key nonce.
 
 Set `EVM_RPC_URLS` to several independent Sepolia providers, comma-separated. Every one

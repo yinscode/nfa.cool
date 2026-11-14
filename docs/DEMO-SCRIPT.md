@@ -32,10 +32,22 @@ testNEAR of earnings from 0.0448 testNEAR of customer fees, with 0.0048 testNEAR
 of execution replenishment. Those are **local NEAR receipts with an OutLayer
 mock**, not new hosted OutLayer or Sepolia evidence.
 
-Run `npm run demo:reel` to regenerate the 42-second labeled
+Run `npm run demo:reel` to regenerate the 42-second labeled **local**
 [evidence walkthrough](release-evidence-walkthrough.mp4) from those recorded
 results and the actual browser capture. It requires `ffmpeg` and the project's
 existing Node dependencies.
+
+## Reproduce the live Research evidence replay
+
+`node scripts/build-live-research-demo.mjs` generates the 42-second
+[testnet evidence replay](research-live-evidence-replay.mp4) from finalized
+public receipts. It shows create → customer payment → real model output and
+earnings → sale → Bob's recall and next paid Research job. Each frame names
+the source transaction or output commitment. It is an assembled receipt
+replay, not a continuous wallet recording. The seller and buyer model calls
+ran through the vault-owned OutLayer Project and priced NEAR AI usage. The
+buyer hosted recall used the operator-held vault Payment Key; Bob signed the
+next paid job whose input included the seller-era finalized commitment.
 
 ## Suggested 90-second live presentation
 
@@ -48,22 +60,32 @@ existing Node dependencies.
 | 65–80s | Bob recalls work and another customer hires it | Eligible business history and capabilities continue |
 | 80–90s | Alice rejected; SDK example | Ownership controls behavior and the primitive is reusable |
 
-Use the local mode label throughout local recordings. The generated evidence
-walkthrough is a replay of test results/screenshots, not a continuous recording
-of live wallet interactions. A final public testnet recording remains pending
-the deployment and external-wallet acceptance in PUBLIC-DEPLOYMENT.md.
+Use the local mode label throughout local recordings. The local walkthrough
+uses a deterministic OutLayer mock. The live Research replay uses distinct
+NEAR testnet and hosted OutLayer receipts. A continuous wallet recording is
+deferred. Both replay and local walkthrough state their evidence mode on screen.
 
 ## Current evidence
 
 - [Local release receipts](evidence/release-demo.json)
 - [Buyer profile after restart](release-buyer-profile.jpg)
 - [Earlier real OutLayer testnet sequence](OUTLAYER-TESTNET-EVIDENCE.md)
+- [Reviewed testnet rollout](evidence/reviewed-testnet-rollout.json)
+- [Reviewed hosted guest checkpoint](evidence/m06-reviewed-preparation.json)
+- [Real-model attempts and safe release](evidence/m06-real-model-attempts.json)
+- [Post-upgrade security regressions](evidence/reviewed-security-regressions.json)
+- [Seller paid Research](evidence/paid-async-research-seller.json)
+- [Sale, buyer recall and security regressions](evidence/async-research-handover.json)
+- [Buyer paid Research continuation](evidence/paid-async-research-buyer-accepted.json)
+- [Current testnet and Sepolia read-only check](evidence/verify-testnet-current.json)
+- [Live liability reconciliation](evidence/live-liability-reconciliation.json)
 - [Original task reconciliation](ORIGINAL-PLAN-STATUS.md)
 
 ## Trust boundaries to disclose
 
 The settlement reporter and guardian have privileged roles. RPC observations
 are not foreign-state proofs. Scout/Compare are supplied-text deterministic
-services. The research runner is a separate candidate, not a hosted LLM release.
-Attestation does not prove factual accuracy. The seller may retain downloaded
+services. Research has two paid real-model jobs across sale, but the reporter's
+hosted observation is trusted and OutLayer attestation is not checked
+on-chain. Attestation does not prove factual accuracy. The seller may retain downloaded
 copies; human OAuth grants do not automatically follow the NFT.

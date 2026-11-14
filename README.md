@@ -1,119 +1,150 @@
-# nfa.gent
+# nfa.cool — own the whole agent
 
-An NFT that controls a persistent agent account: character, treasury, pinned
-chain-signature identity, reviewed services, work history and unclaimed income.
-The account stays when ownership changes.
+**NFA means Non Fungible Agent: NF~~T~~ becomes NFA.** It is a transferable
+agent business on NEAR. Its NFT controls a stable
+vault, approved services, work history and unclaimed income. When the NFT is
+sold, the buyer takes over the same operating agent.
 
-## For judges and agents
+Built at **NEAR HACKATHON**. The site opens on a [landing page](apps/web/landing.html),
+with NFA Studio at `/studio` when running locally.
 
-Start with [AGENTS.md](AGENTS.md). No keys, testnet tokens or Rust are needed:
+## The problem
 
-```sh
-npm ci
-npm run judge            # ~2–3 min; re-runs the claims in a local NEAR sandbox, writes judge-report.json
-npm run verify:testnet   # read-only: re-derives the live NFA's vault, address, Project and Sepolia receipts
-```
+An agent can do paid work, but its wallet, runtime, records and earnings are
+often attached to the person running it. A sale then becomes a manual migration:
+new accounts, broken service links, missing history and uncertain authority for
+the former owner.
 
-- `docker build -f Dockerfile.judge -t nfa-judge . && docker run --rm nfa-judge` runs the judge on any Docker host.
-- [docs/CLAIMS.json](docs/CLAIMS.json) lists every claim with its level, status, evidence and explorer links.
-- `npm run mcp` (configured in [.mcp.json](.mcp.json)) lets an agent quote, hire and sell an NFA against a local Studio.
-- [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md) is the text equivalent of the demo video.
-- [The independent review](docs/reviews/2026-11-12-claude-review.md) records findings and fix status.
+NFA makes the **agent itself** the persistent unit. The NFT changes its
+controller; the NEAR vault, derived chain address and OutLayer Project keep
+their identity. The buyer can use eligible finalized work in a new job, while
+the seller's owner permissions expire with the ownership epoch.
 
-**The compact Studio flow is complete:** four-step creation, resumable launch,
-persistent local state, public profiles and current paid-service checkout.
-See [six-point completion](docs/STUDIO-UX-STATUS.md) for the new workflow.
+## What it does
 
-**NFA Studio S001–S022 is implemented and its NEAR/OutLayer testnet acceptance
-passed.** Studio supports character mint/edit, vault and key policies, delegates,
-one OutLayer Project with Scout/Compare services, paid jobs, memory recall,
-refund recovery, version changes, sale/transfer and receipt audit.
+1. **Create:** Studio mints an NFT, provisions a keyless NEAR vault and binds a
+   reviewed service Project. The owner sets service policies and budgets.
+2. **Work:** Customers pay for bounded Scout, Compare or configured Research
+   jobs. The registry records the payment, result commitment and agent income.
+3. **Transfer:** Pending authority-bearing work blocks a sale. Buying the NFT
+   changes the owner and epoch, leaving the vault and Project in place.
+4. **Continue:** The buyer can recall eligible earlier work and commission the
+   next job under the same agent identity.
+
+The local Studio creates and manages Scout/Compare agents. Research has a
+separate, operator-configured testnet acceptance path; its provider credential
+is not entered in the browser.
+
+### Why NEAR
+
+| NEAR capability | Role in NFA |
+| --- | --- |
+| NFT registry and subaccounts | The NFT controls a stable, keyless vault account. |
+| Promises and callbacks | Paid jobs, refunds and transfers settle through explicit states. |
+| FunctionCall keys and ownership epochs | Operators have scoped methods; former-owner grants become stale after sale. |
+| Chain Signatures | The vault derives one persistent Sepolia address across owners. |
+| Native accounting | Escrow, refunds, seller proceeds, execution reserve and NFA income stay distinct. |
+
+OutLayer executes pinned WASI service code and stores eligible work under the
+stable vault predecessor. NEAR AI supplies model inference for Research. A
+customer cannot choose the runtime, secret, signing path or privileged method
+through a job input.
+
+## Watch the handover
+
+[**42-second testnet evidence replay**](docs/research-live-evidence-replay.mp4)
+shows create → customer payment → real Research output and earnings → NFT sale
+→ buyer recall and another paid Research job. It assembles **separate live
+receipts**; it is not a continuous wallet screen recording.
+
+| Live step | Evidence |
+| --- | --- |
+| Seller job `48` finalized with priced NEAR AI usage | [Research settlement](https://testnet.nearblocks.io/txns/D2WAQrDWSLV6G76HiJTsm5wM2oCQxRahQsucsB4yKXDW) · [receipt](docs/evidence/paid-async-research-seller.json) |
+| Alice sold NFA-2 to Bob; vault, address and Project UUID persisted | [Sale transaction](https://testnet.nearblocks.io/txns/2wEpiqPGBW7gMBxDHAXrvuawJVGKmC347rQYyiSHxPXz) · [handover checks](docs/evidence/async-research-handover.json) |
+| Buyer job `51` finalized using job `48`'s earlier output commitment | [Research settlement](https://testnet.nearblocks.io/txns/29cPB4NvQasi1kLeCSXoj5hVZTddxraPMnB9pY1mUGBP) · [receipt](docs/evidence/paid-async-research-buyer-accepted.json) |
+
+The testnet handover also rejected a replayed refund, stale seller upgrade
+approval and the former owner's recall. [All stored liabilities reconcile](docs/evidence/live-liability-reconciliation.json)
+after the jobs and sale. The live NFA is `nfa-2` under
+`nfagent-registry-0e9b2a.testnet`; its OutLayer Project UUID is
+`p0000000000000163`.
+
+## Try it yourself
+
+Requires Node.js 20.9+ and npm. No keys or testnet tokens are needed for the
+local experience.
 
 ```sh
 npm ci
 npm run studio:start
 ```
 
-Open `http://127.0.0.1:3102/studio`, choose Create, and use the local
-Alice/Bob/customer wallet selector. This starts or resumes a persistent NEAR sandbox and OutLayer
-mock without testnet tokens. `studio:start` leaves the server running in the
-background; use `npm run studio:status` or `npm run studio:stop`.
-For prerequisites, real-testnet startup and durable
-storage see [docs/STUDIO-RUNBOOK.md](docs/STUDIO-RUNBOOK.md).
+Open **http://127.0.0.1:3102/** for the landing page, then **/studio** for
+the persistent local Studio. Choose the local Alice, Bob or customer wallet.
+Create an agent, pay for a Scout/Compare job, sell it and inspect the buyer's
+continuing account. The local chain and OutLayer mock survive a server restart.
+Use `npm run studio:status` and `npm run studio:stop` to manage it.
 
-- [Studio task status](docs/NFA-STUDIO-STATUS.md) — S001–S022 and limits
-- [Hosted testnet evidence](docs/OUTLAYER-TESTNET-EVIDENCE.md) — two services, sale,
-  buyer recall, version continuity, failed-job refund and measured costs
-- [Studio plan](docs/NFA-STUDIO-PLAN.md) and [service REST API](docs/SERVICES-API.md)
-- [Fast focused checks](docs/LOCAL-LOOP.md) and [deployment history](docs/LIVE-DEPLOYMENT.md)
-
-Validation: 70 JS tests, 15 vault tests, 42 registry tests, six WASI guest tests, web/SDK builds,
-full sandbox receipt suite, actual-old-bytecode upgrade rehearsal and hosted
-acceptance. Current testnet NFT is `nfa-2`, registry
-`nfagent-registry-0e9b2a.testnet`, Project UUID `p0000000000000163`.
-
-The web/API runs locally; no public production host or S3 bucket was provisioned.
-The demo's art is published to immutable FastFS; new API publications need a
-durable mount or configured S3 backend. Inputs/recall summaries are public.
-Scout/Compare process supplied text deterministically; attestation does not prove
-source accuracy. x402, royalties, Intents, personal OAuth handoff and more chains
-remain separate products. Existing old vaults do not silently acquire new code.
-
-`nfa-handoff.zip` is the refreshed portable source/artwork/release snapshot.
-Work from this folder. The archive excludes keys, signed transactions,
-dependencies, caches and local deployment journals; public acceptance evidence
-is included under `docs/evidence/`. Do not fund the retired T004 one-use vault.
-
-## Release milestones
-
-The six approved release milestones are tracked in [RELEASE-PLAN.md](docs/RELEASE-PLAN.md). SDK/service packages, economics/inventory and a 13-check local handover demo are delivered. M01–M05 are complete: current Sepolia handover, typed research contracts/SDK/API, pinned WASI and local memory/billing acceptance. M06 hosted compatibility and no-key failure/refund checks passed; real inference, research handover and the final demo need a dedicated model credential. Public hosting remains deferred. See [MILESTONES.md](docs/MILESTONES.md). See [DEVELOPER-QUICKSTART.md](docs/DEVELOPER-QUICKSTART.md) and [DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md).
-
-## Already implemented
-
-The v2 character generator, 56 transparent PNG parts (50 active), seven source
-atlases and three sheets containing 48 generated examples are saved here.
-
-| Path | Purpose |
-| --- | --- |
-| `generate.cjs` | Seeded generator and curated presets |
-| `assets/` | Transparent parts and checksum catalog |
-| `source-atlases/` | Original generated artwork |
-| `output/v2-eyewear/` | Glasses examples and sheet |
-| `output/v2-accents/` | Small attachments and floating ornaments |
-| `output/v2-mixed/` | Mixed examples including fitted hats |
-| `GENERATOR.md` | Generator documentation |
-| `test.cjs` | Reproducibility, asset and compatibility tests |
-| `PLAN.md`, `docs/OWNERSHIP.md` | Implementation handoff and transfer threat model |
-| `docs/NEAR-SPIKE.md` | T004 interface evidence and live completion gate |
-| `docs/LOCAL-LOOP.md` | Fast offline test commands and testnet checkpoint boundary |
-| `docs/OUTLAYER-PLAN.md` | Phased plan for transferable OutLayer execution, memory and NFA-funded jobs |
-| `packages/shared/`, `packages/sdk/` | Typed schemas and wallet-action SDK |
-| `contracts/vault-v2/`, `contracts/registry/` | NEAR vault and guarded NFT registry; see live deployment status |
-| `services/worker/`, `services/api/` | Scout worker, durable work storage, API access and EVM settlement components |
-| `templates/scout/`, `apps/web/` | Working Scout template and local create/passport/market UI |
-
-## Run
-
-Requires Node.js 20.9 or newer.
-
-From the repository root:
+### For agent judges
 
 ```sh
-npm install
-npm run check
-node generate.cjs --count 16 --seed my-nfa --out output/my-nfa
+npm run judge            # local NEAR sandbox; writes judge-report.json
+npm run verify:testnet   # read-only live NEAR testnet + Sepolia checks
 ```
 
-Open `output/my-nfa/index.html` or `contact-sheet.png`.
-The renderer works offline after dependency installation; it does not mint NFTs.
-For a clean installation and smoke run, use `npm run ci` (or
-`NFA_NPM_OFFLINE=1 npm run ci` with a populated npm cache). The workflow under
-`.github/workflows/` runs when this folder is the repository root; when this is a
-subfolder of another repository, wire `npm run ci` into that repository's CI.
-For day-to-day work, use the focused `npm run dev:*` commands in
-[docs/LOCAL-LOOP.md](docs/LOCAL-LOOP.md); they do not contact testnet.
-`npm run dev:bundle` verifies the release. Use `npm run studio:sandbox` for
-interactive local development or the runbook to inspect real testnet.
+`npm run judge` replays creation, paid work, refunds, handover, prior-work
+context and recovery. It needs no secrets; Rust is optional for the native
+contract tests. `verify:testnet` re-derives the current vault, address,
+Project, owner epoch and Sepolia receipts from public RPCs. The
+[claim ledger](docs/CLAIMS.json) gives each claim its evidence level, checks
+and exact receipt links. [AGENTS.md](AGENTS.md) is the machine-readable review
+guide. Docker users can run
+`docker build -f Dockerfile.judge -t nfa-judge . && docker run --rm nfa-judge`.
 
-Use this folder for future work. The earlier `../nfa-generator` copy was retained
-as a backup. See [GENERATOR.md](GENERATOR.md) for all presets and options.
+The [local walkthrough](docs/release-evidence-walkthrough.mp4) uses a
+deterministic OutLayer mock. The Research replay above uses hosted OutLayer,
+NEAR AI and real testnet payments. These evidence levels are labeled separately.
+
+## Current boundaries
+
+- The local web/API is available; **public hosting is deferred**. Testnet-only
+  deployment is intentional for this release.
+- The restricted HTTPS reporter observes OutLayer and settles its reported
+  result. The registry binds job, runtime, owner epoch, output and cost cap,
+  but does **not** verify an OutLayer attestation on-chain. Model usage pricing
+  is an estimate, not a provider invoice or net-profit claim.
+- Bob's hosted Research recall used the operator-held vault Payment Key. Bob
+  signed the later paid continuation, whose input included Alice's finalized
+  work commitment. Personal OAuth grants and seller-held copies do not transfer.
+- Restricted reporter and guardian keys are live. A restricted admin proposed
+  the exact current registry code for a delayed apply; remaining FullAccess
+  keys await that [48-hour gate](docs/evidence/restricted-self-upgrade-scheduled.json).
+- The Sepolia acceptance transfers returned ETH to the NFA's own address;
+  external-recipient EVM payment is outside the demonstrated scope. Intents
+  checkout is locally tested, while direct Circle testnet USDC checkout has
+  completed-job and refund receipts.
+
+## Hackathon scope and prior work
+
+The modular character generator and art assets began as earlier local work
+(`../nfa-generator`) and are treated as a baseline. The NEAR NFT registry,
+keyless vault, Chain Signatures identity, OutLayer service integration,
+ownership handover, accounting, SDK, Studio and testnet acceptance form the
+NEAR HACKATHON work. This standalone repository's Git history starts with an
+import on 12 November 2026; that import commit is not a pre-hackathon baseline
+tag. The subsequent local history and [milestones](docs/MILESTONES.md) record
+the NEAR integration work.
+
+## Explore the implementation
+
+| Area | Start here |
+| --- | --- |
+| Studio and landing page | [`apps/web/`](apps/web/) · [Studio runbook](docs/STUDIO-RUNBOOK.md) |
+| NEAR registry and vault | [`contracts/registry/`](contracts/registry/) · [`contracts/vault-v2/`](contracts/vault-v2/) |
+| OutLayer guest and worker | [`skills/scout-wasi/`](skills/scout-wasi/) · [`services/worker/`](services/worker/) |
+| API and SDK | [`services/api/`](services/api/) · [`packages/sdk/`](packages/sdk/) |
+| Live Research, demo and submission | [acceptance](docs/RESEARCH-ACCEPTANCE.md) · [demo script](docs/DEMO-SCRIPT.md) · [submission summary](docs/SUBMISSION.md) |
+
+The [independent review](docs/reviews/2026-11-12-claude-review.md) preserves
+its original findings and later fix status. The [release plan](docs/RELEASE-PLAN.md)
+distinguishes shipped acceptance from future products.

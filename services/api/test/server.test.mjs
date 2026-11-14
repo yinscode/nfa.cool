@@ -26,7 +26,10 @@ test('API prepares unsigned purchase and protects work after sale',async()=>{
   try{
     const page=await fetch(base+'/');assert.equal(page.status,200);
     const landing=await page.text();
-    assert.match(landing,/Own the agent/);
+    assert.match(landing,/Own the whole agent/);
+    for(const [file,type] of [['/favicon.svg','image/svg+xml'],['/og.png','image/png']]){
+      const brand=await fetch(base+file);assert.equal(brand.status,200,file);assert.equal(brand.headers.get('content-type'),type);
+    }
     assert.match(landing,/href="\/studio"/);
     const studio=await fetch(base+'/studio');assert.equal(studio.status,200);
     const studioHtml=await studio.text();

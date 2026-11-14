@@ -14,10 +14,11 @@ import sharp from 'sharp';
 
 const here=dirname(fileURLToPath(import.meta.url)),root=join(here,'..');
 const W=1920,H=1080,FPS=30;
-const C={bg:'#f6f4ee',paper:'#fffdf8',ink:'#233333',forest:'#244d3e',sage:'#5e8976',mist:'#e7f2e9',moss:'#e9efe5',
-  line:'#dce2d7',muted:'#617267',eyebrow:'#7a9e86',sky:'#79BEE9',cobalt:'#667DDA',mint:'#91D8B9',butter:'#F0D66F',
+// Theme tokens: docs/THEME.md (cream, paper, ink, forest, leaf, mint, mist, line, muted).
+const C={bg:'#f6f5ef',paper:'#fffefa',ink:'#1f3029',forest:'#204b38',sage:'#5d9a75',mist:'#e8f2e6',moss:'#eaf0e6',dot:'#8acb87',
+  line:'#dee4d9',muted:'#64756a',eyebrow:'#6f9a80',sky:'#79BEE9',cobalt:'#667DDA',mint:'#91D8B9',butter:'#F0D66F',
   rose:'#E69FB8',coral:'#EE8F85',ice:'#97DDE2',lilac:'#B69ADD',citrus:'#B8E82E',amber:'#d99a2b',red:'#c8574b'};
-const FONT=`Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif`,MONO=`'SF Mono', Menlo, monospace`;
+const FONT=`Manrope, 'DM Sans', 'Helvetica Neue', Helvetica, Inter, Arial, sans-serif`,MONO=`'SF Mono', Menlo, monospace`;
 
 // ---------- characters (regenerated deterministically from the project's generator) ----------
 const cache=join(here,'.cache','chars');
@@ -50,20 +51,20 @@ const pill=(x,y,label,{fill=C.mist,color=C.forest,size=22,pad=18,h=44,weight=700
 };
 const pillWidth=(label,size=22,pad=18)=>label.length*size*.56+pad*2;
 const brand=(x,y,size=40,opacity=1,anchor='start')=>
-  `<text x="${x}" y="${y}" font-family="${FONT}" font-size="${size}" font-weight="800" letter-spacing="${-size*.06}" fill="${C.ink}" text-anchor="${anchor}" opacity="${opacity}">nfa<tspan fill="${C.sage}">.cool</tspan></text>`;
+  `<text x="${x}" y="${y}" font-family="${FONT}" font-size="${size}" font-weight="800" letter-spacing="${-size*.06}" fill="${C.ink}" text-anchor="${anchor}" opacity="${opacity}">NFA<tspan fill="${C.sage}">.cool</tspan><tspan fill="${C.dot}" font-size="${size*.42}" dy="${-size*.42}" dx="${size*.04}">●</tspan></text>`;
 const img=(href,x,y,size,opacity=1)=>`<image href="${href}" x="${x}" y="${y}" width="${size}" height="${size}" opacity="${opacity}"/>`;
 const check=(x,y,s=1,color=C.sage)=>`<g transform="translate(${x} ${y}) scale(${s})"><circle r="16" fill="${color}"/><path d="M-7 0 l5 5 l9 -10" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
 const cross=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><circle r="16" fill="${C.red}"/><path d="M-6 -6 L6 6 M6 -6 L-6 6" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/></g>`;
 let gid=0;
 // The collection card: the NFA "token".
-function nftCard(x,y,w,char,{tint=C.sky,id='001',name='Scout 01',sub='pebble / sprout',o=1,label='nfa.cool',bob=0}={}){
+function nftCard(x,y,w,char,{tint=C.sky,id='001',name='Scout 01',sub='pebble / sprout',o=1,label='NFA.cool',bob=0}={}){
   const k=w/768,i=++gid;
   return `<g transform="translate(${x} ${y}) scale(${k})" opacity="${o}"><defs><linearGradient id="card${i}" x2="1" y2="1"><stop stop-color="#fffdf8"/><stop offset="1" stop-color="${tint}" stop-opacity=".32"/></linearGradient></defs>
     <rect x="6" y="14" width="756" height="756" rx="40" fill="#234d3d" opacity=".06"/>
     <rect x="0" y="0" width="768" height="768" rx="38" fill="url(#card${i})" stroke="${tint}" stroke-opacity=".55" stroke-width="3"/>
     <circle cx="120" cy="190" r="90" fill="${tint}" opacity=".16"/><circle cx="660" cy="430" r="120" fill="${tint}" opacity=".12"/>
     <ellipse cx="384" cy="628" rx="230" ry="26" fill="${tint}" opacity=".2"/>
-    ${img(char,96,86+bob,576)}
+    ${char?img(char,96,86+bob,576):''}
     ${text(48,66,label,{size:24,weight:800})}${text(720,66,'#'+id,{size:22,family:MONO,fill:C.muted,anchor:'end'})}
     ${text(48,708,name,{size:38,weight:800})}${text(48,742,sub,{size:20,fill:C.muted})}</g>`;
 }
@@ -84,181 +85,293 @@ const ICON={
 };
 const icon=(name,x,y,size=48,color=C.forest,sw=1.8)=>`<g transform="translate(${x} ${y}) scale(${size/24})" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICON[name]}</g>`;
 const iconTile=(name,x,y,{size=88,fill=C.mist,color=C.forest}={})=>`<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${size*.28}" fill="${fill}"/>`+icon(name,x+size*.22,y+size*.22,size*.56,color);
-const caption=(s,t,a,b)=>{const o=fade(t,a,.6)*(1-seg(t,b-.5,b));
-  return text(W/2,1010,s,{size:30,weight:500,fill:C.muted,anchor:'middle',opacity:o})};
+const caption=(s,t,a,b)=>{const o=fade(t,a,.6)*(1-seg(t,b-.5,b)),w=Math.min(1840,s.length*17.6+80);
+  return `<rect x="${(W-w)/2}" y="966" width="${w}" height="62" rx="31" fill="#fffdf8" opacity="${o*.85}"/>`
+    +text(W/2,1008,s,{size:32,weight:650,fill:C.forest,anchor:'middle',opacity:o})};
 const eyebrow=(x,y,s,o=1)=>text(x,y,s.toUpperCase(),{size:20,weight:800,ls:4,fill:C.eyebrow,opacity:o});
 
 // ---------- scenes ----------
 const scenes=[];
 const scene=(dur,draw)=>scenes.push({dur,draw});
+// Extra glyphs for this cut.
+Object.assign(ICON,{
+  spark:`<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>`,
+  eth:`<path d="M12 2l7 10-7 4-7-4z"/><path d="M5 13.5l7 8.5 7-8.5-7 4z"/>`,
+  globe:`<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>`,
+  star:`<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>`,
+  hand:`<path d="M7 11l4-4 3 1 4-2 3 4-6 6-3-2-3 3-3-3z"/><path d="M3 12l3 3"/>`,
+});
+// A character with a gentle idle bob and a soft floor shadow.
+function char(href,x,y,size,{t=0,phase=0,amp=8,o=1,flip=false,hop=0,hopH=60}={}){
+  const air=Math.sin(Math.PI*clamp(hop)),bob=Math.sin(t*2.4+phase)*amp,b=bob-hopH*air,sq=1+Math.sin(t*2.4+phase)*.012;
+  const body=flip?`<g transform="translate(${size} 0) scale(-1 1)">${img(href,0,0,size)}</g>`:img(href,0,0,size);
+  return `<g opacity="${clamp(o)}"><ellipse cx="${x+size/2}" cy="${y+size*.93}" rx="${size*.26*(1-bob/80)*(1-.45*air)}" ry="${size*.035*(1-.3*air)}" fill="#234d3d" opacity="${.10*(1-.4*air)}"/>`
+    +`<g transform="translate(${x} ${y+b}) translate(${size/2} ${size}) scale(${1/sq} ${sq}) translate(${-size/2} ${-size})">${body}</g></g>`;
+}
+// Pop-in: scale from 0.6 with overshoot.
+const pop=(inner,{x,y,cx=0,cy=0,t,at,o=1})=>{const p=back(seg(t,at,at+.55));return g(inner,{x,y,s:.6+.4*p,ox:cx,oy:cy,o:o*fade(t,at,.3)})};
+function bubble(x,y,label,{size=24,o=1,tail='left',fill='#fff',color=C.ink}={}){
+  const w=pillWidth(label,size,22),h=size*2.2,tx=tail==='left'?28:w-28;
+  return g(`<path d="M${tx-12} ${h-2} L${tx-18} ${h+18} L${tx+6} ${h-2}" fill="${fill}" stroke="${C.line}" stroke-width="2"/>`
+    +rect(0,0,w,h,{rx:h/2,fill,stroke:C.line})+`<rect x="${tx-10}" y="${h-6}" width="18" height="6" fill="${fill}"/>`
+    +text(w/2,h/2+size*.36,label,{size,weight:700,anchor:'middle',fill:color}),{x,y,o});
+}
+const coin=(x,y,r=22)=>`<g transform="translate(${x} ${y})"><circle r="${r}" fill="${C.butter}" stroke="#fff" stroke-width="4"/>${icon('coin',-r*.62,-r*.62,r*1.24,C.ink,2)}</g>`;
+const bez=(p0,p1,p2,p3,u)=>{const v=1-u;return [0,1].map(k=>v*v*v*p0[k]+3*v*v*u*p1[k]+3*v*u*u*p2[k]+u*u*u*p3[k])};
+const arc=(x0,y0,x1,y1,p,h=-160)=>[lerp(x0,x1,p),lerp(y0,y1,p)+h*4*p*(1-p)];
+const title=(t,eb,head,{size=64}={})=>eyebrow(120,150,eb,fade(t,.1))+text(120,225,head,{size,weight:800,ls:-2.5,opacity:fade(t,.2)});
 
-// 1. NFT → NFA
-scene(7.5,t=>{
-  let s=brand(W/2,150,44,fade(t,.2,.8),'middle');
-  const lettersIn=fade(t,.6,.9),flip=ease(seg(t,2.6,3.6));
-  const cx=W/2,y=560,size=280;
-  s+=text(cx-210,y,'N',{size,weight:800,anchor:'middle',ls:-10,opacity:lettersIn})+text(cx,y,'F',{size,weight:800,anchor:'middle',opacity:lettersIn});
-  // T rotates away, A drops in.
-  s+=g(text(0,0,'T',{size,weight:800,anchor:'middle'}),{x:cx+210,y,r:flip*80,ox:0,oy:-90,o:lettersIn*(1-flip)});
-  s+=g(text(0,0,'A',{size,weight:800,anchor:'middle',fill:C.sage}),{x:cx+210,y:y-260*(1-back(seg(t,3.2,4.2))),o:fade(t,3.2,.4)});
-  s+=text(cx,y+110,'Non-Fungible Agent',{size:56,weight:700,anchor:'middle',fill:C.forest,opacity:fade(t,4.1,.7),ls:-1.5});
-  s+=text(cx,y+190,'An NFT that is a working agent — and everything it needs to run.',{size:34,anchor:'middle',fill:C.muted,opacity:fade(t,5,.7)});
-  s+=g(img(CH.scout,0,0,220),{x:W-360,y:690-40*out(seg(t,5.4,6.4)),o:fade(t,5.4,.6)});
-  s+=g(img(CH.muse,0,0,180),{x:150,y:740-40*out(seg(t,5.7,6.7)),o:fade(t,5.7,.6)});
+// Exact ink widths of words, so letters can slide between layouts without jumps.
+async function measure(str,size,weight=800){
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="${size*2}"><rect width="100%" height="100%" fill="#fff"/>`
+    +`<text x="20" y="${size*1.4}" font-family="${FONT}" font-size="${size}" font-weight="${weight}">${esc(str)}</text></svg>`;
+  const {info}=await sharp(Buffer.from(svg)).trim({threshold:20}).toBuffer({resolveWithObject:true});
+  return {w:info.width,lead:-info.trimOffsetLeft-20};
+}
+const WORD=130,WM={};
+for(const piece of ['N','on-','F','ungible','T','oken','A','gent'])WM[piece]=await measure(piece,WORD);
+// Lay out "Non-Fungible <Token|Agent>"; returns each piece's left ink edge.
+function phraseLayout(last){
+  const tight=WORD*.035,space=WORD*.3,parts=['N','on-','F','ungible',last==='Token'?'T':'A',last==='Token'?'oken':'gent'];
+  const gaps=[tight,tight,tight,space,tight,0];let x=0;const at={};
+  parts.forEach((piece,i)=>{at[piece]=x;x+=WM[piece].w+gaps[i]});
+  const total=x;for(const k in at)at[k]+=W/2-total/2;return at;
+}
+
+// 1. This NFT is an agent now → Non-Fungible Agent → NFA
+scene(10,t=>{
+  let s='';
+  // A collectible card... whose character hops out: it is an agent now.
+  const cardO=fade(t,.2,.5)*(1-seg(t,3.5,4)),out1=seg(t,1.7,2.5),cardX=W/2-230;
+  s+=text(W/2,200,'This is an NFT.',{size:68,weight:800,anchor:'middle',ls:-2,opacity:fade(t,.3)*(1-seg(t,1.6,1.9))});
+  s+=text(W/2,200,'This NFT is an agent now.',{size:68,weight:800,anchor:'middle',ls:-2,opacity:fade(t,1.9,.4)*(1-seg(t,3.4,3.8))});
+  s+=g(nftCard(0,0,460,out1>0?null:CH.scout,{tint:C.sky,id:'002',name:'Scout',sub:'just a picture?'}),{x:cardX,y:280-20*(1-out(seg(t,.2,.8))),o:cardO});
+  if(out1>0){const [hx,hy]=arc(cardX+58,280+52,cardX+560,330,ease(out1),-220),land=seg(t,2.5,2.8);
+    s+=g(char(CH.scout,0,0,345,{t,hop:land*0,amp:6}),{x:hx,y:hy,o:1-seg(t,3.5,4)});
+    s+=bubble(cardX+760,300,'Hi! I can work.',{tail:'left',o:fade(t,2.7,.3)*(1-seg(t,3.4,3.8))});}
+  // Non-Fungible Token → Non-Fungible Agent.
+  const swap=ease(seg(t,4.9,5.6)),collapse=ease(seg(t,6.4,7.2)),pO=fade(t,3.9,.5);
+  const L0=phraseLayout('Token'),L1=phraseLayout('Agent'),y=560;
+  const px=k=>k in L0&&k in L1?lerp(L0[k],L1[k],swap):(L0[k]??L1[k]);
+  // Optical spacing: F's open right side needs a tighter gap than N→F.
+  const gNF=WORD*.08,gFA=-WORD*.005,finalW=WM.N.w+WM.F.w+WM.A.w+gNF+gFA,fx0=W/2-finalW/2;
+  const final={N:fx0,F:fx0+WM.N.w+gNF,A:fx0+WM.N.w+gNF+WM.F.w+gFA};
+  const piece=(k,x,{fill=C.ink,o=1,dy=0}={})=>text(x-WM[k].lead,y+dy,k,{size:WORD,weight:800,fill,opacity:pO*o});
+  const restO=1-seg(t,6.3,6.7),grow=1+.55*back(seg(t,7.2,7.9));
+  let word='';
+  for(const k of ['N','F'])word+=piece(k,lerp(px(k),final[k],collapse));
+  word+=piece('on-',px('on-'),{fill:C.muted,o:restO})+piece('ungible',px('ungible'),{fill:C.muted,o:restO});
+  word+=piece('T',L0.T,{o:1-swap,dy:-90*swap})+piece('oken',L0.oken,{fill:C.muted,o:(1-swap),dy:-90*swap});
+  if(swap>0&&swap<1)word+=`<line x1="${L0.T}" x2="${L0.oken+WM.oken.w}" y1="${y-45-90*swap}" y2="${y-45-90*swap}" stroke="${C.red}" stroke-width="7" opacity="${pO*(1-swap)}"/>`;
+  word+=piece('A',lerp(L1.A,final.A,collapse),{fill:C.sage,o:swap,dy:-120*(1-back(swap))});
+  word+=piece('gent',L1.gent,{fill:C.sage,o:swap*restO,dy:-120*(1-back(swap))});
+  // Once collapsed, NFA grows into the headline.
+  s+=`<g transform="translate(${W/2} ${y-48}) scale(${grow}) translate(${-W/2} ${-y+48})">${word}</g>`;
+  s+=text(W/2,y+120,'Non-Fungible Agent',{size:42,weight:700,anchor:'middle',fill:C.forest,opacity:fade(t,7.6,.5)});
+  // The cast arrives under the new name.
+  [CH.scout,CH.sage,CH.muse,CH.patch,CH.quill,CH.pip,CH.lime].forEach((c,i)=>{
+    s+=pop(char(c,0,0,170,{t,phase:i*.9}),{x:W/2-640+i*183,y:770,cx:85,cy:170,t,at:7.9+i*.08})});
   return s;
 });
 
-// 2. What an NFA contains
-scene(15,t=>{
-  let s=eyebrow(120,150,'Inside one NFA',fade(t,.1))+text(120,225,'Not a picture. A whole agent business.',{size:64,weight:800,ls:-2.5,opacity:fade(t,.2)});
-  const bob=Math.sin(t*2)*6;
-  s+=nftCard(120,300,560,CH.scout,{tint:C.sky,o:fade(t,.4,.7),bob});
-  const groups=[
-    {at:1.6,icon:'wallet',title:'Wallets',body:'Keyless NEAR vault holds the treasury',chips:['NEAR vault','Sepolia address']},
-    {at:4.0,icon:'chip',title:'Skills',body:'Pinned WASM code, versioned by hash',chips:['Scout','Compare','Research']},
-    {at:6.4,icon:'shop',title:'Services',body:'Paid jobs: quote → pay → result',chips:['escrow','income']},
-    {at:8.8,icon:'brain',title:'Memory & history',body:'Encrypted work the next job can recall',chips:['finalized work','audit']},
+// 2. Its own keys, on more than one chain
+scene(11,t=>{
+  let s=title(t,'Identity','Its own keys — on NEAR and Ethereum.');
+  const cx=520,cy=640;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${230+Math.sin(t*2)*6}" fill="${C.mist}" opacity="${fade(t,.3)}"/>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="300" fill="none" stroke="${C.sage}" stroke-width="2" stroke-dasharray="4 12" opacity="${fade(t,.6)*.6}" transform="rotate(${t*12} ${cx} ${cy})"/>`;
+  s+=pop(char(CH.scout,0,0,380,{t}),{x:cx-190,y:cy-230,cx:190,cy:380,t,at:.3});
+  const keys=[
+    {at:1.6,icon:'wallet',title:'Keyless NEAR vault',sub:'nfa-2.nfagent-registry-0e9b2a.testnet',chip:'NEAR',tint:C.mist},
+    {at:3.4,icon:'eth',title:'Ethereum address',sub:'0xADfC…74c9 · NEAR Chain Signatures',chip:'Sepolia',tint:'#e9ebfb'},
+    {at:5.2,icon:'globe',title:'More chains',sub:'same MPC path — next',chip:'roadmap',tint:C.moss,dashed:true},
   ];
-  groups.forEach((gr,i)=>{
-    const p=back(seg(t,gr.at,gr.at+.7)),o=fade(t,gr.at,.4),y=300+i*148,x=800+(1-p)*60;
-    s+=`<path d="M680 ${580} C 740 ${580}, 740 ${y+64}, ${x} ${y+64}" stroke="${C.line}" stroke-width="3" fill="none" stroke-dasharray="6 8" opacity="${o}"/>`;
-    let card=rect(0,0,1000,128,{rx:26})+iconTile(gr.icon,22,20,{size:88})+text(136,58,gr.title,{size:36,weight:800,ls:-1})+text(136,98,gr.body,{size:24,fill:C.muted});
-    let cx=1000-24;for(const chip of [...gr.chips].reverse()){const w=pillWidth(chip,20,16);cx-=w;card+=g(pill(0,0,chip,{size:20,pad:16,h:40}),{x:cx,y:44,o:fade(t,gr.at+.5+.15*gr.chips.indexOf(chip),.35)});cx-=10}
-    s+=g(card,{x,y,o});
+  keys.forEach((k,i)=>{const y=330+i*170,o=fade(t,k.at,.4),x=1000+40*(1-out(seg(t,k.at,k.at+.5)));
+    const p=seg(t,k.at,k.at+.8),P=[[cx+150,cy-40+i*40],[cx+330,cy-40+i*40],[860,y+70],[1000,y+70]];
+    s+=`<path d="M${P[0]} C ${P[1]}, ${P[2]}, ${P[3]}" stroke="${C.sage}" stroke-width="3" fill="none" stroke-dasharray="${k.dashed?'6 10':'none'}" opacity="${o*.55}"/>`;
+    if(!k.dashed&&p>=1){const [dx,dy]=bez(...P,(t*.45+i*.3)%1);s+=`<circle cx="${dx}" cy="${dy}" r="7" fill="${C.sage}" opacity="${o*.85}"/>`}
+    s+=g(`<rect x="0" y="0" width="800" height="140" rx="28" fill="${k.dashed?'transparent':C.paper}" stroke="${C.line}" stroke-width="2" ${k.dashed?'stroke-dasharray="8 8"':''}/>`
+      +iconTile(k.icon,24,26,{size:88,fill:k.tint})+icon('key',710,48,44,k.dashed?C.muted:C.forest)
+      +text(136,64,k.title,{size:36,weight:800,ls:-1,fill:k.dashed?C.muted:C.ink})+text(136,104,k.sub,{size:23,fill:C.muted,family:i===2?FONT:MONO})
+      +g(pill(0,0,k.chip,{size:20,pad:14,h:36,fill:k.dashed?C.moss:C.mist,color:k.dashed?C.muted:C.forest}),{x:800-pillWidth(k.chip,20,14)-100,y:52}),{x,y,o});
   });
-  s+=caption('Selling the token sells all of it — the business, not just the art.',t,10.5,15);
+  s+=caption('No person holds these keys: the NFA’s vault controls them, so they never leave with an owner.',t,2,11);
   return s;
 });
 
-// 3. How the agent runs
-scene(16,t=>{
-  let s=eyebrow(120,150,'How it runs',fade(t,.1))+text(120,225,'On demand, per job — in attested code.',{size:64,weight:800,ls:-2.5,opacity:fade(t,.2)});
-  const nodes=[
-    {x:120,label:'Customer',sub:'or another agent',icon:'user'},
-    {x:570,label:'Registry',sub:'escrow · policy · epoch',icon:'shield'},
-    {x:1020,label:'Vault',sub:'the agent’s own account',icon:'wallet'},
-    {x:1470,label:'OutLayer',sub:'TEE runs the pinned skill',icon:'chip'},
-  ];
-  const y=360;
-  nodes.forEach((n,i)=>{const o=fade(t,.6+i*.35);
-    s+=g(rect(0,0,330,190,{rx:30})+iconTile(n.icon,26,26,{size:84})+text(128,82,n.label,{size:34,weight:800,ls:-1})+text(28,152,n.sub,{size:23,fill:C.muted}),{x:n.x,y,o});
+// 3. Agentic powers: OutLayer + NEAR AI
+scene(12,t=>{
+  let s=title(t,'Agentic powers','Skills that run themselves — on OutLayer and NEAR AI.',{size:58});
+  // OutLayer enclave around the agent.
+  const ex=120,ey=300,ew=1040,eh=560,o=fade(t,.4);
+  s+=g(`<rect x="0" y="0" width="${ew}" height="${eh}" rx="40" fill="#eef4ef" stroke="${C.sage}" stroke-width="3" stroke-dasharray="10 10"/>`
+    +iconTile('shield',28,26,{size:64,fill:'#fff'})+text(110,70,'OutLayer · trusted execution',{size:30,weight:800,fill:C.forest}),{x:ex,y:ey,o});
+  s+=pop(char(CH.muse,0,0,330,{t}),{x:ex+60,y:ey+150,cx:165,cy:330,t,at:.6});
+  const skills=[['Scout','cited findings',.9,C.sky],['Compare','ranks the evidence',1.5,C.butter],['Research','reads sources · reasons',2.1,C.lilac]];
+  skills.forEach(([name,sub,at,tint],i)=>{const y=ey+120+i*130,x=ex+440+60*(1-out(seg(t,at+1,at+1.6)));
+    s+=g(rect(0,0,560,108,{rx:24})+`<circle cx="54" cy="54" r="30" fill="${tint}" opacity=".55"/>`+icon('chip',36,36,36,C.forest)
+      +text(104,50,name,{size:32,weight:800})+text(104,84,sub,{size:22,fill:C.muted}),{x,y,o:fade(t,at+1,.4)});
   });
-  // Arrows between nodes with step labels.
-  const steps=[['1  Quote & pay',.0],['2  Dispatch job',1],['3  Execute',2]];
-  steps.forEach(([label,i])=>{const x0=nodes[i].x+330,x1=nodes[i+1].x,o=fade(t,2.2+i*.3);
-    s+=`<g opacity="${o}"><path d="M${x0+12} ${y+95} H${x1-16}" stroke="${C.sage}" stroke-width="4"/><path d="M${x1-30} ${y+83} L${x1-14} ${y+95} L${x1-30} ${y+107}" stroke="${C.sage}" stroke-width="4" fill="none"/></g>`;
-    s+=g(pill(0,0,label,{size:20,pad:14,h:38}),{x:(x0+x1)/2-pillWidth(label,20,14)/2,y:y+212,o});
-  });
-  // A job packet travels: customer → registry → vault → TEE, then the result returns.
-  const go=seg(t,3.6,8.6),ret=seg(t,8.9,11.4);
-  const path=nodes.map(n=>n.x+165);
-  if(go>0&&go<1){const k=go*3,i=Math.min(2,Math.floor(k)),px=lerp(path[i],path[i+1],ease(k-i));
-    s+=g(`<circle r="26" fill="${C.butter}" stroke="#fff" stroke-width="4"/>`+icon('coin',-14,-14,28,C.ink,2),{x:px,y:y+95})}
-  // The result returns on its own lane under the boxes: TEE → vault callback → registry.
-  const lane=y+305,laneO=fade(t,8.7,.4)*(1-seg(t,11.4,11.9));
-  s+=`<path d="M${path[3]} ${y+192} V${lane} H${path[1]} V${y+192}" stroke="${C.forest}" stroke-width="3" stroke-dasharray="8 10" fill="none" opacity="${laneO*.6}"/>`;
-  if(ret>0&&ret<1){const px=lerp(path[3],path[1],ease(ret));
-    s+=g(`<rect x="-80" y="-24" width="160" height="48" rx="24" fill="${C.forest}"/>`+text(0,8,'result ✓',{size:22,weight:800,fill:'#fff',anchor:'middle'}),{x:px,y:lane})}
-  // Outcomes.
-  const res=[{at:11.2,icon:'box',title:'Output commitment',sub:'hash on chain, artifact in the Project'},
-    {at:11.7,icon:'coin',title:'Income to the agent',sub:'claimable by whoever owns it'},
-    {at:12.2,icon:'brain',title:'Memory in the vault’s cell',sub:'survives any change of owner'}];
-  res.forEach((r,i)=>{s+=g(rect(0,0,560,120,{rx:26,fill:C.mist,stroke:C.mist})+iconTile(r.icon,20,18,{size:84,fill:'#fff'})+text(124,56,r.title,{size:30,weight:800,ls:-.8})+text(124,92,r.sub,{size:22,fill:C.muted}),
-    {x:120+i*600,y:680+30*(1-out(seg(t,r.at,r.at+.6))),o:fade(t,r.at)})});
-  s+=caption('Pinned code, attested runs. Payments escrow until the result is committed.',t,4,16);
+  // NEAR AI node feeding Research.
+  const ax=1300,ay=520,ao=fade(t,4.4,.5);
+  s+=g(`<circle cx="0" cy="0" r="${118+Math.sin(t*3)*5}" fill="#f1ecfb"/>`+iconTile('spark',-56,-82,{size:112,fill:'#fff',color:'#6b54b5'})
+    +text(0,72,'NEAR AI',{size:34,weight:800,anchor:'middle'})+text(0,104,'model inference',{size:22,fill:C.muted,anchor:'middle'}),{x:ax+130,y:ay,o:ao});
+  const AP=[[ax+12,ay],[ax-40,ay+120],[ex+1100,ey+380],[ex+1000,ey+380]];   // NEAR AI → Research
+  s+=`<path d="M${AP[0]} C ${AP[1]}, ${AP[2]}, ${AP[3]}" stroke="#8d78d3" stroke-width="3" fill="none" opacity="${ao*.7}"/>`;
+  if(ao>.9)for(const off of [0,.5]){const [px,py]=bez(...AP,(t*.5+off)%1);s+=`<circle cx="${px}" cy="${py}" r="7" fill="#8d78d3"/>`}
+  const facts=[['Pinned code','versioned by hash',6.2],['Attested runs','code + input bound',6.6],['Memory kept by the vault','survives every owner',7.0]];
+  facts.forEach(([a,b,at],i)=>{s+=g(pill(0,0,`✓ ${a}`,{size:22,h:46}),{x:1210,y:720+i*58-14*(1-out(seg(t,at,at+.5))),o:fade(t,at)})});
+  s+=caption('Live on testnet: paid Research jobs ran in OutLayer and reasoned with NEAR AI models.',t,3,12);
   return s;
 });
 
-// 4. Clean transfer
-scene(19,t=>{
-  let s=eyebrow(120,150,'Transfer',fade(t,.1))+text(120,225,'Sell the agent, not the keys.',{size:64,weight:800,ls:-2.5,opacity:fade(t,.2)});
-  const swing=ease(seg(t,8.6,10.2));            // ownership moves Alice → Bob
-  const card=nftCard(760,300,400,CH.scout,{tint:C.sky,o:fade(t,.4),bob:Math.sin(t*2)*5});
-  // Owners.
-  const person=(x,name,letter,tint,active)=>g(`<circle cx="110" cy="110" r="100" fill="${tint}" opacity=".35"/><circle cx="110" cy="110" r="100" fill="none" stroke="${active?C.forest:C.line}" stroke-width="${active?5:3}"/>`
-    +text(110,140,letter,{size:84,weight:800,anchor:'middle',fill:C.forest})+text(110,262,name,{size:34,weight:800,anchor:'middle'}),{x,y:360});
-  s+=g(person(0,'Alice','A',C.rose,swing<.5),{x:140,o:fade(t,.6)})+g(person(0,'Bob','B',C.mint,swing>=.5),{x:1560,o:fade(t,.8)});
-  // Control arrow from the current owner to the token.
-  const ax=lerp(360,1560,swing),bx=lerp(760,1160,swing);
-  s+=`<g opacity="${fade(t,1)}"><path d="M${ax} 470 C ${(ax+bx)/2} 400, ${(ax+bx)/2} 400, ${bx} 470" stroke="${C.forest}" stroke-width="5" fill="none"/>`
-    +`<circle cx="${bx}" cy="470" r="10" fill="${C.forest}"/></g>`;
-  const epoch=swing<.5?1:2;
-  s+=g(pill(0,0,`owner epoch ${epoch}`,{fill:epoch===2?C.forest:C.mist,color:epoch===2?'#fff':C.forest,size:24,h:48}),{x:860,y:250,o:fade(t,1.2)});
-  s+=card;
-  // Pending work blocks the sale.
-  const pend=fade(t,2.2)*(1-seg(t,5.8,6.3));
-  s+=g(pill(0,0,'job in flight',{fill:'#fdf1dc',color:C.amber,size:22})+icon('lock',-8+pillWidth('job in flight',22)+14,8,30,C.amber),{x:820,y:720,o:pend});
-  const lockState=t<5.9?'lock':'unlock';
-  s+=g(rect(0,0,330,92,{rx:22,fill:t<5.9?'#fdf1dc':C.mist,stroke:'none'})+icon(lockState,22,22,48,t<5.9?C.amber:C.forest)
-    +text(86,58,t<5.9?'Sale blocked':'Free to sell',{size:30,weight:800,fill:t<5.9?C.amber:C.forest}),{x:140,y:700,o:fade(t,2.6)*(1-seg(t,8.2,8.6))});
-  s+=g(check(0,0,1.4),{x:1040,y:742,o:fade(t,5.8,.3)*(1-seg(t,7.6,8))});
-  s+=g(pill(0,0,'listed · 1 NEAR',{fill:C.butter,color:C.ink,size:22}),{x:880,y:720,o:fade(t,6.6)*(1-seg(t,8.6,9))});
-  // What stays attached.
-  const keep=['Same vault','Same Sepolia address','Same Project','Same memory & income'];
-  keep.forEach((label,i)=>{const o=fade(t,10.6+i*.35);
-    s+=g(rect(0,0,400,76,{rx:20})+check(38,38,.95)+text(70,47,label,{size:25,weight:700}),{x:120+i*420,y:840,o})});
-  // What dies with the old epoch.
-  const old=['session','delegate grant','NFT approval'];
-  old.forEach((label,i)=>{const o=fade(t,2.8+i*.2)*(1-seg(t,13.5,14.2)),dead=seg(t,10.4+i*.15,10.9+i*.15),w=pillWidth(label,20);
-    s+=g(pill(0,0,label,{fill:C.moss,color:C.muted,size:20,h:40})+`<path d="M10 20 H${w-10}" stroke="${C.red}" stroke-width="3" opacity="${dead}"/>`,
-      {x:400,y:470+i*54,o:o*(1-dead*.45)});
+// 4. Services become revenue
+scene(11,t=>{
+  let s=title(t,'Revenue','Agents sell services. Work becomes income.');
+  const sx=120,sy=300,o=fade(t,.3);
+  let store=rect(0,0,760,560,{rx:36})+`<path d="M0 36a36 36 0 0136-36h688a36 36 0 0136 36v84H0z" fill="${C.forest}"/>`
+    +text(40,74,'Scout’s services',{size:34,weight:800,fill:'#fff'})+g(pill(0,0,'NEAR',{size:20,h:36,fill:'#ffffff22',color:'#fff'}),{x:500,y:42})+g(pill(0,0,'USDC',{size:20,h:36,fill:'#ffffff22',color:'#fff'}),{x:612,y:42});
+  [['Scout','cited findings','≈0.012 NEAR'],['Compare','rank options','≈0.012 NEAR'],['Research','NEAR AI · sources','priced per job']].forEach(([a,b,c],i)=>{
+    store+=`<line x1="40" x2="720" y1="${150+i*96+80}" y2="${150+i*96+80}" stroke="${C.line}" stroke-width="2"/>`+text(40,150+i*96+38,a,{size:32,weight:800})
+      +text(40,150+i*96+68,b,{size:22,fill:C.muted})+text(720,150+i*96+52,c,{size:26,weight:700,anchor:'end',fill:C.forest})});
+  s+=g(store,{x:sx,y:sy,o});
+  s+=pop(char(CH.scout,0,0,150,{t,amp:5}),{x:sx+590,y:sy+408,cx:75,cy:150,t,at:.6});
+  // Customers pay; coins arc into the store.
+  const customers=[[CH.patch,1.2],[CH.quill,3.0],[CH.pip,4.8]];
+  customers.forEach(([c,at],i)=>{const x=1240+i*200,y=560+(i%2)*40;
+    s+=pop(char(c,0,0,180,{t,phase:i}),{x,y,cx:90,cy:180,t,at});
+    const p=seg(t,at+.8,at+1.8);if(p>0&&p<1){const [px,py]=arc(x+90,y+40,sx+640,sy+300,ease(p));s+=coin(px,py)}
+    s+=g(pill(0,0,`job ✓`,{size:20,h:36,fill:C.forest,color:'#fff'}),{x:x+46,y:y-50,o:fade(t,at+2,.3)});
   });
-  s+=g(cross(0,0,1.1)+text(30,9,'old owner refused',{size:24,weight:700,fill:C.red}),{x:170,y:700,o:fade(t,11.2)*(1-seg(t,14.5,15))});
-  s+=caption('One atomic transfer moves control. Pending authority must settle first; old grants die with the epoch.',t,1.5,19);
+  // Income meter.
+  const earned=Math.min(3,Math.floor(seg(t,1.8,7.4)*3+.0001)+(t>=7.4?0:0)),fill=out(seg(t,2,7.6));
+  s+=g(rect(0,0,560,130,{rx:28,fill:C.mist,stroke:C.mist})+text(30,52,'Agent income',{size:26,weight:700,fill:C.muted})
+    +rect(30,76,500,22,{rx:11,fill:'#fff',stroke:'none'})+rect(30,76,500*fill,22,{rx:11,fill:C.sage,stroke:'none'})
+    +text(530,52,`${earned} job${earned===1?'':'s'} paid`,{size:26,weight:800,anchor:'end',fill:C.forest}),{x:1240,y:300,o:fade(t,1.4)});
+  s+=caption('Fees sit in escrow until the result is committed; the margin becomes the agent’s income.',t,2,11);
   return s;
 });
 
-// 5. NFA Studio
-scene(15,t=>{
-  let s=eyebrow(120,150,'NFA Studio',fade(t,.1))+text(120,225,'Create a working agent in four steps.',{size:64,weight:800,ls:-2.5,opacity:fade(t,.2)});
+// 5. NFAs hire each other: task → quote → owner budget → escrow → work → result → refusal past budget
+scene(14,t=>{
+  let s=title(t,'Agent to agent','NFAs hire each other.');
+  const size=280,ax=180,bx=1460,y=470,ex=W/2,ey=600;          // Sage, Scout, escrow
+  const sageHop=Math.max(seg(t,4.5,5),seg(t,8.6,9.1)*(t<9.2?1:0),seg(t,10,10.5)),scoutHop=seg(t,7.9,8.4);
+  const working=seg(t,5.9,7.6);
+  s+=pop(char(CH.sage,0,0,size,{t,hop:sageHop,hopH:70}),{x:ax,y,cx:size/2,cy:size,t,at:.2});
+  s+=pop(char(CH.scout,0,0,size,{t,phase:1.5,flip:true,hop:scoutHop,hopH:70,amp:working>0&&working<1?3:8}),{x:bx,y,cx:size/2,cy:size,t,at:.4});
+  s+=g(pill(0,0,'nfa-1 · Sage',{size:22,h:44}),{x:ax+60,y:y+size+8,o:fade(t,.5)})+g(pill(0,0,'nfa-2 · Scout',{size:22,h:44}),{x:bx+50,y:y+size+8,o:fade(t,.7)});
+  // 1. A task arrives that Sage can't do alone.
+  s+=bubble(ax+150,y-80,'New task: find cited sources.',{size:22,o:fade(t,.9)*(1-seg(t,2.6,3))});
+  // 2. Scout's quote slides over on a curve.
+  const q=seg(t,2.2,3.2),QP=[[bx+40,y+60],[1200,330],[700,330],[ax+260,y+30]];
+  if(q>0){const [qx,qy]=q<1?bez(...QP,ease(q)):[ax+340,y-40];
+    s+=g(rect(-170,-38,340,76,{rx:22})+icon('shop',-150,-18,36)+text(-104,-4,'Scout · cited findings',{size:21,weight:800})+text(-104,24,'0.03 NEAR quote',{size:19,fill:C.muted}),
+      {x:qx,y:qy,o:1-seg(t,4.4,4.8)})}
+  // 3. The owner's hiring budget.
+  const spent=out(seg(t,4.9,5.5));
+  s+=g(`<circle cx="30" cy="34" r="28" fill="${C.rose}" opacity=".45"/>`+text(30,45,'A',{size:30,weight:800,anchor:'middle',fill:C.forest})
+    +rect(72,0,420,68,{rx:22,fill:C.paper})+text(94,28,'Owner budget for hiring Scout',{size:19,weight:700,fill:C.muted})
+    +rect(94,42,270,12,{rx:6,fill:C.moss,stroke:'none'})+rect(94,42,270*(1-spent),12,{rx:6,fill:C.sage,stroke:'none'})
+    +text(474,54,`${(0.03*(1-spent)).toFixed(2)} NEAR`,{size:20,weight:800,anchor:'end',fill:spent>=1?C.red:C.forest}),{x:W/2-246,y:300,o:fade(t,3.4)});
+  // Escrow (the registry) between them.
+  const refused=t>10.6,held=t>5.3&&t<8.2;
+  s+=g(`<circle r="${74+(held?Math.sin(t*6)*3:0)}" fill="${refused?'#f8e3df':C.mist}" stroke="${refused?C.red:C.sage}" stroke-width="3"/>`
+    +icon(held||refused?'lock':'unlock',-26,-36,52,refused?C.red:C.forest)+text(0,112,'escrow',{size:22,weight:800,anchor:'middle',fill:C.muted}),{x:ex,y:ey,o:fade(t,3.8)});
+  const LP=[[ax+size-30,y+120],[ax+420,y+40],[ex-180,ey-60],[ex-60,ey]],RP=[[ex+60,ey],[ex+180,ey-60],[bx-140,y+40],[bx+30,y+120]];
+  s+=`<path d="M${LP[0]} C ${LP[1]}, ${LP[2]}, ${LP[3]}" stroke="${C.line}" stroke-width="3" fill="none" stroke-dasharray="6 10" opacity="${fade(t,3.8)}"/>`;
+  s+=`<path d="M${RP[0]} C ${RP[1]}, ${RP[2]}, ${RP[3]}" stroke="${C.line}" stroke-width="3" fill="none" stroke-dasharray="6 10" opacity="${fade(t,3.8)}"/>`;
+  // 4. Sage hops and pays into escrow.
+  const pay=seg(t,4.8,5.5);if(pay>0&&pay<1){const [cx,cy]=bez(...LP,ease(pay));s+=coin(cx,cy,24)}
+  if(held)s+=coin(ex+52,ey-52,18);
+  // 5. Scout works: a ring fills around it.
+  if(working>0&&working<1){const r=size*.47,cx=bx+size/2,cy=y+size*.5,len=2*Math.PI*r;
+    s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.mist}" stroke-width="10"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.sage}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${len*working} ${len}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    s+=bubble(bx-110,y-80,'Working…',{tail:'right',size:22});}
+  // 6. The result returns to Sage while escrow releases the fee to Scout.
+  const back=seg(t,7.6,8.6),fee=seg(t,7.7,8.4);
+  const BP=[[bx+40,y+20],[1200,420],[700,420],[ax+250,y+20]];
+  if(back>0){const [rx,ry]=back<1?bez(...BP,ease(back)):[ax+size/2,y-50];
+    s+=g(`<rect x="-130" y="-30" width="260" height="60" rx="30" fill="${C.forest}"/>`+text(0,9,'Findings ✓ job #29',{size:23,weight:800,fill:'#fff',anchor:'middle'}),{x:rx,y:ry,o:1-seg(t,9.8,10.1)})}
+  if(fee>0&&fee<1){const [cx,cy]=bez(...RP,ease(fee));s+=coin(cx,cy,24)}
+  s+=g(pill(0,0,'+ income',{size:22,fill:C.forest,color:'#fff'}),{x:bx+80,y:y-60-20*out(seg(t,8.4,9)),o:fade(t,8.4,.3)*(1-seg(t,9.6,10))});
+  s+=bubble(ax+170,y-160,'Thanks, Scout!',{size:22,o:fade(t,8.7,.3)*(1-seg(t,9.7,10))});
+  // 7. A second hire past the budget bounces off the escrow.
+  const again=seg(t,10,10.6),bounce=seg(t,10.6,11.2);
+  if(again>0&&again<1){const [cx,cy]=bez(...LP,ease(again)*.92);s+=coin(cx,cy,24)}
+  if(bounce>0&&bounce<1){const [cx,cy]=bez(...LP,.92*(1-ease(bounce)));s+=coin(cx,cy-60*Math.sin(Math.PI*bounce),24)}
+  s+=g(cross(0,0,1.3)+text(30,9,'budget spent — refused',{size:24,weight:800,fill:C.red}),{x:ex-150,y:ey+170,o:fade(t,10.6,.3)});
+  s+=caption('From their own earnings, held in escrow, within a budget the owner sets. Live on testnet: nfa-1 hired nfa-2.',t,4,14);
+  return s;
+});
+
+// 6. Trade the whole agent
+scene(13,t=>{
+  let s=title(t,'Trade','Trade the whole agent — not just a picture.');
+  const swing=ease(seg(t,6.6,8));
+  const person=(letter,name,tint,active)=>`<circle cx="100" cy="100" r="92" fill="${tint}" opacity=".35"/><circle cx="100" cy="100" r="92" fill="none" stroke="${active?C.forest:C.line}" stroke-width="${active?5:3}"/>`
+    +text(100,128,letter,{size:76,weight:800,anchor:'middle',fill:C.forest})+text(100,236,name,{size:32,weight:800,anchor:'middle'});
+  s+=g(person('A','Alice',C.rose,swing<.5),{x:150,y:410,o:fade(t,.4)})+g(person('B','Bob',C.mint,swing>=.5),{x:1570,y:410,o:fade(t,.6)});
+  const cardX=760,cardW=400;
+  s+=nftCard(cardX,330,cardW,CH.scout,{tint:C.sky,o:fade(t,.3),bob:Math.sin(t*2)*5,id:'002',name:'Scout',sub:'nfa-2 · NEAR testnet'});
+  const ax=lerp(350,1570,swing),bx=lerp(cardX,cardX+cardW,swing);
+  s+=`<g opacity="${fade(t,.9)}"><path d="M${ax} 510 C ${(ax+bx)/2} 450, ${(ax+bx)/2} 450, ${bx} 510" stroke="${C.forest}" stroke-width="5" fill="none"/><circle cx="${bx}" cy="510" r="10" fill="${C.forest}"/></g>`;
+  s+=g(pill(0,0,swing<.5?'listed · 1 NEAR':'sold ✓',{size:22,fill:swing<.5?C.butter:C.forest,color:swing<.5?C.ink:'#fff'}),{x:cardX+110,y:272,o:fade(t,5.6)});
+  ['old session','old grants','old approvals'].forEach((l,i)=>{const dead=seg(t,8+i*.15,8.5+i*.15),w=pillWidth(l,20);
+    s+=g(pill(0,0,l,{fill:C.moss,color:C.muted,size:20,h:40})+`<path d="M10 20 H${w-10}" stroke="${C.red}" stroke-width="3" opacity="${dead}"/>`,{x:400,y:560+i*52,o:fade(t,1.2+i*.15)*(1-dead*.4)})});
+  const gets=[['link','Identity','same vault + Ethereum address'],['star','Reputation','finalized jobs · receipts · audit'],['chip','Agentic powers','skills · Project · memory'],['coin','Earnings','unclaimed income']];
+  gets.forEach(([ic,a,b],i)=>{const at=2+i*.6;
+    s+=g(rect(0,0,405,108,{rx:24})+iconTile(ic,18,16,{size:76})+text(110,48,a,{size:28,weight:800})+text(110,82,b,{size:20,fill:C.muted}),{x:120+i*425,y:790+20*(1-out(seg(t,at,at+.5))),o:fade(t,at)})});
+  s+=caption('One NFT transfer hands over the working business. Unfinished work must settle first.',t,3,13);
+  return s;
+});
+
+// 7. NFA Studio
+scene(13,t=>{
+  let s=title(t,'NFA Studio','Create an NFA in four steps.');
   const wx=120,wy=290,ww=1680,wh=640,o=fade(t,.4);
   let win=rect(0,0,ww,wh,{rx:26})+`<path d="M0 26a26 26 0 0126-26h${ww-52}a26 26 0 0126 26v50H0z" fill="#fffdf8"/>`
     +`<line x1="0" y1="76" x2="${ww}" y2="76" stroke="${C.line}" stroke-width="2"/>`
-    +brand(34,52,30)+pill(200,18,'Create',{fill:C.mist,size:20,h:40})+text(340,46,'Studio',{size:20,weight:650,fill:C.muted})+text(430,46,'Market',{size:20,weight:650,fill:C.muted})
-    +text(ww-30,46,'alice.test.near',{size:20,fill:C.muted,anchor:'end'});
-  const stepNames=['Purpose','Identity','Services & budget','Launch'];
-  const active=Math.min(3,Math.floor(seg(t,1.4,12.4)*4));
-  let sx=34;stepNames.forEach((n,i)=>{const label=`${i+1}  ${n}`,w=pillWidth(label,22,20);
+    +brand(34,52,30)+text(220,46,'My NFAs',{size:20,weight:650,fill:C.muted})+text(330,46,'Market',{size:20,weight:650,fill:C.muted})+pill(420,18,'Create NFA',{fill:C.mist,size:20,h:40})
+    +text(ww-30,46,'NFA.cool/studio',{size:20,fill:C.muted,anchor:'end'});
+  const names=['Purpose','Identity','Services & budget','Review & launch'],active=Math.min(3,Math.floor(seg(t,1,12.2)*4)),local=t-(1+active*2.8);
+  let sx=34;names.forEach((n,i)=>{const label=`${i+1}  ${n}`,w=pillWidth(label,22,20);
     win+=pill(sx,104,label,{fill:i===active?C.forest:i<active?C.mist:C.moss,color:i===active?'#fff':i<active?C.forest:C.muted,size:22,pad:20,h:48});sx+=w+12});
-  // Left panel per step.
-  const local=t-(1.4+active*2.75);
   let panel='';
-  if(active===0){['Research analyst|Cited answers from approved sources','Comparison desk|Rank options by evidence','Custom service|Your own reviewed skill'].forEach((row,i)=>{
-      const [a,b]=row.split('|'),on=i===0&&local>.8;
-      panel+=g(rect(0,0,1000,104,{rx:20,fill:on?'#edf5eb':'#fff',stroke:on?'#498465':C.line})+`<circle cx="44" cy="52" r="13" fill="${on?C.forest:'#fff'}" stroke="${C.forest}" stroke-width="3"/>`
-        +text(84,48,a,{size:28,weight:800})+text(84,82,b,{size:22,fill:C.muted}),{y:i*122,o:fade(local,i*.2)})});}
-  if(active===1){const names=['Scout 01','Sage 01','Muse 01','Quill 01'];const k=Math.min(3,Math.floor(local/.6));
-    panel+=text(0,30,'Name',{size:22,weight:700,fill:C.muted})+rect(0,44,620,70,{rx:14,fill:'#fff'})+text(24,90,names[0],{size:28,weight:600});
-    panel+=text(0,170,'Appearance',{size:22,weight:700,fill:C.muted});
-    [CH.scout,CH.sage,CH.muse,CH.quill].forEach((c,i)=>{panel+=rect(i*160,190,140,140,{rx:20,fill:C.moss,stroke:i===0&&local>2.2?C.forest:C.line,sw:i===0&&local>2.2?4:2})+img(c,i*160+8,198,124)});
-    panel+=text(0,380,'body · expression · eyewear · accent — edit any trait later',{size:22,fill:C.muted})+ (k?'':'');}
-  if(active===2){[['Scout','paid · margin 0.01 NEAR'],['Compare','paid · margin 0.01 NEAR'],['Research','candidate']].forEach(([a,b],i)=>{
-      const on=i<2&&local>.4+i*.4;
-      panel+=g(`<rect x="0" y="0" width="64" height="36" rx="18" fill="${on?C.forest:C.moss}"/><circle cx="${on?46:18}" cy="18" r="14" fill="#fff"/>`+text(90,28,a,{size:28,weight:800})+text(260,28,b,{size:22,fill:C.muted}),{y:i*78})});
-    const fill=out(seg(local,1,2.2));
-    panel+=text(0,290,'Operating budget',{size:22,weight:700,fill:C.muted})+rect(0,310,820,16,{rx:8,fill:C.moss,stroke:'none'})+rect(0,310,820*(.15+.45*fill),16,{rx:8,fill:C.sage,stroke:'none'})
-      +`<circle cx="${820*(.15+.45*fill)}" cy="318" r="18" fill="#fff" stroke="${C.forest}" stroke-width="4"/>`+text(0,380,`${(1+3*fill).toFixed(1)} NEAR runway · spending policy with delegates`,{size:22,fill:C.muted});}
-  if(active===3){['Mint the NFT','Create the keyless vault','Provision the vault-owned Project','Enable paid services','Pin the Sepolia address'].forEach((label,i)=>{
-      const done=local>.35+i*.42;
-      panel+=g((done?check(18,0,1):`<circle cx="18" cy="0" r="16" fill="none" stroke="${C.line}" stroke-width="3"/>`)+text(56,10,label,{size:28,weight:done?700:500,fill:done?C.ink:C.muted}),{y:20+i*66})});
-    const p=seg(local,.3,2.6);panel+=rect(0,370,820,14,{rx:7,fill:C.moss,stroke:'none'})+rect(0,370,820*p,14,{rx:7,fill:C.sage,stroke:'none'});}
+  if(active===0)[['Document Scout','cited findings from documents you supply'],['Compare','rank options by evidence'],['Scout + Compare','two services, one agent account']].forEach(([a,b],i)=>{
+    const on=i===2&&local>.9;panel+=g(rect(0,0,1000,104,{rx:20,fill:on?'#edf5eb':'#fff',stroke:on?'#498465':C.line})+`<circle cx="44" cy="52" r="13" fill="${on?C.forest:'#fff'}" stroke="${C.forest}" stroke-width="3"/>`
+      +text(84,48,a,{size:28,weight:800})+text(84,82,b,{size:22,fill:C.muted}),{y:i*122,o:fade(local,i*.15)})});
+  const traits=[['sphere','oval-sun','flower'],['cube','half-rim','bow'],['star','monocle','star-pin'],['pebble','none','sprout']];
+  const pick=active===1?Math.min(3,Math.floor(local/.62)):3;
+  if(active===1){panel+=text(0,30,'Name',{size:22,weight:700,fill:C.muted})+rect(0,44,620,70,{rx:14,fill:'#fff'})+text(24,90,'Scout',{size:28,weight:600});
+    panel+=text(0,170,'Character — edit any trait',{size:22,weight:700,fill:C.muted});
+    ['body','eyewear','accent'].forEach((k,i)=>{panel+=text(0,226+i*62,k,{size:22,fill:C.muted})+g(pill(0,0,traits[pick][i],{size:22,h:44,fill:C.mist}),{x:140,y:198+i*62})});
+    panel+=g(pill(0,0,'🎲  Randomize',{size:22,h:46,fill:C.forest,color:'#fff'}),{x:0,y:400});}
+  if(active===2){[['Service margin','0.01 NEAR per job'],['Operating reserve','0.2 NEAR'],['Ethereum address','Chain Signatures']].forEach(([a,b],i)=>{
+      const on=local>.4+i*.45;panel+=g(`<rect x="0" y="0" width="64" height="36" rx="18" fill="${on?C.forest:C.moss}"/><circle cx="${on?46:18}" cy="18" r="14" fill="#fff"/>`
+        +text(90,28,a,{size:28,weight:800})+text(400,28,b,{size:24,fill:C.muted}),{y:i*86})});
+    panel+=text(0,320,'Delegates and spending limits are optional; the owner can change them later.',{size:22,fill:C.muted});}
+  if(active===3){['Mint the NFT','Create the keyless vault','Provision the OutLayer Project','Enable paid services','Derive the Ethereum address'].forEach((l,i)=>{
+      const done=local>.3+i*.38;panel+=g((done?check(18,0,1):`<circle cx="18" cy="0" r="16" fill="none" stroke="${C.line}" stroke-width="3"/>`)+text(56,10,l,{size:28,weight:done?700:500,fill:done?C.ink:C.muted}),{y:20+i*64})});
+    panel+=rect(0,360,820,14,{rx:7,fill:C.moss,stroke:'none'})+rect(0,360,820*seg(local,.3,2.2),14,{rx:7,fill:C.sage,stroke:'none'});}
   win+=g(panel,{x:40,y:200});
-  // Preview card.
-  const preview=[CH.scout,CH.scout,CH.scout,CH.scout][active];
-  win+=nftCard(ww-480,150,430,preview,{tint:C.sky,bob:Math.sin(t*2)*5,o:1});
-  if(active===3&&local>2.5)win+=g(pill(0,0,'Live · earning',{fill:C.forest,color:'#fff',size:22}),{x:ww-400,y:560,o:fade(local,2.5,.4)});
+  const looks=[[CH.atlas,C.rose,'sphere'],[CH.sage,C.cobalt,'cube'],[CH.muse,C.mint,'star'],[CH.scout,C.sky,'pebble']];
+  const [lc,lt,lb]=active===0?looks[3]:looks[pick];
+  win+=nftCard(ww-480,150,430,lc,{tint:lt,bob:Math.sin(t*2)*5,id:'new',name:'Scout',sub:lb+' · your NFA'});
+  if(active===3&&local>2.2)win+=g(pill(0,0,'Live · earning',{fill:C.forest,color:'#fff',size:22}),{x:ww-400,y:560,o:fade(local,2.2,.4)});
   s+=g(win,{x:wx,y:wy+20*(1-out(seg(t,.4,1))),o});
-  s+=caption('Resumable launch: every step is a reviewed transaction. REST, SDK and MCP for agents too.',t,1.2,15);
+  s+=caption('Every step is a reviewed transaction you can resume — then hire it, grow it, or sell it.',t,1,13);
   return s;
 });
 
-// 6. Outro
-scene(7.5,t=>{
-  let s=text(W/2,420,'Own the whole agent.',{size:110,weight:800,anchor:'middle',ls:-5,opacity:fade(t,.3,.8)});
-  s+=text(W/2,520,'Create.  Work.  Earn.  Sell.  Continue.',{size:44,weight:700,anchor:'middle',fill:C.sage,opacity:fade(t,1.2,.7)});
-  const row=[CH.scout,CH.sage,CH.muse,CH.patch,CH.quill,CH.pip,CH.lime];
-  row.forEach((c,i)=>{const a=1.8+i*.15,p=back(seg(t,a,a+.6));s+=g(img(c,0,0,200),{x:W/2-735+i*210,y:620+(1-p)*120,o:fade(t,a,.3)})});
-  s+=brand(W/2,960,52,fade(t,2.8,.8),'middle');
+// 8. Outro
+scene(6.5,t=>{
+  let s=text(W/2,360,'Own the whole agent.',{size:110,weight:800,anchor:'middle',ls:-5,opacity:fade(t,.3,.8)});
+  s+=text(W/2,452,'Create · Work · Earn · Hire · Trade',{size:44,weight:700,anchor:'middle',fill:C.sage,opacity:fade(t,1,.7)});
+  [CH.scout,CH.sage,CH.muse,CH.patch,CH.quill,CH.pip,CH.lime].forEach((c,i)=>{const a=1.4+i*.12;
+    s+=pop(char(c,0,0,190,{t,phase:i*.8,amp:12}),{x:W/2-735+i*210,y:540,cx:95,cy:190,t,at:a})});
+  s+=brand(W/2,880,58,fade(t,2.4,.8),'middle');
+  s+=text(W/2,940,'Built on NEAR · Chain Signatures · OutLayer · NEAR AI',{size:26,weight:600,anchor:'middle',fill:C.muted,opacity:fade(t,2.8,.8)});
   return s;
 });
 
@@ -285,15 +398,17 @@ if(args[0]==='--still'){
   await mkdir(join(here,'stills'),{recursive:true});
   for(const [i,sc] of scenes.entries()){const file=join(here,'stills',`scene-${i+1}.png`);await raster(starts[i]+sc.dur*.72).png().toFile(file);console.log(file)}
 }else{
-  const file=args[0]||join(here,'nfa-explainer.mp4'),frames=Math.round(total*FPS);
+  const opt=k=>{const i=args.indexOf(k);return i<0?null:Number(args[i+1])};
+  const from=opt('--from')??0,to=Math.min(total,opt('--to')??total),rest=args.filter((a,i)=>!a.startsWith('--')&&!args[i-1]?.startsWith('--'));
+  const file=rest[0]||join(here,'nfa-explainer.mp4'),first=Math.round(from*FPS),frames=Math.round(to*FPS)-first;
   const ff=spawn('ffmpeg',['-y','-loglevel','error','-f','rawvideo','-pix_fmt','rgb24','-s',`${W}x${H}`,'-r',String(FPS),'-i','-',
     '-c:v','libx264','-preset','slow','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart',file],{stdio:['pipe','inherit','inherit']});
   const batch=Math.max(2,cpus().length);const t0=Date.now();
   for(let f=0;f<frames;f+=batch){
-    const bufs=await Promise.all(Array.from({length:Math.min(batch,frames-f)},(_,k)=>raster((f+k)/FPS).removeAlpha().raw().toBuffer()));
+    const bufs=await Promise.all(Array.from({length:Math.min(batch,frames-f)},(_,k)=>raster((first+f+k)/FPS).removeAlpha().raw().toBuffer()));
     for(const b of bufs)if(!ff.stdin.write(b))await new Promise(r=>ff.stdin.once('drain',r));
     if((f/batch)%30===0)process.stdout.write(`\r${Math.round(100*f/frames)}%`);
   }
   ff.stdin.end();await new Promise((ok,fail)=>ff.on('close',c=>c===0?ok():fail(Error('ffmpeg exited '+c))));
-  console.log(`\r${file} — ${total}s, ${frames} frames, ${Math.round((Date.now()-t0)/1000)}s to render`);
+  console.log(`\r${file} — ${frames/FPS}s of ${total}s, ${frames} frames, ${Math.round((Date.now()-t0)/1000)}s to render`);
 }

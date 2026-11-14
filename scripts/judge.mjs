@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// One command for judges (people or agents): re-derives nfa.cool's claims locally, with no
+// One command for judges (people or agents): re-derives NFA.cool's claims locally, with no
 // secrets, keys, testnet tokens or Rust toolchain. Writes judge-report.json and exits non-zero
 // if any check fails.
 //   npm run judge            full run (about 3 minutes after npm ci)
@@ -41,7 +41,7 @@ function record(step){
 }
 const tail=text=>text.split('\n').filter(l=>!/deprecated/.test(l)).slice(-12).join('\n');
 
-console.log(`nfa.cool judge — ${platform()}-${arch()}, node ${process.versions.node}${quick?', quick':''}\n`);
+console.log(`NFA.cool judge — ${platform()}-${arch()}, node ${process.versions.node}${quick?', quick':''}\n`);
 
 // 0. The SDK and shared packages are built (npm ci does not build them).
 if(!(await exists('packages/sdk/dist/index.js'))||!(await exists('packages/shared/dist/index.js'))){

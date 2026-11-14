@@ -1,4 +1,4 @@
-# nfa.cool — Non Fungible Agent
+# NFA.cool — Non-Fungible Agent
 
 An NFA is an NFT that controls a persistent software account. It can hold a
 treasury, expose paid services, retain eligible work and change owners while
@@ -69,7 +69,7 @@ locally implemented but has not accepted a live payment.
 See [payment and hiring status](PAYMENT-AND-HIRING.md).
 Personal OAuth, royalties, x402 and additional chains remain later products.
 
-Live URL: **public hosting deferred**. Demo: [testnet evidence replay](research-live-evidence-replay.mp4)
+Live URL: **[NFA.cool](https://nfa.cool)** (NEAR testnet; Scout and Compare quotes). Demo: [testnet evidence replay](research-live-evidence-replay.mp4)
 and the separate [local walkthrough](release-evidence-walkthrough.mp4).
 Use [DEMO-SCRIPT.md](DEMO-SCRIPT.md), [RELEASE-PLAN.md](RELEASE-PLAN.md) and
 [OUTLAYER-TESTNET-EVIDENCE.md](OUTLAYER-TESTNET-EVIDENCE.md) for reproducibility

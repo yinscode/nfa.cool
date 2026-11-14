@@ -1,4 +1,4 @@
-# AGENTS.md — evaluating nfa.cool
+# AGENTS.md — evaluating NFA.cool
 
 **What it is.** An NFA is an NFT that controls a persistent agent account. That account
 includes a NEAR vault, a Chain Signatures Sepolia address, a vault-owned OutLayer Project
@@ -109,7 +109,8 @@ The old keys await a successful delayed apply before removal.
 - Research seller and buyer jobs completed with real NEAR AI inference and
   priced usage; the registry trusts the restricted HTTPS reporter and does not
   verify an OutLayer attestation on-chain;
-- no public hosting;
+- Studio and API are hosted at https://nfa.cool on testnet only (Scout and Compare
+  quotes; no hosted Research checkout; external-wallet acceptance checklist open);
 - no payment to an external Sepolia recipient (only self-transfers).
 
 ## Do not

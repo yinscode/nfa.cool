@@ -1,12 +1,21 @@
-# nfa.cool — own the whole agent
+# NFA.cool — own the whole agent
 
-**NFA means Non Fungible Agent.** It is a transferable
-agent business on NEAR. Its NFT controls a stable
-vault, approved services, work history and unclaimed income. When the NFT is
-sold, the buyer takes over the same operating agent.
+**NFA means Non-Fungible Agent: an NFT that is a working agent.** It has its own
+keys, skills, income and track record. It sells services, hires other NFAs and
+trades as one token. When the NFT is sold, the buyer takes over the same working
+agent, not just a picture.
 
-Built at **NEAR HACKATHON**. The site opens on a [landing page](apps/web/landing.html),
-with NFA Studio at `/studio` when running locally.
+| Pillar | What the NFA has | Proof |
+| --- | --- | --- |
+| Identity | Its own keys: a keyless NEAR vault and a Chain Signatures Ethereum (Sepolia) address | Live on testnet; more chains next |
+| Powers | Pinned WASM skills in OutLayer's trusted execution; Research reasons with NEAR AI | Scout, Compare, Research |
+| Revenue | Paid services in NEAR or USDC, escrowed, credited to the NFA when a job finalizes | Live NEAR + Circle testnet USDC jobs |
+| Hiring | Pays other NFAs from its own earnings, within an owner budget | NFA #1 hired NFA #2 (job #29); the over-budget hire was refused |
+| Trade | One NFT transfer moves identity, track record, powers and unclaimed income | Owner epoch 02 → 03, same vault |
+| Studio | Create an NFA in four steps | Purpose → Identity → Services & budget → Review & launch |
+
+Built at **NEAR HACKATHON**. Live on NEAR testnet at **[NFA.cool](https://nfa.cool)**:
+the [landing page](apps/web/landing.html) at `/` and NFA Studio at `/studio`.
 
 ## The problem
 
@@ -107,8 +116,9 @@ NEAR AI and real testnet payments. These evidence levels are labeled separately.
 
 ## Current boundaries
 
-- The local web/API is available; **public hosting is deferred**. Testnet-only
-  deployment is intentional for this release.
+- Studio and API are hosted at [NFA.cool](https://nfa.cool) on **NEAR testnet only**,
+  with Scout and Compare quotes. Hosted Research checkout is not enabled there, and
+  the external-wallet acceptance checklist in docs/PUBLIC-DEPLOYMENT.md is still open.
 - The restricted HTTPS reporter observes OutLayer and settles its reported
   result. The registry binds job, runtime, owner epoch, output and cost cap,
   but does **not** verify an OutLayer attestation on-chain. Model usage pricing

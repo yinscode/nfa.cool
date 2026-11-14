@@ -114,7 +114,7 @@ export function createApiServer({sdk,store,access,
       if(++entry.count>120){send(res,429,{error:'rate_limited'});return}
       hits.set(ip,entry);
       const appPath=['/','/studio','/create'].includes(path)||/^\/nfa\/nfa-[1-9][0-9]*$/.test(path);
-      if(req.method==='GET'&&(appPath||/^\/assets\/[a-zA-Z0-9._-]+\.(js|css|svg|png|mp4)$/.test(path))){
+      if(req.method==='GET'&&(appPath||/^\/(assets\/[a-zA-Z0-9._-]+\.(js|css|svg|png|mp4)|favicon\.svg|og\.png)$/.test(path))){
         const filename=appPath?(path==='/'?'landing.html':'index.html'):path.slice(1);
         const content=await readFile(resolve(webRoot,filename));
         res.writeHead(200,{'content-type':filename.endsWith('.js')?'text/javascript; charset=utf-8':

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "about": "Machine-readable claims for nfa.cool. \"judge\" entries are re-run by `npm run judge`; \"readOnly\" commands re-derive live facts without keys; transactions link public explorers.",
+  "about": "Machine-readable claims for NFA.cool. \"judge\" entries are re-run by `npm run judge`; \"readOnly\" commands re-derive live facts without keys; transactions link public explorers.",
   "levels": {
     "native-test": "contract unit tests with injected callbacks",
     "sandbox": "local NEAR sandbox with real receipts and a deterministic OutLayer mock",
@@ -372,13 +372,13 @@
     },
     {
       "id": "hosting.public",
-      "statement": "A public web/API deployment.",
+      "statement": "A public web/API deployment on NEAR testnet at https://nfa.cool.",
       "level": [],
-      "status": "open",
+      "status": "disclosed",
       "evidence": [
         "docs/PUBLIC-DEPLOYMENT.md"
       ],
-      "limits": "Runs locally only."
+      "limits": "Hosted on a single testnet droplet with Scout and Compare quotes. Hosted Research checkout is not enabled, the external-wallet acceptance checklist in docs/PUBLIC-DEPLOYMENT.md is open, and durable data is not backed up. No judge check covers this deployment; release-preflight --live checks it read-only."
     }
   ]
 }

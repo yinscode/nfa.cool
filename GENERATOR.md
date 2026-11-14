@@ -1,4 +1,4 @@
-# nfa.cool — modular character generator v2
+# NFA.cool — modular character generator v2
 
 Generate reusable NFA character artwork locally from transparent PNG parts.
 This version replaces universal headwear with eye-aligned glasses, small surface

@@ -1,4 +1,4 @@
-# nfa.cool — implementation plan for Sol
+# NFA.cool — implementation plan for Sol
 
 Prepared: 2026-11-10. Updated: 2026-11-12. The original acceptance gates below
 remain intact. The newer Studio/OutLayer work and six approved release milestones

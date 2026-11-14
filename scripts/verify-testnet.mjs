@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Read-only, keyless re-derivation of nfa.cool's live testnet facts (NEAR testnet + Sepolia).
+// Read-only, keyless re-derivation of NFA.cool's live testnet facts (NEAR testnet + Sepolia).
 // Compares what the chains say now with the recorded evidence. Sends no transactions.
 //   npm run verify:testnet
 // Env: NEAR_RPC_URL (default FastNEAR testnet), EVM_RPC_URL (default a public Sepolia node).

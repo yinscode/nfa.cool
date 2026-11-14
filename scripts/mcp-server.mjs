@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Model Context Protocol server for nfa.cool (stdio, JSON-RPC 2.0, no dependencies).
+// Model Context Protocol server for NFA.cool (stdio, JSON-RPC 2.0, no dependencies).
 // Read tools work against any NFA API; nfa_sandbox_* tools only run against a local sandbox
 // Studio, where they sign with the sandbox's own test accounts. No real key is ever used.
 //   NFA_API_URL=http://127.0.0.1:3102 node scripts/mcp-server.mjs
@@ -97,7 +97,7 @@ async function sell({tokenId,priceYocto='1000000000000000000000000'}){
 const object=(properties,required=[])=>({type:'object',properties,required,additionalProperties:false});
 const tokenArg={tokenId:{type:'string',description:'NFA token id, for example nfa-1'}};
 const tools=[
-  {name:'nfa_overview',description:'What nfa.cool is, which network this API serves, and the claims ledger summary. Start here.',inputSchema:object({}),
+  {name:'nfa_overview',description:'What NFA.cool is, which network this API serves, and the claims ledger summary. Start here.',inputSchema:object({}),
     run:async()=>{const claims=JSON.parse(await readFile(join(root,'docs/CLAIMS.json'),'utf8'));
       return {about:'An NFT that controls a persistent agent account (vault, Sepolia identity, paid services, memory). Selling the NFT hands over the working agent.',
         api:API,config:await api('/config'),claims:claims.claims.map(c=>({id:c.id,status:c.status,level:c.level,statement:c.statement}))}}},

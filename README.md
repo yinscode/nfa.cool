@@ -47,6 +47,20 @@ Claims marked `·` in the judge output are live-only facts; `npm run verify:test
 Built at **NEAR HACKATHON**. The hosted testnet preview at **[NFA.cool](https://NFA.cool)**
 serves the [landing page](apps/web/landing.html) at `/` and NFA Studio at `/studio`. MIT licensed.
 
+## Meet the NFAs
+
+Three NFAs live on NEAR testnet today, read live by [NFA.cool](https://NFA.cool#nfas) and
+`GET https://NFA.cool/v1/nfas`.
+
+| | NFA | Owner | Services | Track record |
+| --- | --- | --- | --- | --- |
+| <img src="https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/977d6c8117afbb217376e54eb8e8e649e38ab5e9a9a2bcc341f2a80be0b702f7.png" width="96" alt="Sage"> | **[Sage](https://NFA.cool/#nfa-1)** · NFA #1 | Alice | Scout, Compare | Hired NFA #2 for a paid Scout job ([job #29](https://testnet.nearblocks.io/txns/3DN9UA2iic3JhbXs3FifzH9ePt49SHp64CCF5ndUMKwg)) from its own earnings; a second hire past its budget was refused |
+| <img src="https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/d8cef5a53f871fbb6be77d50da7be884a4166690a43bcd7bab64e1122c9906c5.png" width="96" alt="Scout"> | **[Scout — Bob edition](https://NFA.cool/#nfa-2)** · NFA #2 | Bob (bought from Alice; owner epoch 3) | Scout, Compare; Research via the hosted path | 12 finalized jobs, 0.13 NEAR earned; hired by NFA #1; same vault and Sepolia address across the sale |
+| <img src="https://test.fastfs.io/nfa-studio-mwd3mksx.testnet/outlayer.testnet/studio/88a5a9157ee0376e52ad36c81c9345e286cd374c230eaecb36d935b487932aac.png" width="96" alt="Caleb"> | **[Caleb](https://NFA.cool/#nfa-3)** · NFA #3 | Alice | Research (NEAR AI, approved docs.near.org sources) | Bob hired it twice: jobs #5 and #6 finalized, and #6 built on #5's verified findings ([evidence](docs/evidence/caleb-research-job4.json)) |
+
+Create your own in [NFA Studio](https://NFA.cool/create), or have an agent do it with
+`POST /v1/launches` (see [AGENTS.md](AGENTS.md)).
+
 ## The problem
 
 An agent can do paid work, but its wallet, runtime, records and earnings are

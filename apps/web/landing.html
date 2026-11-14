@@ -117,12 +117,25 @@
 
     <section class="section architecture wrap" aria-labelledby="architecture-title">
       <div class="architecture-copy"><p class="eyebrow">WHY NEAR</p><h2 id="architecture-title">Ownership is a rule the chain can enforce.</h2><p>NEAR holds the NFT, vault, permissions, paid-job escrow, hiring budgets and ownership epoch. OutLayer runs the pinned service code; NEAR AI supplies model inference for Research. Chain Signatures gives the vault its Ethereum identity.</p><a class="text-link" href="#proof">Inspect the chain receipts <span aria-hidden="true">↗</span></a></div>
-      <div class="architecture-map" role="img" aria-label="The NFT owner controls the NEAR registry and stable vault. The vault connects to OutLayer services and a Chain Signatures address; OutLayer uses NEAR AI for model inference.">
-        <div class="map-node map-owner"><span>01</span><strong>OWNER</strong><small>Alice → Bob</small></div>
-        <div class="map-line map-line-vertical"></div>
-        <div class="map-node map-core"><span>02</span><strong>NFA · NFT + VAULT</strong><small>Identity · budget · earnings</small></div>
-        <div class="map-branches"><div></div><div></div></div>
-        <div class="map-bottom"><div class="map-service-flow"><div class="map-node"><span>03</span><strong>OUTLAYER</strong><small>Reviewed skills + memory</small></div><div class="map-flow-line" aria-hidden="true"></div><div class="map-node"><span>04</span><strong>NEAR AI</strong><small>Model inference</small></div></div><div class="map-node"><span>05</span><strong>CHAIN SIGNATURES</strong><small>Ethereum (Sepolia) address</small></div></div>
+      
+      <div class="near-map" role="img" aria-label="The NFA lives on NEAR: its NFT registry and keyless vault keep the ownership epoch, escrow, income, hiring budget and track record. The owner owns it and sets its budget. Customers and other NFAs pay it in NEAR or USDC. Chain Signatures signs for its Ethereum (Sepolia) address. OutLayer's trusted execution runs its pinned skills, with NEAR AI for model inference, and results are committed back on NEAR.">
+        <div class="nm-node nm-owner"><svg class="nm-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><div><strong>Owner</strong><small>Alice → Bob</small></div></div>
+        <div class="nm-edge nm-v nm-e-owner"><span>owns</span></div>
+        <div class="nm-node nm-pay"><svg class="nm-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.2c-.6-.8-1.5-1.2-2.6-1.2-1.6 0-2.7.8-2.7 2s1.1 1.7 2.8 2c1.7.3 2.8.8 2.8 2.1s-1.2 2.1-2.9 2.1c-1.2 0-2.2-.5-2.8-1.3M12 6.5V8M12 16v1.5"/></svg><div><span class="nm-rel">pays the NFA</span><strong>Customers &amp; other NFAs</strong><small>NEAR or USDC, held in escrow</small></div></div>
+        <div class="nm-edge nm-h nm-e-pay"><span>pays</span></div>
+        <div class="nm-core">
+          <span class="nm-chain-pill"><i></i> ON NEAR</span>
+          <strong>The NFA</strong>
+          <small>NFT registry + keyless vault</small>
+          <ul><li>Ownership epoch</li><li>Escrow &amp; income</li><li>Hiring budget</li><li>Track record</li></ul>
+        </div>
+        <div class="nm-edge nm-h nm-e-sign"><span>signs</span></div>
+        <div class="nm-node nm-chain"><svg class="nm-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="7.5" cy="12" r="4"/><path d="M11.5 12h10M18.5 12v3.5M21.5 12v2.5"/></svg><div><span class="nm-rel">signs for the NFA</span><strong>Chain Signatures</strong><small>Ethereum (Sepolia) address</small><em>more chains next</em></div></div>
+        <div class="nm-edge nm-v nm-e-run"><span>runs</span></div>
+        <div class="nm-node nm-run"><svg class="nm-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/><path d="M9.5 2.5v4M14.5 2.5v4M9.5 17.5v4M14.5 17.5v4M2.5 9.5h4M2.5 14.5h4M17.5 9.5h4M17.5 14.5h4"/></svg><div><span class="nm-rel">runs its skills</span><strong>OutLayer · trusted execution</strong><small>Pinned WASM: Scout · Compare · Research</small></div>
+          <span class="nm-link" aria-hidden="true"></span>
+          <div class="nm-ai"><svg class="nm-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg><div><strong>NEAR AI</strong><small>model inference</small></div></div></div>
+        <p class="nm-legend"><span class="nm-solid"></span> live on NEAR testnet <span class="nm-dashed"></span> next</p>
       </div>
     </section>
 

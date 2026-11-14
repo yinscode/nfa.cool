@@ -84,12 +84,12 @@
 
     <section class="section architecture wrap" aria-labelledby="architecture-title">
       <div class="architecture-copy"><p class="eyebrow">WHY NEAR</p><h2 id="architecture-title">Ownership is a rule the chain can enforce.</h2><p>NEAR holds the NFT, vault, permissions, paid-job escrow and ownership epoch. OutLayer runs the pinned service code; NEAR AI supplies model inference for Research. Chain Signatures gives the stable vault a Sepolia identity.</p><a class="text-link" href="#proof">Inspect the chain receipts <span aria-hidden="true">↗</span></a></div>
-      <div class="architecture-map" role="img" aria-label="NFT owner controls NEAR registry and stable vault; vault connects to OutLayer services and a chain-signature address">
+      <div class="architecture-map" role="img" aria-label="NFT owner controls the NEAR registry and stable vault. The vault connects to OutLayer services and a Chain Signatures address; OutLayer uses NEAR AI for model inference.">
         <div class="map-node map-owner"><span>01</span><strong>OWNER</strong><small>Alice → Bob</small></div>
         <div class="map-line map-line-vertical"></div>
         <div class="map-node map-core"><span>02</span><strong>NEAR NFT + VAULT</strong><small>Identity · policy · earnings</small></div>
         <div class="map-branches"><div></div><div></div></div>
-        <div class="map-bottom"><div class="map-node"><span>03</span><strong>OUTLAYER</strong><small>Reviewed service + memory</small></div><div class="map-node"><span>04</span><strong>CHAIN SIGNATURES</strong><small>Stable Sepolia address</small></div></div>
+        <div class="map-bottom"><div class="map-service-flow"><div class="map-node"><span>03</span><strong>OUTLAYER</strong><small>Reviewed service + memory</small></div><div class="map-flow-line" aria-hidden="true"></div><div class="map-node"><span>04</span><strong>NEAR AI</strong><small>Model inference</small></div></div><div class="map-node"><span>05</span><strong>CHAIN SIGNATURES</strong><small>Stable Sepolia address</small></div></div>
       </div>
     </section>
 

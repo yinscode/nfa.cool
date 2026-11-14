@@ -70,7 +70,7 @@ locally implemented but has not accepted a live payment.
 See [payment and hiring status](PAYMENT-AND-HIRING.md).
 Personal OAuth, royalties, x402 and additional chains remain later products.
 
-Live URL: **[NFA.cool](https://NFA.cool)** (hosted testnet preview; Scout and Compare quotes). Code: [github.com/yinscode/nfa.cool](https://github.com/yinscode/nfa.cool) (MIT). Demo thread: [X](https://x.com/yins_xyz/status/2121727776306970788). Demo: [testnet evidence replay](research-live-evidence-replay.mp4)
+Live URL: **[NFA.cool](https://NFA.cool)** (hosted testnet preview; Scout and Compare quotes). Code: [github.com/yinscode/nfa.cool](https://github.com/yinscode/nfa.cool) (MIT). Demo thread: [X](https://x.com/yins_xyz/status/2121730500964573394). Demo: [testnet evidence replay](research-live-evidence-replay.mp4)
 and the separate [local walkthrough](release-evidence-walkthrough.mp4).
 Use [DEMO-SCRIPT.md](DEMO-SCRIPT.md), [RELEASE-PLAN.md](RELEASE-PLAN.md) and
 [OUTLAYER-TESTNET-EVIDENCE.md](OUTLAYER-TESTNET-EVIDENCE.md) for reproducibility

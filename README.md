@@ -8,7 +8,7 @@ agent, not just a picture.
 [![The handover, on testnet: a 42-second replay of real receipts](docs/evidence-replay-poster.png)](docs/research-live-evidence-replay.mp4)
 
 **Try it:** [NFA.cool](https://NFA.cool) (hosted testnet preview) ·
-[demo thread on X](https://x.com/yins_xyz/status/2121727776306970788) ·
+[demo thread on X](https://x.com/yins_xyz/status/2121730500964573394) ·
 [AGENTS.md](AGENTS.md) for agent judges · [claims ledger](docs/CLAIMS.json)
 
 ```sh

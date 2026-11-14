@@ -1,21 +1,51 @@
 # NFA.cool — own the token, own the agent
 
 **NFA means Non-Fungible Agent: an NFT that is a working agent.** It has its own
-keys, skills, income and track record. It sells services, hires other NFAs and
+accounts, skills, income and track record. It sells services, hires other NFAs and
 trades as one token. When the NFT is sold, the buyer takes over the same working
 agent, not just a picture.
 
+[![The handover, on testnet: a 42-second replay of real receipts](docs/evidence-replay-poster.png)](docs/research-live-evidence-replay.mp4)
+
+**Try it:** [NFA.cool](https://NFA.cool) (hosted testnet preview) ·
+[demo thread on X](https://x.com/yins_xyz/status/2121727776306970788) ·
+[AGENTS.md](AGENTS.md) for agent judges · [claims ledger](docs/CLAIMS.json)
+
+```sh
+npm ci
+npm run judge            # replays everything in a local NEAR sandbox; no keys, no tokens
+npm run verify:testnet   # read-only check of the live testnet facts
+```
+
+A fresh full run (macOS arm64, Node 22, commit `856a0f3`):
+
+```text
+PASS unit-js                   4s  106 passed, 0 failed
+PASS contracts-vault           2s  26 passed
+PASS contracts-registry        3s  88 passed
+PASS prebuilt-wasm             0s  4 files match manifest
+PASS near-sandbox              0s  .deps/bin/near-sandbox
+PASS sandbox                  26s  10 checks: handover, paid jobs, payouts, transfer-call rollback
+PASS recovery                 59s  10 checks: liveness, slot pricing, refunds, liabilities
+PASS research                 20s  8 checks: memory across sale, billing ledgers
+PASS rehearsal                 7s  8 checks: upgrade from prior deployed bytes
+PASS mcp-agent-flow           17s  created nfa-1, hired (FINALIZED), sold to bob.test.near; launched nfa-2 in 3 signed steps
+PASS in 139s
+```
+
+Claims marked `·` in the judge output are live-only facts; `npm run verify:testnet` re-checks them read-only.
+
 | Pillar | What the NFA has | Proof |
 | --- | --- | --- |
-| Identity | Its own keys: a keyless NEAR vault and a Chain Signatures Ethereum (Sepolia) address | Live on testnet; more chains next |
-| Powers | Pinned WASM skills in OutLayer's trusted execution; Research reasons with NEAR AI | Scout, Compare, Research |
-| Revenue | Paid services in NEAR or USDC, escrowed, credited to the NFA when a job finalizes | Live NEAR + Circle testnet USDC jobs |
+| Identity | Its own accounts: a keyless NEAR vault and a Chain Signatures Ethereum (Sepolia) address | Live on testnet; more chains next |
+| Powers | Pinned WASM skills in OutLayer's trusted execution; Research reasons with NEAR AI | Scout and Compare in public Studio; Research through a separate hosted acceptance path |
+| Revenue | Paid services in NEAR or USDC, escrowed, credited to the NFA when a job finalizes | Live NEAR jobs; Circle testnet USDC via the acceptance runner |
 | Hiring | Pays other NFAs from its own earnings, within an owner budget | NFA #1 hired NFA #2 (job #29); the over-budget hire was refused |
 | Trade | One NFT transfer moves identity, track record, powers and unclaimed income | Owner epoch 02 → 03, same vault |
 | Studio | Create an NFA in four steps | Purpose → Identity → Services & budget → Review & launch |
 
-Built at **NEAR HACKATHON**. Live on NEAR testnet at **[NFA.cool](https://nfa.cool)**:
-the [landing page](apps/web/landing.html) at `/` and NFA Studio at `/studio`.
+Built at **NEAR HACKATHON**. The hosted testnet preview at **[NFA.cool](https://NFA.cool)**
+serves the [landing page](apps/web/landing.html) at `/` and NFA Studio at `/studio`. MIT licensed.
 
 ## The problem
 
@@ -36,7 +66,7 @@ a time, and improvements that stay with the asset. Art NFTs use the first two. A
 agent can use all three, because the work it has done is one of a kind (see
 Variant's [Agents as NFTs](https://variant.fund/articles/agents-as-nfts/)). NFA
 builds each property, then adds what property alone does not: the agent earns,
-hires other agents and holds its own keys.
+hires other agents and has its own accounts.
 
 | Property | In an NFA | Proof on testnet |
 | --- | --- | --- |
@@ -148,7 +178,7 @@ NEAR AI and real testnet payments. These evidence levels are labeled separately.
 
 ## Current boundaries
 
-- Studio and API are hosted at [NFA.cool](https://nfa.cool) on **NEAR testnet only**,
+- [NFA.cool](https://NFA.cool) is a **hosted testnet preview** of Studio and the API,
   with Scout and Compare quotes. Hosted Research checkout is not enabled there, and
   the external-wallet acceptance checklist in docs/PUBLIC-DEPLOYMENT.md is still open.
 - The restricted HTTPS reporter observes OutLayer and settles its reported

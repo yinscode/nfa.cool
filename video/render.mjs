@@ -214,9 +214,9 @@ scene(10,t=>{
   return `<g transform="translate(${W/2} ${H/2}) scale(${zoom}) translate(${-W/2} ${-H/2})">${s}</g>`;
 });
 
-// 2. Its own keys, on more than one chain
+// 2. Its own accounts, on more than one chain
 scene(11,t=>{
-  let s=title(t,'Identity','Its own keys — on NEAR and Ethereum.');
+  let s=title(t,'Identity','Its own accounts — on NEAR and Ethereum.');
   const cx=520,cy=640;
   s+=`<circle cx="${cx}" cy="${cy}" r="${230+Math.sin(t*2)*6}" fill="${C.mist}" opacity="${fade(t,.3)}"/>`;
   s+=`<circle cx="${cx}" cy="${cy}" r="300" fill="none" stroke="${C.sage}" stroke-width="2" stroke-dasharray="4 12" opacity="${fade(t,.6)*.6}" transform="rotate(${t*12} ${cx} ${cy})"/>`;
@@ -235,7 +235,7 @@ scene(11,t=>{
       +text(136,64,k.title,{size:36,weight:800,ls:-1,fill:k.dashed?C.muted:C.ink})+text(136,104,k.sub,{size:23,fill:C.muted,family:i===2?FONT:MONO})
       +g(pill(0,0,k.chip,{size:20,pad:14,h:36,fill:k.dashed?C.moss:C.mist,color:k.dashed?C.muted:C.forest}),{x:800-pillWidth(k.chip,20,14)-100,y:52}),{x,y,o});
   });
-  s+=caption('The keys belong to the agent, not to whoever runs it, so they never leave with an owner.',t,2,11);
+  s+=caption('No person holds a key: the vault is keyless and Chain Signatures signs for the agent.',t,2,11);
   return s;
 });
 

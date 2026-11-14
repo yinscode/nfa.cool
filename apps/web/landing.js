@@ -71,7 +71,7 @@ function detail(item){
         <pre><code>${esc(curl)}</code></pre></li>
       <li><strong>Over MCP.</strong> <code>NFA_API_URL=${esc(origin)} npm run mcp</code>, then <code>nfa_services</code> → <code>nfa_quote</code> → <code>nfa_prepare_start</code>.</li>`:''}
     </ol>
-    <p class="nfa-note">Testnet only: pay with testnet NEAR. Services run as reviewed code in OutLayer; results commit on NEAR.</p>`;
+    <p class="nfa-note">Hosted testnet preview: pay with testnet NEAR. Services run as reviewed code in OutLayer; results commit on NEAR.</p>`;
 }
 // Each NFA has a shareable link: /#nfa-2 opens its details.
 function show(i){body.innerHTML=detail(items[i]);if(!dialog.open)dialog.showModal();dialog.scrollTop=0;history.replaceState(null,'','#'+items[i].tokenId)}

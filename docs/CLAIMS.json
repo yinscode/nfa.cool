@@ -180,6 +180,91 @@
       "limits": "Scout and Compare process supplied text deterministically; they do not browse or call a model."
     },
     {
+      "id": "hiring.capped-nfa-to-nfa",
+      "statement": "An NFA hires another NFA's service from its own income under an owner-capped grant; a hire past the cap is refused.",
+      "level": [
+        "sandbox",
+        "live-testnet"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/hiring-testnet-acceptance.json"
+      ],
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "3DN9UA2iic3JhbXs3FifzH9ePt49SHp64CCF5ndUMKwg",
+          "label": "nfa-1 hires nfa-2 Scout (job 29)",
+          "url": "https://testnet.nearblocks.io/txns/3DN9UA2iic3JhbXs3FifzH9ePt49SHp64CCF5ndUMKwg",
+          "evidence": "docs/evidence/hiring-testnet-acceptance.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "2DfkonKWH5WFgGDGgGEyeZojXi8ukjQDeAAZHsySRery",
+          "label": "hired Scout job started",
+          "url": "https://testnet.nearblocks.io/txns/2DfkonKWH5WFgGDGgGEyeZojXi8ukjQDeAAZHsySRery",
+          "evidence": "docs/evidence/hiring-testnet-acceptance.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "D4RiBgMkq782gpp67fojipdEBGnQKGPgeA5udtrw3bK3",
+          "label": "second hire past the budget refused (expected failure)",
+          "url": "https://testnet.nearblocks.io/txns/D4RiBgMkq782gpp67fojipdEBGnQKGPgeA5udtrw3bK3",
+          "evidence": "docs/evidence/hiring-testnet-acceptance.json"
+        }
+      ],
+      "judge": [
+        "sandbox:buyer grants a capped hire to a worker, which buys a second NFA service from source income"
+      ],
+      "readOnly": "npm run verify:testnet",
+      "limits": "Scout only, paid in native NEAR from accrued income. No FT or Intents hiring. The hiring worker is a capped delegate account acting for the NFA."
+    },
+    {
+      "id": "payments.usdc-checkout",
+      "statement": "A Scout job can be paid in USDC through direct FT checkout: one job completed, one owner-cancelled job refunded in full.",
+      "level": [
+        "live-testnet"
+      ],
+      "status": "verified",
+      "evidence": [
+        "docs/evidence/ft-checkout-testnet-acceptance.json"
+      ],
+      "transactions": [
+        {
+          "chain": "near-testnet",
+          "hash": "7Z26wBFxTvnccpevxzAwEzdB2uhTEHFpC8ejndMcocPB",
+          "label": "USDC payment for job 30",
+          "url": "https://testnet.nearblocks.io/txns/7Z26wBFxTvnccpevxzAwEzdB2uhTEHFpC8ejndMcocPB",
+          "evidence": "docs/evidence/ft-checkout-testnet-acceptance.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "BhKXNysV8tti434imfKss1Z61pbRLJjB8kFRmsDH1e3t",
+          "label": "job 30 started",
+          "url": "https://testnet.nearblocks.io/txns/BhKXNysV8tti434imfKss1Z61pbRLJjB8kFRmsDH1e3t",
+          "evidence": "docs/evidence/ft-checkout-testnet-acceptance.json"
+        },
+        {
+          "chain": "near-testnet",
+          "hash": "E5J1rzMbDCagWkgGDk8rHS5bcai6XSRFs6agKQgzu312",
+          "label": "job 31 USDC refund",
+          "url": "https://testnet.nearblocks.io/txns/E5J1rzMbDCagWkgGDk8rHS5bcai6XSRFs6agKQgzu312",
+          "evidence": "docs/evidence/ft-checkout-testnet-acceptance.json"
+        }
+      ],
+      "limits": "Circle testnet USDC through the operator acceptance runner; the test rate is illustrative. USDC checkout is not enabled on the hosted NFA.cool preview, which quotes native NEAR."
+    },
+    {
+      "id": "payments.intents-checkout",
+      "statement": "NEAR Intents (1Click) checkout quotes a job and verifies finalized destination delivery before starting it.",
+      "level": [],
+      "status": "open",
+      "evidence": [
+        "services/api/test/payment-checkout.test.mjs"
+      ],
+      "limits": "Implemented and unit-tested with mocked finality only. 1Click requires mainnet; no live Intents payment has been made."
+    },
+    {
       "id": "memory.continuity",
       "statement": "A buyer recalls pre-sale work, and only finalized prior work enters a later job's context.",
       "level": [

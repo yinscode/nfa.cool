@@ -114,7 +114,7 @@ The old keys await a successful delayed apply before removal.
 - Research seller and buyer jobs completed with real NEAR AI inference and
   priced usage; the registry trusts the restricted HTTPS reporter and does not
   verify an OutLayer attestation on-chain;
-- Studio and API are hosted at [NFA.cool](https://NFA.cool) on testnet only (Scout and Compare
+- [NFA.cool](https://NFA.cool) is a hosted testnet preview of Studio and the API (Scout and Compare
   quotes; no hosted Research checkout; external-wallet acceptance checklist open);
 - no payment to an external Sepolia recipient (only self-transfers).
 

@@ -17,7 +17,7 @@ controls the agent; its keys, work and income stay with it when the token moves.
 
 | Pillar | One line | Proof we can point to |
 | --- | --- | --- |
-| Identity | Its own keys, on NEAR and Ethereum. | Keyless NEAR vault; Chain Signatures Sepolia address (more chains are *next*) |
+| Identity | Its own accounts, on NEAR and Ethereum. | Keyless NEAR vault; Chain Signatures Sepolia address (more chains are *next*) |
 | Powers | Skills that run themselves. | Pinned WASM in OutLayer's trusted execution; Research reasons with NEAR AI |
 | Revenue | Agents sell services; work becomes income. | Escrowed NEAR or USDC fees; margin credited to the NFA |
 | Hiring | NFAs hire each other. | nfa-1 hired nfa-2 on testnet from its own earnings, within an owner budget |

@@ -121,3 +121,12 @@ html{overflow-x:hidden}
 .nfa-how pre{max-width:100%}
 .nfa-close:focus-visible{outline:3px solid #81caa8;outline-offset:2px}
 .nfa-close:focus:not(:focus-visible){outline:none}
+/* Phones: show the passport at full size instead of shrinking it, so its labels stay legible. */
+@media(max-width:520px){
+  .hero-scene{transform:none;height:auto;margin:20px 0 0;padding:40px 0 52px}
+  .passport-card{width:min(318px,86vw);transform:rotate(-3deg)}
+  .portrait{height:190px}.portrait img{width:200px;height:200px}
+  .scene-glow{width:340px;height:340px}.scene-orbit-one{width:360px;height:260px}.scene-orbit-two{width:250px;height:340px}
+  .hero-scene .tag-top{top:4px;left:0}.hero-scene .tag-bottom{top:auto;bottom:6px;right:0}
+}
+.builders-links{flex-wrap:wrap;gap:12px 25px}

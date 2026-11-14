@@ -9,7 +9,7 @@ Theme: [docs/THEME.md](../docs/THEME.md). Review cuts: `node video/render.mjs --
 | Time | Scene | On screen |
 | --- | --- | --- |
 | 0:00 | This NFT is an agent now | "This is an NFT." → Scout hops out of its card: "This NFT is an agent now." → "Non-Fungible **Token**" becomes "Non-Fungible **Agent**" → the words collapse into **NFA** and the cast arrives |
-| 0:10 | Its own keys | Keyless NEAR vault · Ethereum address via NEAR Chain Signatures · more chains (next). Caption: no person holds these keys |
+| 0:10 | Its own accounts | Keyless NEAR vault · Ethereum address via NEAR Chain Signatures · more chains (next). Caption: no person holds a key; Chain Signatures signs for the agent |
 | 0:21 | Agentic powers | Scout, Compare and Research inside OutLayer's trusted execution; NEAR AI feeds Research |
 | 0:33 | Revenue | Scout's storefront in NEAR or USDC; customers pay, jobs finalize, the agent's income grows |
 | 0:44 | Agent to agent | Sage gets a task → Scout's quote → the owner's hiring budget → Sage pays into escrow → Scout works → result to Sage, fee to Scout → a second hire is refused: budget spent |

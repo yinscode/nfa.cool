@@ -1,5 +1,9 @@
 # Stable testnet hosting
 
+> **Status:** [NFA.cool](https://NFA.cool) runs as a hosted testnet preview (Scout and Compare
+> quotes; Research uses a separate hosted acceptance path). The external-wallet acceptance
+> checklist below is still open.
+
 The API serves the compiled web UI and REST on the same origin. Use a persistent
 Node 22 container behind HTTPS. Do not publish the local sandbox wallet bridge.
 

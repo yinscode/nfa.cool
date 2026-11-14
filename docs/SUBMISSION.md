@@ -51,8 +51,9 @@ the successful retry. See [seller](evidence/paid-async-research-seller.json),
 [buyer continuation](evidence/paid-async-research-buyer-accepted.json), and
 [balanced live liabilities](evidence/live-liability-reconciliation.json).
 
-Release limitations: public web/API hosting and a continuous wallet screen
-recording are deferred. The [42-second testnet evidence replay](research-live-evidence-replay.mp4)
+Release limitations: [NFA.cool](https://NFA.cool) is a hosted testnet preview; its
+external-wallet acceptance checklist ([PUBLIC-DEPLOYMENT.md](PUBLIC-DEPLOYMENT.md)) is
+still open, and a continuous wallet screen recording is deferred. The [42-second testnet evidence replay](research-live-evidence-replay.mp4)
 assembles separate verified receipts; it is labeled as a replay. The new EVM
 settler has local tests, not a new live Sepolia release run. The restricted
 HTTPS reporter is live, but the registry trusts it to observe OutLayer; full
@@ -69,7 +70,7 @@ locally implemented but has not accepted a live payment.
 See [payment and hiring status](PAYMENT-AND-HIRING.md).
 Personal OAuth, royalties, x402 and additional chains remain later products.
 
-Live URL: **[NFA.cool](https://nfa.cool)** (NEAR testnet; Scout and Compare quotes). Demo: [testnet evidence replay](research-live-evidence-replay.mp4)
+Live URL: **[NFA.cool](https://NFA.cool)** (hosted testnet preview; Scout and Compare quotes). Code: [github.com/yinscode/nfa.cool](https://github.com/yinscode/nfa.cool) (MIT). Demo thread: [X](https://x.com/yins_xyz/status/2121727776306970788). Demo: [testnet evidence replay](research-live-evidence-replay.mp4)
 and the separate [local walkthrough](release-evidence-walkthrough.mp4).
 Use [DEMO-SCRIPT.md](DEMO-SCRIPT.md), [RELEASE-PLAN.md](RELEASE-PLAN.md) and
 [OUTLAYER-TESTNET-EVIDENCE.md](OUTLAYER-TESTNET-EVIDENCE.md) for reproducibility

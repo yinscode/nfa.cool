@@ -59,7 +59,7 @@ let gid=0;
 // The collection card: the NFA "token".
 function nftCard(x,y,w,char,{tint=C.sky,id='001',name='Scout 01',sub='pebble / sprout',o=1,label='NFA.cool',bob=0}={}){
   const k=w/768,i=++gid;
-  return `<g transform="translate(${x} ${y}) scale(${k})" opacity="${o}"><defs><linearGradient id="card${i}" x2="1" y2="1"><stop stop-color="#fffdf8"/><stop offset="1" stop-color="${tint}" stop-opacity=".32"/></linearGradient></defs>
+  return `<g transform="translate(${x} ${y}) scale(${k})" opacity="${o}"><defs><linearGradient id="card${i}" x2="1" y2="1"><stop stop-color="${C.paper}"/><stop offset="1" stop-color="${tint}" stop-opacity=".32"/></linearGradient></defs>
     <rect x="6" y="14" width="756" height="756" rx="40" fill="#234d3d" opacity=".06"/>
     <rect x="0" y="0" width="768" height="768" rx="38" fill="url(#card${i})" stroke="${tint}" stroke-opacity=".55" stroke-width="3"/>
     <circle cx="120" cy="190" r="90" fill="${tint}" opacity=".16"/><circle cx="660" cy="430" r="120" fill="${tint}" opacity=".12"/>
@@ -139,39 +139,77 @@ function phraseLayout(last){
 }
 
 // 1. This NFT is an agent now → Non-Fungible Agent → NFA
+// A burst: a ring that expands and fades, with sparks thrown outward.
+function burst(cx,cy,p,{r0=40,r1=420,n=12,color=C.dot,seed=0}={}){
+  if(p<=0||p>=1)return '';
+  const e=out(p),o=1-p;let s=`<circle cx="${cx}" cy="${cy}" r="${lerp(r0,r1,e)}" fill="none" stroke="${color}" stroke-width="${10*(1-e)+2}" opacity="${o*.8}"/>`;
+  for(let k=0;k<n;k++){const a=(k/n)*Math.PI*2+seed,a0=lerp(r0,r1*.55,e),a1=lerp(r0+30,r1*.9,e);
+    s+=`<line x1="${cx+Math.cos(a)*a0}" y1="${cy+Math.sin(a)*a0}" x2="${cx+Math.cos(a)*a1}" y2="${cy+Math.sin(a)*a1}" stroke="${k%2?C.sage:color}" stroke-width="7" stroke-linecap="round" opacity="${o}"/>`}
+  return s;
+}
+// A headline that pops in (overshoot) and drops out; parts are [text, fill] pairs.
+const popLine=(t,y,parts,a,b)=>{const p=back(seg(t,a,a+.5)),q=seg(t,b,b+.35),o=fade(t,a,.25)*(1-q);
+  const spans=parts.map(([s,f])=>`<tspan fill="${f}">${esc(s)}</tspan>`).join('');
+  return g(`<text x="${W/2}" y="${y}" font-family="${FONT}" font-size="68" font-weight="800" text-anchor="middle" letter-spacing="-2" xml:space="preserve">${spans}</text>`,
+    {s:.82+.18*p,ox:W/2,oy:y-24,o,y:-30*q})};
 scene(10,t=>{
   let s='';
-  // A collectible card... whose character hops out: it is an agent now.
-  const cardO=fade(t,.2,.5)*(1-seg(t,3.5,4)),out1=seg(t,1.7,2.5),cardX=W/2-230;
-  s+=text(W/2,200,'This is an NFT.',{size:68,weight:800,anchor:'middle',ls:-2,opacity:fade(t,.3)*(1-seg(t,1.6,1.9))});
-  s+=text(W/2,200,'This NFT is an agent now.',{size:68,weight:800,anchor:'middle',ls:-2,opacity:fade(t,1.9,.4)*(1-seg(t,3.4,3.8))});
-  s+=g(nftCard(0,0,460,out1>0?null:CH.scout,{tint:C.sky,id:'002',name:'Scout',sub:'just a picture?'}),{x:cardX,y:280-20*(1-out(seg(t,.2,.8))),o:cardO});
-  if(out1>0){const [hx,hy]=arc(cardX+58,280+52,cardX+560,330,ease(out1),-220),land=seg(t,2.5,2.8);
-    s+=g(char(CH.scout,0,0,345,{t,hop:land*0,amp:6}),{x:hx,y:hy,o:1-seg(t,3.5,4)});
-    s+=bubble(cardX+760,300,'Hi! I can work.',{tail:'left',o:fade(t,2.7,.3)*(1-seg(t,3.4,3.8))});}
-  // Non-Fungible Token → Non-Fungible Agent.
-  const swap=ease(seg(t,4.9,5.6)),collapse=ease(seg(t,6.4,7.2)),pO=fade(t,3.9,.5);
-  const L0=phraseLayout('Token'),L1=phraseLayout('Agent'),y=560;
+  const zoom=1+.035*t/10;
+  // A wall of collectibles flies in; the neighbours fly off and leave Scout's card.
+  const cardX=W/2-230,cardY=280,cx=cardX+230,cy=cardY+230;
+  s+=popLine(t,200,[['This is an NFT.',C.ink]],.25,1.75);
+  const wall=[[CH.sage,C.cobalt,'003',-2],[CH.muse,C.mint,'004',-1],[CH.patch,C.butter,'005',1],[CH.quill,C.coral,'007',2]];
+  wall.forEach(([c,tint,id,k],i)=>{const inn=back(seg(t,.1+i*.09,.7+i*.09)),away=seg(t,1.25,1.75),aw=away*away;
+    const x=cx+[0,-760,-420,0,420,760][k+3]-150+Math.sign(k)*900*aw,y=cardY+90+520*(1-inn),r=k*5*inn+(1-inn)*k*-14+Math.sign(k)*40*aw;
+    s+=g(nftCard(0,0,300,c,{tint,id,name:'',sub:''}),{x,y,r,ox:150,oy:150,o:fade(t,.1+i*.09,.25)*(1-away)})});
+  // Scout's card: lands, wobbles, bursts open.
+  const out1=seg(t,1.9,2.6),land=back(seg(t,0,.6)),wob=seg(t,1.45,1.9);
+  const cardO=fade(t,0,.3)*(1-seg(t,3.4,3.9)),cardR=Math.sin(t*46)*5*wob*(1-out1)+(1-land)*-8;
+  s+=g(nftCard(0,0,460,out1>0?null:CH.scout,{tint:C.sky,id:'002',name:'Scout',sub:out1>0?'empty frame':'just a picture?'}),
+    {x:cardX,y:cardY+380*(1-land)-12*Math.sin(Math.PI*wob),r:cardR,ox:230,oy:230,s:1+.04*Math.sin(Math.PI*wob),o:cardO});
+  s+=burst(cx,cy,seg(t,1.9,2.6),{r1:330});
+  s+=popLine(t,200,[['This NFT is an ',C.ink],['agent',C.sage],[' now.',C.ink]],2.05,3.45);
+  // Scout leaps out, lands with a squash, tools orbit it, then it bounds off-stage.
+  let sx=0,sy=0,orb='';
+  if(out1>0){const leave=seg(t,3.4,4.0),[hx,hy]=arc(cardX+58,cardY+52,cardX+560,330,ease(out1),-140);
+    sx=hx+760*leave*leave;sy=hy-220*Math.sin(Math.PI*leave);
+    const scx=sx+172,scy=sy+200;
+    let front='';
+    [['key',C.mist],['coin','#f7eedb'],['chip','#e6e7f6'],['spark','#f6e3e6']].forEach(([ic,fill],k)=>{
+      const a=t*2.4+k*Math.PI/2,o=fade(t,2.7+k*.1,.3)*(1-seg(t,3.3,3.6)),rx=290,ry=105,depth=Math.sin(a);
+      const tile=rect(0,0,84,84,{rx:24,fill:C.paper,stroke:C.line,sw:3})+iconTile(ic,8,8,{size:68,fill})+'';
+      const el=g(tile,{x:scx+Math.cos(a)*rx-42,y:scy+depth*ry-42,o,s:.8+.2*depth,ox:42,oy:42});
+      if(depth>0)front+=el;else orb+=el});
+    s+=orb+g(char(CH.scout,0,0,345,{t,amp:6,hop:seg(t,2.9,3.3),hopH:40}),{x:sx,y:sy,o:1-seg(t,3.75,4.0)})+front;
+    s+=bubble(cardX+760,290,'Hi! I can work.',{tail:'left',o:fade(t,2.65,.25)*(1-seg(t,3.3,3.6))});
+  }
+  // Non-Fungible Token: pieces drop in one by one.
+  const L0=phraseLayout('Token'),L1=phraseLayout('Agent'),y=560,swap=ease(seg(t,5.25,5.9)),collapse=ease(seg(t,6.4,7.1));
   const px=k=>k in L0&&k in L1?lerp(L0[k],L1[k],swap):(L0[k]??L1[k]);
-  // Optical spacing: F's open right side needs a tighter gap than N→F.
   const gNF=WORD*.08,gFA=-WORD*.005,finalW=WM.N.w+WM.F.w+WM.A.w+gNF+gFA,fx0=W/2-finalW/2;
   const final={N:fx0,F:fx0+WM.N.w+gNF,A:fx0+WM.N.w+gNF+WM.F.w+gFA};
-  const piece=(k,x,{fill=C.ink,o=1,dy=0}={})=>text(x-WM[k].lead,y+dy,k,{size:WORD,weight:800,fill,opacity:pO*o});
-  const restO=1-seg(t,6.3,6.7),grow=1+.55*back(seg(t,7.2,7.9));
+  const drop=i=>{const a=4.0+i*.08;return {dy:-110*(1-back(seg(t,a,a+.5))),o:fade(t,a,.2)}};
+  const piece=(k,x,{fill=C.ink,o=1,dy=0,r=0}={})=>g(text(x-WM[k].lead,y,k,{size:WORD,weight:800,fill}),{y:dy,r,ox:x+WM[k].w/2,oy:y-45,o});
+  const restO=1-seg(t,6.25,6.6),grow=1+.55*back(seg(t,7.1,7.8));
   let word='';
-  for(const k of ['N','F'])word+=piece(k,lerp(px(k),final[k],collapse));
-  word+=piece('on-',px('on-'),{fill:C.muted,o:restO})+piece('ungible',px('ungible'),{fill:C.muted,o:restO});
-  word+=piece('T',L0.T,{o:1-swap,dy:-90*swap})+piece('oken',L0.oken,{fill:C.muted,o:(1-swap),dy:-90*swap});
-  if(swap>0&&swap<1)word+=`<line x1="${L0.T}" x2="${L0.oken+WM.oken.w}" y1="${y-45-90*swap}" y2="${y-45-90*swap}" stroke="${C.red}" stroke-width="7" opacity="${pO*(1-swap)}"/>`;
-  word+=piece('A',lerp(L1.A,final.A,collapse),{fill:C.sage,o:swap,dy:-120*(1-back(swap))});
-  word+=piece('gent',L1.gent,{fill:C.sage,o:swap*restO,dy:-120*(1-back(swap))});
-  // Once collapsed, NFA grows into the headline.
+  ['N','on-','F','ungible'].forEach((k,i)=>{const d=drop(i),muted=k==='on-'||k==='ungible';
+    const x=muted?px(k):lerp(px(k),final[k],collapse);word+=piece(k,x,{fill:muted?C.muted:C.ink,o:d.o*(muted?restO:1),dy:d.dy})});
+  // "Token" gets struck through, then flicked off and falls away.
+  const strike=out(seg(t,4.75,5.05)),flick=seg(t,5.1,5.8),tf=flick*flick;
+  ['T','oken'].forEach((k,i)=>{const d=drop(4+i);
+    word+=piece(k,L0[k]+60*flick,{fill:k==='T'?C.ink:C.muted,o:d.o*(1-flick),dy:d.dy+420*tf-60*Math.sin(Math.PI*Math.min(1,flick*2)),r:35*tf})});
+  if(strike>0&&flick<1)word+=`<line x1="${L0.T-10}" x2="${lerp(L0.T-10,L0.oken+WM.oken.w+10,strike)}" y1="${y-45}" y2="${y-45}" stroke="${C.red}" stroke-width="8" stroke-linecap="round" opacity="${1-flick}"/>`;
+  // "Agent" drops into the gap.
+  const ag=seg(t,5.45,6.0);
+  word+=piece('A',lerp(L1.A,final.A,collapse),{fill:C.sage,o:fade(t,5.45,.2),dy:-160*(1-back(ag))});
+  word+=piece('gent',L1.gent,{fill:C.sage,o:fade(t,5.5,.2)*restO,dy:-160*(1-back(seg(t,5.5,6.05)))});
   s+=`<g transform="translate(${W/2} ${y-48}) scale(${grow}) translate(${-W/2} ${-y+48})">${word}</g>`;
-  s+=text(W/2,y+120,'Non-Fungible Agent',{size:42,weight:700,anchor:'middle',fill:C.forest,opacity:fade(t,7.6,.5)});
-  // The cast arrives under the new name.
+  s+=burst(W/2,y-48,seg(t,7.05,7.75),{r0:120,r1:620,n:16,seed:.2});
+  s+=g(text(W/2,y+120,'Non-Fungible Agent',{size:42,weight:700,anchor:'middle',fill:C.forest}),{o:fade(t,7.6,.4),y:24*(1-out(seg(t,7.6,8.1)))});
+  // The cast pops in, then does a wave.
   [CH.scout,CH.sage,CH.muse,CH.patch,CH.quill,CH.pip,CH.lime].forEach((c,i)=>{
-    s+=pop(char(c,0,0,170,{t,phase:i*.9}),{x:W/2-640+i*183,y:770,cx:85,cy:170,t,at:7.9+i*.08})});
-  return s;
+    s+=pop(char(c,0,0,170,{t,phase:i*.9,hop:seg(t,8.75+i*.08,9.2+i*.08),hopH:46}),{x:W/2-640+i*183,y:770,cx:85,cy:170,t,at:7.85+i*.08})});
+  return `<g transform="translate(${W/2} ${H/2}) scale(${zoom}) translate(${-W/2} ${-H/2})">${s}</g>`;
 });
 
 // 2. Its own keys, on more than one chain
@@ -195,7 +233,7 @@ scene(11,t=>{
       +text(136,64,k.title,{size:36,weight:800,ls:-1,fill:k.dashed?C.muted:C.ink})+text(136,104,k.sub,{size:23,fill:C.muted,family:i===2?FONT:MONO})
       +g(pill(0,0,k.chip,{size:20,pad:14,h:36,fill:k.dashed?C.moss:C.mist,color:k.dashed?C.muted:C.forest}),{x:800-pillWidth(k.chip,20,14)-100,y:52}),{x,y,o});
   });
-  s+=caption('No person holds these keys: the NFA’s vault controls them, so they never leave with an owner.',t,2,11);
+  s+=caption('The keys belong to the agent, not to whoever runs it, so they never leave with an owner.',t,2,11);
   return s;
 });
 
@@ -260,7 +298,7 @@ scene(14,t=>{
   const working=seg(t,5.9,7.6);
   s+=pop(char(CH.sage,0,0,size,{t,hop:sageHop,hopH:70}),{x:ax,y,cx:size/2,cy:size,t,at:.2});
   s+=pop(char(CH.scout,0,0,size,{t,phase:1.5,flip:true,hop:scoutHop,hopH:70,amp:working>0&&working<1?3:8}),{x:bx,y,cx:size/2,cy:size,t,at:.4});
-  s+=g(pill(0,0,'nfa-1 · Sage',{size:22,h:44}),{x:ax+60,y:y+size+8,o:fade(t,.5)})+g(pill(0,0,'nfa-2 · Scout',{size:22,h:44}),{x:bx+50,y:y+size+8,o:fade(t,.7)});
+  s+=g(pill(0,0,'NFA #1 · Sage',{size:22,h:44}),{x:ax+60,y:y+size+8,o:fade(t,.5)})+g(pill(0,0,'NFA #2 · Scout',{size:22,h:44}),{x:bx+50,y:y+size+8,o:fade(t,.7)});
   // 1. A task arrives that Sage can't do alone.
   s+=bubble(ax+150,y-80,'New task: find cited sources.',{size:22,o:fade(t,.9)*(1-seg(t,2.6,3))});
   // 2. Scout's quote slides over on a curve.
@@ -301,7 +339,7 @@ scene(14,t=>{
   if(again>0&&again<1){const [cx,cy]=bez(...LP,ease(again)*.92);s+=coin(cx,cy,24)}
   if(bounce>0&&bounce<1){const [cx,cy]=bez(...LP,.92*(1-ease(bounce)));s+=coin(cx,cy-60*Math.sin(Math.PI*bounce),24)}
   s+=g(cross(0,0,1.3)+text(30,9,'budget spent — refused',{size:24,weight:800,fill:C.red}),{x:ex-150,y:ey+170,o:fade(t,10.6,.3)});
-  s+=caption('From their own earnings, held in escrow, within a budget the owner sets. Live on testnet: nfa-1 hired nfa-2.',t,4,14);
+  s+=caption('Paid from its earnings, within the owner’s budget. Live on testnet: NFA #1 hired NFA #2, job #29.',t,4,14);
   return s;
 });
 
@@ -317,9 +355,9 @@ scene(13,t=>{
   const ax=lerp(350,1570,swing),bx=lerp(cardX,cardX+cardW,swing);
   s+=`<g opacity="${fade(t,.9)}"><path d="M${ax} 510 C ${(ax+bx)/2} 450, ${(ax+bx)/2} 450, ${bx} 510" stroke="${C.forest}" stroke-width="5" fill="none"/><circle cx="${bx}" cy="510" r="10" fill="${C.forest}"/></g>`;
   s+=g(pill(0,0,swing<.5?'listed · 1 NEAR':'sold ✓',{size:22,fill:swing<.5?C.butter:C.forest,color:swing<.5?C.ink:'#fff'}),{x:cardX+110,y:272,o:fade(t,5.6)});
-  ['old session','old grants','old approvals'].forEach((l,i)=>{const dead=seg(t,8+i*.15,8.5+i*.15),w=pillWidth(l,20);
+  ['old session','old access','old approvals'].forEach((l,i)=>{const dead=seg(t,8+i*.15,8.5+i*.15),w=pillWidth(l,20);
     s+=g(pill(0,0,l,{fill:C.moss,color:C.muted,size:20,h:40})+`<path d="M10 20 H${w-10}" stroke="${C.red}" stroke-width="3" opacity="${dead}"/>`,{x:400,y:560+i*52,o:fade(t,1.2+i*.15)*(1-dead*.4)})});
-  const gets=[['link','Identity','same vault + Ethereum address'],['star','Reputation','finalized jobs · receipts · audit'],['chip','Agentic powers','skills · Project · memory'],['coin','Earnings','unclaimed income']];
+  const gets=[['link','Identity','same vault + Ethereum address'],['star','Track record','finalized jobs · receipts · audit'],['chip','Agentic powers','skills · Project · memory'],['coin','Earnings','unclaimed income']];
   gets.forEach(([ic,a,b],i)=>{const at=2+i*.6;
     s+=g(rect(0,0,405,108,{rx:24})+iconTile(ic,18,16,{size:76})+text(110,48,a,{size:28,weight:800})+text(110,82,b,{size:20,fill:C.muted}),{x:120+i*425,y:790+20*(1-out(seg(t,at,at+.5))),o:fade(t,at)})});
   s+=caption('One NFT transfer hands over the working business. Unfinished work must settle first.',t,3,13);
@@ -330,7 +368,7 @@ scene(13,t=>{
 scene(13,t=>{
   let s=title(t,'NFA Studio','Create an NFA in four steps.');
   const wx=120,wy=290,ww=1680,wh=640,o=fade(t,.4);
-  let win=rect(0,0,ww,wh,{rx:26})+`<path d="M0 26a26 26 0 0126-26h${ww-52}a26 26 0 0126 26v50H0z" fill="#fffdf8"/>`
+  let win=rect(0,0,ww,wh,{rx:26})+`<path d="M0 26a26 26 0 0126-26h${ww-52}a26 26 0 0126 26v50H0z" fill="${C.paper}"/>`
     +`<line x1="0" y1="76" x2="${ww}" y2="76" stroke="${C.line}" stroke-width="2"/>`
     +brand(34,52,30)+text(220,46,'My NFAs',{size:20,weight:650,fill:C.muted})+text(330,46,'Market',{size:20,weight:650,fill:C.muted})+pill(420,18,'Create NFA',{fill:C.mist,size:20,h:40})
     +text(ww-30,46,'NFA.cool/studio',{size:20,fill:C.muted,anchor:'end'});
@@ -366,12 +404,12 @@ scene(13,t=>{
 
 // 8. Outro
 scene(6.5,t=>{
-  let s=text(W/2,360,'Own the whole agent.',{size:110,weight:800,anchor:'middle',ls:-5,opacity:fade(t,.3,.8)});
+  let s=text(W/2,360,'Own the token. Own the agent.',{size:96,weight:800,anchor:'middle',ls:-4,opacity:fade(t,.3,.8)});
   s+=text(W/2,452,'Create · Work · Earn · Hire · Trade',{size:44,weight:700,anchor:'middle',fill:C.sage,opacity:fade(t,1,.7)});
   [CH.scout,CH.sage,CH.muse,CH.patch,CH.quill,CH.pip,CH.lime].forEach((c,i)=>{const a=1.4+i*.12;
     s+=pop(char(c,0,0,190,{t,phase:i*.8,amp:12}),{x:W/2-735+i*210,y:540,cx:95,cy:190,t,at:a})});
   s+=brand(W/2,880,58,fade(t,2.4,.8),'middle');
-  s+=text(W/2,940,'Built on NEAR · Chain Signatures · OutLayer · NEAR AI',{size:26,weight:600,anchor:'middle',fill:C.muted,opacity:fade(t,2.8,.8)});
+  s+=text(W/2,940,'Live on NEAR testnet · Chain Signatures · OutLayer · NEAR AI',{size:26,weight:600,anchor:'middle',fill:C.muted,opacity:fade(t,2.8,.8)});
   return s;
 });
 

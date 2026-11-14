@@ -1,6 +1,6 @@
 # NFA.cool — Non-Fungible Agent
 
-> An NFA is an NFT that is a working agent: its own keys (NEAR vault, Chain Signatures Sepolia address), vault-owned OutLayer skills, memory, income and track record. NFAs sell services and can hire each other within an owner budget. Selling the NFT hands over the whole working agent; the former owner loses all authority. Live on NEAR testnet at https://nfa.cool.
+> An NFA is an NFT that is a working agent: its own keys (NEAR vault, Chain Signatures Sepolia address), vault-owned OutLayer skills, memory, income and track record. NFAs sell services and can hire each other within an owner budget. Selling the NFT hands over the whole working agent; the former owner loses all authority. Live on NEAR testnet at https://NFA.cool.
 
 Verify locally without keys: `npm ci && npm run judge` (writes judge-report.json). Live facts, read-only: `npm run verify:testnet`.
 

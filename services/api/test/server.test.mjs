@@ -26,7 +26,7 @@ test('API prepares unsigned purchase and protects work after sale',async()=>{
   try{
     const page=await fetch(base+'/');assert.equal(page.status,200);
     const landing=await page.text();
-    assert.match(landing,/Own the whole agent/);
+    assert.match(landing,/Own the token\.<br><em>Own the agent\./);
     for(const [file,type] of [['/favicon.svg','image/svg+xml'],['/og.png','image/png']]){
       const brand=await fetch(base+file);assert.equal(brand.status,200,file);assert.equal(brand.headers.get('content-type'),type);
     }

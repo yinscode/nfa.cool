@@ -372,7 +372,7 @@
     },
     {
       "id": "hosting.public",
-      "statement": "A public web/API deployment on NEAR testnet at https://nfa.cool.",
+      "statement": "A public web/API deployment on NEAR testnet at https://NFA.cool.",
       "level": [],
       "status": "disclosed",
       "evidence": [

@@ -11,10 +11,10 @@ Theme: [docs/THEME.md](../docs/THEME.md). Review cuts: `node video/render.mjs --
 | 0:21 | Agentic powers | Scout, Compare and Research inside OutLayer's trusted execution; NEAR AI feeds Research |
 | 0:33 | Revenue | Scout's storefront in NEAR or USDC; customers pay, jobs finalize, the agent's income grows |
 | 0:44 | Agent to agent | Sage gets a task → Scout's quote → the owner's hiring budget → Sage pays into escrow → Scout works → result to Sage, fee to Scout → a second hire is refused: budget spent |
-| 0:58 | Trade | Alice sells to Bob: identity, reputation (track record), agentic powers and earnings move together; old grants die |
+| 0:58 | Trade | Alice sells to Bob: identity, track record, agentic powers and earnings move together; the old owner’s access ends with the sale |
 | 1:11 | NFA Studio | Purpose → Identity (traits change the character) → Services & budget → Review & launch |
-| 1:24 | Outro | "Own the whole agent." · Create · Work · Earn · Hire · Trade · NFA.cool |
+| 1:24 | Outro | "Own the token. Own the agent." · Create · Work · Earn · Hire · Trade · NFA.cool · Live on NEAR testnet |
 
 Accuracy notes: Ethereum support is the Sepolia testnet address; "more chains" is shown as next.
 Reputation is the verifiable track record (finalized jobs, receipts, audit), not a rating.
-Agent hiring is live for Scout and Compare (nfa-1 hired nfa-2, job 29); Research hiring is not enabled.
+Agent hiring is live for Scout and Compare (NFA #1 hired NFA #2, job #29); Research hiring is not enabled.

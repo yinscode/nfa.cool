@@ -4,14 +4,16 @@ One visual and verbal language for the site, Studio, video and submission materi
 
 ## Name
 
-- **NFA.cool** is the product. Always uppercase `NFA`, lowercase `.cool`. The domain in a URL
-  bar may stay lowercase (`nfa.cool`); everywhere we *show* the name, it is **NFA.cool**.
+- **NFA.cool** is the product. Always uppercase `NFA`, lowercase `.cool`, everywhere it is
+  shown: headlines, captions, URL bars in visuals and printed links (`https://NFA.cool` works,
+  since domain names ignore case). Only machine values (canonical tags, config) stay lowercase.
 - **NFA** means **Non-Fungible Agent**: an NFT that is a working agent. Plural: **NFAs**.
 - Wordmark: `NFA` in ink, `.cool` in leaf green, followed by a small mint dot.
 
 ## Story
 
-**Own the whole agent.** — the line every piece ends on.
+**Own the token. Own the agent.** — the line every piece ends on. Whoever holds the NFT
+controls the agent; its keys, work and income stay with it when the token moves.
 
 | Pillar | One line | Proof we can point to |
 | --- | --- | --- |

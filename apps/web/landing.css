@@ -45,3 +45,18 @@ html{overflow-x:hidden}
 @media(max-width:520px){.pillar-grid{grid-template-columns:1fr}.pillar{padding:20px}.pillar-art{width:76px;height:76px}.pillar-art img{width:92px;height:92px}}
 @media(max-width:780px){.tag-top{top:-14px}.tag-bottom{bottom:-18px}}
 @media(max-width:520px){.tag-top{top:-44px;left:0}.tag-bottom{bottom:auto;top:44%;right:-30px}.hero-scene{margin:0 0 -6px}}
+.why{padding-top:40px}
+.why-list{list-style:none;margin:48px 0 0;padding:0;border-top:1px solid #dee4d9}
+.why-list li{display:grid;grid-template-columns:280px 1fr 300px;gap:32px;align-items:center;padding:28px 0;border-bottom:1px solid #dee4d9}
+.why-name h3{font-size:24px;line-height:1.2;margin:8px 0 0;color:#1f3029}
+.why-list p{margin:0;color:#64756a;font-size:15px;max-width:520px}
+.why-proof{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.why-proof a{display:inline-flex;gap:10px;align-items:center;background:#e8f2e6;color:#204b38;border-radius:100px;padding:9px 14px;font-size:12px;font-weight:800;white-space:nowrap;transition:background .2s,transform .2s}
+.why-proof a:hover{background:#d8ead4;transform:translateY(-2px)}
+.why-list li.why-beyond{background:#204b38;border-radius:24px;padding:28px 32px;margin-top:18px;border:0}
+.why-beyond .card-number{color:#8acb87}
+.why-beyond h3{color:#fffefa}
+.why-beyond p{color:#cfe2cc}
+.why-beyond .why-proof a{background:#fffefa;color:#204b38}
+@media(max-width:1050px){.why-list li{grid-template-columns:220px 1fr;row-gap:16px}.why-proof{grid-column:2;justify-content:flex-start}}
+@media(max-width:780px){.why{padding-top:20px}.why-list li{grid-template-columns:1fr;gap:12px}.why-proof{grid-column:auto}.why-list li.why-beyond{padding:24px 20px}}

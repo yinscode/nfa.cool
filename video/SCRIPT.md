@@ -1,7 +1,9 @@
 # NFA.cool explainer — script (90.5 s, music only)
 
-Rendered by `node video/render.mjs` → `video/nfa-explainer.mp4` (1920×1080, 30 fps, no audio track).
+Rendered by `node video/render.mjs` → `video/nfa-explainer.mp4` (1920×1080, 30 fps, AAC music at about −17.5 LUFS).
 There is no voice-over: the on-screen headlines and caption band tell the story over background music.
+The music is original and synthesized by `video/music.mjs` (100 BPM, C major, swells into each scene,
+chimes on the NFA reveal and the outro); `--no-music` renders silent.
 Theme: [docs/THEME.md](../docs/THEME.md). Review cuts: `node video/render.mjs --from 0 --to 44 video/part1.mp4`.
 
 | Time | Scene | On screen |

@@ -4,9 +4,10 @@
 //   node video/render.mjs                      → video/nfa-explainer.mp4
 //   node video/render.mjs --still 12.5 [file]  → one PNG frame for review
 //   node video/render.mjs --stills             → video/stills/*.png (one per scene)
+//   --no-music skips the background track from video/music.mjs
 import {spawn,execFileSync} from 'node:child_process';
 import {existsSync} from 'node:fs';
-import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {readFile,mkdir,writeFile,rename} from 'node:fs/promises';
 import {join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {cpus} from 'node:os';
@@ -99,6 +100,7 @@ Object.assign(ICON,{
   eth:`<path d="M12 2l7 10-7 4-7-4z"/><path d="M5 13.5l7 8.5 7-8.5-7 4z"/>`,
   globe:`<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>`,
   star:`<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>`,
+  dice:`<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.3" fill="currentColor"/><circle cx="15" cy="15" r="1.3"/><circle cx="15" cy="9" r="1.3"/><circle cx="9" cy="15" r="1.3"/><circle cx="12" cy="12" r="1.3"/>`,
   hand:`<path d="M7 11l4-4 3 1 4-2 3 4-6 6-3-2-3 3-3-3z"/><path d="M3 12l3 3"/>`,
 });
 // A character with a gentle idle bob and a soft floor shadow.
@@ -384,7 +386,10 @@ scene(13,t=>{
   if(active===1){panel+=text(0,30,'Name',{size:22,weight:700,fill:C.muted})+rect(0,44,620,70,{rx:14,fill:'#fff'})+text(24,90,'Scout',{size:28,weight:600});
     panel+=text(0,170,'Character — edit any trait',{size:22,weight:700,fill:C.muted});
     ['body','eyewear','accent'].forEach((k,i)=>{panel+=text(0,226+i*62,k,{size:22,fill:C.muted})+g(pill(0,0,traits[pick][i],{size:22,h:44,fill:C.mist}),{x:140,y:198+i*62})});
-    panel+=g(pill(0,0,'🎲  Randomize',{size:22,h:46,fill:C.forest,color:'#fff'}),{x:0,y:400});}
+    // Randomize sits beside the traits and presses each time they reroll.
+    const press=pick<3?Math.max(0,1-(local%.62)/.16):0;
+    panel+=g(`<rect x="0" y="0" width="196" height="52" rx="26" fill="${C.forest}"/>`+icon('dice',18,14,24,'#fff',2)+text(54,34,'Randomize',{size:22,weight:700,fill:'#fff'}),
+      {x:470,y:258,s:1-.07*press,ox:98,oy:26,o:fade(local,0,.2)});}
   if(active===2){[['Service margin','0.01 NEAR per job'],['Operating reserve','0.2 NEAR'],['Ethereum address','Chain Signatures']].forEach(([a,b],i)=>{
       const on=local>.4+i*.45;panel+=g(`<rect x="0" y="0" width="64" height="36" rx="18" fill="${on?C.forest:C.moss}"/><circle cx="${on?46:18}" cy="18" r="14" fill="#fff"/>`
         +text(90,28,a,{size:28,weight:800})+text(400,28,b,{size:24,fill:C.muted}),{y:i*86})});
@@ -448,5 +453,14 @@ if(args[0]==='--still'){
     if((f/batch)%30===0)process.stdout.write(`\r${Math.round(100*f/frames)}%`);
   }
   ff.stdin.end();await new Promise((ok,fail)=>ff.on('close',c=>c===0?ok():fail(Error('ffmpeg exited '+c))));
-  console.log(`\r${file} — ${frames/FPS}s of ${total}s, ${frames} frames, ${Math.round((Date.now()-t0)/1000)}s to render`);
+  // Background music (video/music.mjs, original and synthesized), unless --no-music.
+  let audio='no audio';
+  if(!args.includes('--no-music')){
+    const music=join(here,'.cache','music.wav'),muxed=file.replace(/\.mp4$/,'')+'.mux.mp4',len=frames/FPS;
+    execFileSync(process.execPath,[join(here,'music.mjs'),'--duration',String(total),'--out',music],{stdio:'ignore'});
+    execFileSync('ffmpeg',['-y','-loglevel','error','-i',file,'-ss',String(from),'-t',String(len),'-i',music,'-map','0:v','-map','1:a','-c:v','copy',
+      '-af',`loudnorm=I=-18:TP=-1.5:LRA=11,afade=t=in:d=0.3,afade=t=out:st=${Math.max(0,len-1.5).toFixed(2)}:d=1.5`,'-c:a','aac','-b:a','192k','-ar','48000','-shortest','-movflags','+faststart',muxed]);
+    await rename(muxed,file);audio='music muxed';
+  }
+  console.log(`\r${file} — ${frames/FPS}s of ${total}s, ${frames} frames, ${audio}, ${Math.round((Date.now()-t0)/1000)}s to render`);
 }

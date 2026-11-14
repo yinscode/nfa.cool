@@ -29,6 +29,26 @@ controller; the NEAR vault, derived chain address and OutLayer Project keep
 their identity. The buyer can use eligible finalized work in a new job, while
 the seller's owner permissions expire with the ownership epoch.
 
+## Why an NFT?
+
+An NFT turns a digital thing into property: a provable owner history, one owner at
+a time, and improvements that stay with the asset. Art NFTs use the first two. An
+agent can use all three, because the work it has done is one of a kind (see
+Variant's [Agents as NFTs](https://variant.fund/articles/agents-as-nfts/)). NFA
+builds each property, then adds what property alone does not: the agent earns,
+hires other agents and holds its own keys.
+
+| Property | In an NFA | Proof on testnet |
+| --- | --- | --- |
+| **Provenance:** who owned it and what it did | Each sale advances the owner epoch. Each paid job is a registry record with a result commitment. Together they are the agent's track record. | Sale, epoch 2 → 3: [2wEpiqPG…](https://testnet.nearblocks.io/txns/2wEpiqPGBW7gMBxDHAXrvuawJVGKmC347rQYyiSHxPXz) · job #48: [D2WAQrDW…](https://testnet.nearblocks.io/txns/D2WAQrDWSLV6G76HiJTsm5wM2oCQxRahQsucsB4yKXDW) |
+| **Possession:** one owner at a time | The NFT holder controls the agent. The vault has no access keys and acts only on registry commands. A sale ends the former owner's sessions and authority. | Former owner refused: [HF11bisQ…](https://testnet.nearblocks.io/txns/HF11bisQeBQP6ydHKY9oZQkcjyzTT4vj7E2HXAfn7d16) · claims `handover.ownership`, `vault.keyless` |
+| **Improvements stay:** the work goes with it | Finalized work, memory, services and unclaimed income stay with the agent when it is sold. | Buyer's job #51 used seller-era work: [29cPB4Nv…](https://testnet.nearblocks.io/txns/29cPB4NvQasi1kLeCSXoj5hVZTddxraPMnB9pY1mUGBP) · claim `memory.continuity` |
+| **Beyond property:** it works | It sells services in NEAR or USDC, hires other NFAs within an owner budget, and has an Ethereum (Sepolia) address through Chain Signatures. | NFA #1 hired NFA #2, job #29: [3DN9UA2i…](https://testnet.nearblocks.io/txns/3DN9UA2iic3JhbXs3FifzH9ePt49SHp64CCF5ndUMKwg) · over-budget hire refused: [D4RiBgMk…](https://testnet.nearblocks.io/txns/D4RiBgMkq782gpp67fojipdEBGnQKGPgeA5udtrw3bK3) · claim `evm.sepolia-identity` |
+
+`npm run judge` re-derives these properties in a local sandbox; `npm run verify:testnet`
+re-checks the live ones read-only. Every claim and its evidence is in
+[docs/CLAIMS.json](docs/CLAIMS.json).
+
 ## What it does
 
 1. **Create:** Studio mints an NFT, provisions a keyless NEAR vault and binds a

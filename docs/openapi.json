@@ -1277,6 +1277,346 @@
           }
         }
       }
+    },
+    "/v1/launches": {
+      "post": {
+        "summary": "Start creating an NFA: render its character, publish its manifest, return the unsigned mint",
+        "tags": [
+          "Create and update"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "owner",
+                  "name"
+                ],
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "description": "NEAR account that will own the NFA and sign every step"
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 240
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "scout",
+                      "compare",
+                      "both"
+                    ],
+                    "default": "scout"
+                  },
+                  "seed": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                  },
+                  "traits": {
+                    "type": "object"
+                  },
+                  "marginNear": {
+                    "type": "string",
+                    "default": "0.01"
+                  },
+                  "reserveNear": {
+                    "type": "string",
+                    "default": "0.2"
+                  },
+                  "ethereum": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "First step (mint) and the launch object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tokenId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "step": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "waiting": {
+                          "type": "boolean"
+                        },
+                        "blocked": {
+                          "type": "boolean"
+                        },
+                        "ready": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "unsignedAction": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "Unsigned NEAR action (receiverId, methodName, args, gas, deposit); the signer named in the response signs it"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "signer": {
+                      "type": "string"
+                    },
+                    "launch": {
+                      "type": "object",
+                      "description": "Pass back unchanged to /v1/launches/next"
+                    },
+                    "then": {
+                      "type": "string"
+                    },
+                    "previewUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/v1/launches/next": {
+      "post": {
+        "summary": "Read chain state and return the next unsigned launch step (Project, pricing, reserve, Ethereum address) or ready",
+        "tags": [
+          "Create and update"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "launch"
+                ],
+                "properties": {
+                  "launch": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Next step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tokenId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "step": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "waiting": {
+                          "type": "boolean"
+                        },
+                        "blocked": {
+                          "type": "boolean"
+                        },
+                        "ready": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "unsignedAction": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "Unsigned NEAR action (receiverId, methodName, args, gas, deposit); the signer named in the response signs it"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "signer": {
+                      "type": "string"
+                    },
+                    "launch": {
+                      "type": "object",
+                      "description": "Pass back unchanged to /v1/launches/next"
+                    },
+                    "then": {
+                      "type": "string"
+                    },
+                    "previewUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Launch outside the reviewed release catalog or malformed"
+          }
+        }
+      }
+    },
+    "/v1/nfas/{tokenId}/actions": {
+      "post": {
+        "summary": "Prepare an unsigned action on an NFA",
+        "tags": [
+          "Create and update"
+        ],
+        "description": "Kinds: service_policy, manifest, grant, revoke, fund, near_transfer, evm_transfer, derive_wallet, claim, transfer, list, unlist, transaction_policy, research_config (signed by the owner) and buy (signed by the buyer). Fields follow POST /prepare.",
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tokenId": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "unsignedAction": {
+                      "type": "object",
+                      "description": "Unsigned NEAR action (receiverId, methodName, args, gas, deposit); the signer named in the response signs it"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported kind or invalid fields"
+          }
+        }
+      }
+    },
+    "/v1/nfas/{tokenId}/appearance": {
+      "post": {
+        "summary": "Rename an NFA or change its character; returns the unsigned manifest update",
+        "tags": [
+          "Create and update"
+        ],
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "displayName"
+                ],
+                "properties": {
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "seed": {
+                    "type": "string"
+                  },
+                  "traits": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Published manifest and the unsigned update for the owner"
+          },
+          "401": {
+            "description": "Ownership changed"
+          }
+        }
+      }
     }
   },
   "components": {

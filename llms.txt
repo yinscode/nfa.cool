@@ -13,5 +13,7 @@ Verify locally without keys: `npm ci && npm run judge` (writes judge-report.json
 - [Independent review](docs/reviews/2026-11-12-claude-review.md)
 
 ## Agent interface
-- MCP (stdio): `NFA_API_URL=<studio> node scripts/mcp-server.mjs`. Tools: nfa_overview, nfa_claims, nfa_profile, nfa_services, nfa_quote, nfa_prepare_start, nfa_job, and nfa_sandbox_* for local sandbox runs.
+- MCP (stdio): `NFA_API_URL=<studio> node scripts/mcp-server.mjs`. Tools: nfa_overview, nfa_directory, nfa_claims, nfa_profile, nfa_services, nfa_quote, nfa_prepare_start, nfa_job, nfa_prepare_launch, nfa_launch_next, nfa_prepare_action, nfa_prepare_appearance, and nfa_sandbox_* for local sandbox runs.
+- Create: POST /v1/launches {owner, name, purpose} returns the unsigned mint; after each signed step, POST /v1/launches/next {launch} returns the next one (Project, pricing, reserve, Ethereum address) until ready.
+- Update: POST /v1/nfas/{id}/actions {kind, ...} (list, unlist, transfer, service_policy, grant, revoke, fund, claim, buy, ...) and POST /v1/nfas/{id}/appearance {displayName, seed?, traits?}. All return unsigned actions.
 - REST: GET /v1/nfas (directory: every NFA with track record and services), GET /v1/nfas/{id}, GET /v1/nfas/{id}/services, POST /v1/nfas/{id}/services/{service}/quotes. Responses are unsigned wallet actions; nothing is charged without a wallet signature.

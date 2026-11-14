@@ -136,10 +136,27 @@ else{
         sources:[{title:'Vault',url:'https://example.org/vault',text:'The NFA vault stays the same account when the NFT is sold to a new owner.'}]});
       const sold=await tool('nfa_sandbox_sell',{tokenId:created.tokenId});
       Object.assign(result,{tokenId:created.tokenId,jobStatus:hired.status,outputHash:hired.outputHash,sale:sold});
-      const ok=hired.status==='FINALIZED'&&sold.sameVault&&sold.formerOwnerDenied&&sold.epochAfter===sold.epochBefore+1;
-      assertions['mcp-agent-flow']=ok?['agent created an NFA','agent hired it and the job finalized','agent sold it: same vault, new epoch, former owner refused']:[];
+      // The public launch flow: nfa_prepare_launch, the owner signs, nfa_launch_next, repeat until ready.
+      const owner=(await tool('nfa_overview')).config.localSandbox.accounts[0],wait=ms=>new Promise(r=>setTimeout(r,ms));
+      let step=await tool('nfa_prepare_launch',{owner,name:'Launched by an agent',purpose:'scout',ethereum:false,reserveNear:'0.05'});
+      const signed=[];
+      for(let i=0;i<40&&!step.step.ready;i++){
+        if(step.step.blocked)throw Error('launch blocked: '+step.step.label);
+        if(!step.unsignedAction){await wait(1000);step=await tool('nfa_launch_next',{launch:step.launch});continue}
+        const id=step.step.id,sent=await tool('nfa_sandbox_send',{accountId:owner,action:step.unsignedAction});
+        if(sent.failed)throw Error(`launch step ${id} failed: ${JSON.stringify(sent.failure).slice(0,200)}`);
+        signed.push(id);
+        // Views read final state; wait for this step to land before asking for the next one.
+        for(let k=0;k<30;k++){step=await tool('nfa_launch_next',{launch:step.launch});if(step.step.id!==id)break;await wait(500)}
+      }
+      const launchedServices=step.tokenId?(await tool('nfa_services',{tokenId:step.tokenId})).items:[];
+      result.launch={tokenId:step.tokenId,ready:step.step.ready,signed,scoutAvailable:launchedServices.some(x=>x.id==='scout'&&x.available)};
+      const ok=hired.status==='FINALIZED'&&sold.sameVault&&sold.formerOwnerDenied&&sold.epochAfter===sold.epochBefore+1&&
+        result.launch.ready&&result.launch.scoutAvailable;
+      assertions['mcp-agent-flow']=ok?['agent created an NFA','agent hired it and the job finalized','agent sold it: same vault, new epoch, former owner refused',
+        'agent launched another NFA through the public launch flow and it took Scout jobs']:[];
       record({name:'mcp-agent-flow',status:ok?'pass':'fail',durationMs:Date.now()-t0,assertions:assertions['mcp-agent-flow'],result,
-        detail:ok?`created ${created.tokenId}, hired (FINALIZED), sold to ${sold.buyer}`:JSON.stringify(result).slice(0,300)});
+        detail:ok?`created ${created.tokenId}, hired (FINALIZED), sold to ${sold.buyer}; launched ${result.launch.tokenId} in ${result.launch.signed.length} signed steps`:JSON.stringify(result).slice(0,300)});
     }finally{mcp.kill('SIGTERM')}
   }catch(error){record({name:'mcp-agent-flow',status:'fail',durationMs:Date.now()-t0,detail:String(error.message||error),result})}
   finally{studio.kill('SIGTERM');await new Promise(r=>{studio.once('exit',r);setTimeout(r,5000).unref()})}

@@ -2,7 +2,7 @@ import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
-import {createHash,timingSafeEqual} from 'node:crypto';
+import {createHash,timingSafeEqual,randomBytes} from 'node:crypto';
 import {NfaSdk} from '@nfa/sdk';
 import {AccessService,verifyNearFullAccessKey} from './access.mjs';
 import {WorkStore} from './work-store.mjs';
@@ -20,6 +20,7 @@ import {verifyRelease} from './wasm-release.mjs';
 import {materializeWork} from './materialize-work.mjs';
 import {publishedBytes,publishedManifest} from './published-artifacts.mjs';
 import {nfaSummary,withHiresMade} from './nfa-summary.mjs';
+import {DEFAULT_LIMITS,nearAmount,nextLaunchStep,selectedServices,validateLaunchPlan} from '../../apps/web/launch-state.mjs';
 import {inspectLaunchAction} from './action-receipt.mjs';
 import {studioPort,listenStudio} from './studio-listen.mjs';
 import {deploymentConfig,readiness} from './deployment.mjs';
@@ -75,6 +76,10 @@ function prepare(sdk,body){
     default:throw Error('Unknown action kind');
   }
 }
+// Actions an agent may prepare on one NFA through /v1. Each is an unsigned action; the NFA's
+// owner (or, for buy, the buyer) signs it. Runtime activation keeps its own reviewed route.
+const V1_ACTIONS=new Set(['service_policy','manifest','grant','revoke','fund','near_transfer','evm_transfer','derive_wallet',
+  'claim','transfer','list','unlist','transaction_policy','research_config','buy']);
 
 export function createApiServer({sdk,store,access,
   renderer=new AvatarRenderer(resolve('.data/render')),
@@ -100,6 +105,73 @@ export function createApiServer({sdk,store,access,
     const manifest=await publishedManifest({hash:snapshot.identity.manifestHash,uri:snapshot.identity.manifestUri||'',manifests}).catch(()=>null);
     return nfaSummary(snapshot,manifest);
   });
+  // The creation manifest commits to the exact previewed character, template skills and services.
+  async function buildManifest({previewKey,displayName,description='',templateId='scout'}){
+    if(!['scout','compare','both'].includes(templateId))throw Error('Unknown creation template');
+    if(typeof displayName!=='string'||!displayName.trim()||displayName.length>64)throw Error('Invalid name');
+    if(typeof description!=='string'||description.length>240)throw Error('Invalid description');
+    const serviceIds=templateId==='both'?['scout','compare']:[templateId];
+    const templates=await Promise.all(serviceIds.map(async id=>JSON.parse(id==='scout'?await templateLoader():await readFile(compareTemplatePath,'utf8'))));
+    const preview=await renderer.get(previewKey),template=templates[0];
+    const catalog=await characterCatalog();validateTraits(preview.metadata.traits,catalog);
+    const image=await artifacts.putImage(await renderer.image(previewKey));
+    const cutout=await artifacts.putImage(await renderer.cutout(previewKey));
+    if(image.hash!==preview.imageHash)throw Error('Character image hash changed');
+    const skillHash='sha256:'+createHash('sha256').update(JSON.stringify(template.skill)).digest('hex');
+    const manifest={schemaVersion:2,revision:0,template:`${templateId}@1.0.0`,displayName:displayName.trim(),description:description.trim(),
+      publicCharacter:{collection:'nfa-v2',seed:preview.seed,renderSeed:preview.metadata.seed,traits:preview.metadata.traits,
+        rendererVersion:catalog.rendererVersion,assetDigest:catalog.assetDigest,
+        imageHash:image.hash,imageUri:image.uri,cutoutHash:cutout.hash,cutoutUri:cutout.uri,previewKey},
+      skills:templates.map(t=>({id:t.skill.id,version:t.skill.version,hash:'sha256:'+createHash('sha256').update(JSON.stringify(t.skill)).digest('hex')})),
+      services:serviceIds.map(id=>({id,schemaHash:schemaHashFor(id),activation:'owner-review-required'})),
+      verifiedCredentials:[],access:[{provider:'scout-workspace',transfer:'LIVE_CHECK'}]};
+    const saved=await manifests.put(manifest);
+    return {manifestHash:saved.outputHash,manifestUri:`nfa://manifest/${saved.outputHash.slice(7)}`,
+      manifest,previewUrl:preview.imageUrl};
+  }
+  // Agent launch: the same reviewed steps as Studio's /create (apps/web/launch-state.mjs), read
+  // from chain state each call, so an agent can sign one action, call next, and repeat.
+  const releaseList=async()=>JSON.parse(await readFile(releaseCatalogPath,'utf8')).releases;
+  // A default character seed: same account and name, same character.
+  const seedFrom=(...parts)=>parts.map(String).join('-').replace(/[^a-zA-Z0-9_-]+/g,'-').slice(0,64)||'nfa';
+  const reviewedSkills=()=>['scout','compare'].map(id=>({id,schemaHash:schemaHashFor(id)}));
+  async function startLaunch({owner,name,description='',purpose='scout',seed,traits={},marginNear='0.01',reserveNear='0.2',ethereum=true}){
+    if(typeof owner!=='string'||!/^[a-z0-9._-]{2,64}$/.test(owner))throw Error('Invalid NEAR account ID for the new NFA');
+    const serviceIds=selectedServices(purpose),marginYocto=nearAmount(String(marginNear)),reserveYocto=nearAmount(String(reserveNear));
+    if(BigInt(marginYocto)<10n**22n||BigInt(reserveYocto)<10n**22n||BigInt(reserveYocto)>10n**25n)throw Error('Margin must be at least 0.01 NEAR and the reserve 0.01 to 10 NEAR');
+    validateTraits(traits||{},await characterCatalog());
+    const preview=await renderer.render({seed:typeof seed==='string'&&seed?seed:seedFrom(owner,name),traits});
+    const manifest=await buildManifest({previewKey:preview.key,displayName:name,description,templateId:purpose});
+    const release=(await releaseList()).findLast(r=>r.hostedStatus==='verified'&&/^https:\/\//.test(r.url||'')&&serviceIds.every(id=>r.services.includes(id)));
+    if(!release)throw Error('No reviewed, hosted-verified runtime supports these services');
+    const launch={owner,requestId:'launch-'+randomBytes(8).toString('hex'),manifest:{manifestHash:manifest.manifestHash,manifestUri:manifest.manifestUri},
+      release:{id:release.id,url:release.url,versionKey:release.versionKey},serviceIds,marginYocto,reserveYocto,
+      maxDepositYocto:'500000000000000000000000',chainKey:ethereum!==false};
+    return {...await launchNext(launch),previewUrl:manifest.previewUrl};
+  }
+  async function launchNext(launch){
+    if(!launch||typeof launch!=='object')throw Error('Pass the launch object returned by POST /v1/launches');
+    launch={...launch,pending:null};validateLaunchPlan(launch,await releaseList());
+    if(typeof launch.requestId!=='string'||!/^launch-[0-9a-f]{16}$/.test(launch.requestId))throw Error('Invalid launch request ID');
+    if(!/^sha256:[0-9a-f]{64}$/.test(launch.manifest?.manifestHash||'')||typeof launch.manifest?.manifestUri!=='string')throw Error('Invalid launch manifest');
+    const tokenId=await sdk.view(sdk.registryAccountId,'request_token',{owner:launch.owner,request_id:launch.requestId});
+    const [nft,provision]=tokenId?await Promise.all([sdk.view(sdk.registryAccountId,'nft_token',{token_id:tokenId}),
+      sdk.view(sdk.registryAccountId,'pending_provision',{token_id:tokenId})]):[null,null];
+    const request={tokenId,minted:!!nft,recovery:provision?.failed?'admin_verification_required':null};
+    const snapshot=request.minted?await studioNfa(sdk,tokenId,{servicePolicy}):null;
+    const next=nextLaunchStep(launch,request,snapshot,reviewedSkills());
+    let body=null;
+    if(next.id==='mint')body={kind:'create',requestId:launch.requestId,...launch.manifest};
+    if(next.id==='project')body={kind:'outlayer_provision',tokenId,wasmUrl:launch.release.url,versionKey:launch.release.versionKey,deposit:'100000000000000000000000'};
+    if(next.service)body={kind:'service_policy',tokenId,serviceId:next.service,schemaHash:schemaHashFor(next.service),enabled:true,
+      margin:launch.marginYocto,maxDeposit:launch.maxDepositYocto,limits:DEFAULT_LIMITS};
+    if(next.id==='reserve')body={kind:'fund',vaultAccountId:snapshot.identity.vaultAccountId,yocto:next.amount};
+    if(next.id==='key')body={kind:'derive_wallet',tokenId};
+    const {pending,...saved}=launch;
+    return {tokenId:tokenId||null,step:{id:next.id,label:next.label,waiting:!!next.waiting,blocked:!!next.blocked,ready:!!next.ready},
+      unsignedAction:body?prepare(sdk,body):null,signer:saved.owner,launch:saved,
+      then:next.ready?'Ready to accept jobs.':body?'Sign unsignedAction as the owner, wait for it to finalize, then POST /v1/launches/next with this launch.':'Wait a few seconds, then POST /v1/launches/next again.'};
+  }
   if(localWallet&&!['127.0.0.1','localhost'].includes(new URL(sdk.rpcUrl).hostname))throw Error('Local wallet bridge requires a loopback sandbox');
   if(localControl&&!localWallet)throw Error('Development control requires the local sandbox');
   return createServer(async(req,res)=>{
@@ -305,30 +377,7 @@ export function createApiServer({sdk,store,access,
         res.writeHead(200,{'content-type':'image/png','cache-control':'public, max-age=31536000, immutable',
           'x-content-type-options':'nosniff'});res.end(bytes);return;
       }
-      if(req.method==='POST'&&path==='/manifests'){
-        const {previewKey,displayName,description='',templateId='scout'}=await input(req);
-        if(!['scout','compare','both'].includes(templateId))throw Error('Unknown creation template');
-        if(typeof displayName!=='string'||!displayName.trim()||displayName.length>64)throw Error('Invalid name');
-        if(typeof description!=='string'||description.length>240)throw Error('Invalid description');
-        const serviceIds=templateId==='both'?['scout','compare']:[templateId];
-        const templates=await Promise.all(serviceIds.map(async id=>JSON.parse(id==='scout'?await templateLoader():await readFile(compareTemplatePath,'utf8'))));
-        const preview=await renderer.get(previewKey),template=templates[0];
-        const catalog=await characterCatalog();validateTraits(preview.metadata.traits,catalog);
-        const image=await artifacts.putImage(await renderer.image(previewKey));
-        const cutout=await artifacts.putImage(await renderer.cutout(previewKey));
-        if(image.hash!==preview.imageHash)throw Error('Character image hash changed');
-        const skillHash='sha256:'+createHash('sha256').update(JSON.stringify(template.skill)).digest('hex');
-        const manifest={schemaVersion:2,revision:0,template:`${templateId}@1.0.0`,displayName:displayName.trim(),description:description.trim(),
-          publicCharacter:{collection:'nfa-v2',seed:preview.seed,renderSeed:preview.metadata.seed,traits:preview.metadata.traits,
-            rendererVersion:catalog.rendererVersion,assetDigest:catalog.assetDigest,
-            imageHash:image.hash,imageUri:image.uri,cutoutHash:cutout.hash,cutoutUri:cutout.uri,previewKey},
-          skills:templates.map(t=>({id:t.skill.id,version:t.skill.version,hash:'sha256:'+createHash('sha256').update(JSON.stringify(t.skill)).digest('hex')})),
-          services:serviceIds.map(id=>({id,schemaHash:schemaHashFor(id),activation:'owner-review-required'})),
-          verifiedCredentials:[],access:[{provider:'scout-workspace',transfer:'LIVE_CHECK'}]};
-        const saved=await manifests.put(manifest);
-        send(res,200,{manifestHash:saved.outputHash,manifestUri:`nfa://manifest/${saved.outputHash.slice(7)}`,
-          manifest,previewUrl:preview.imageUrl});return;
-      }
+      if(req.method==='POST'&&path==='/manifests'){send(res,200,await buildManifest(await input(req)));return}
       if(req.method==='GET'&&/^\/manifests\/[0-9a-f]{64}$/.test(path)){
         send(res,200,await manifests.get('sha256:'+path.slice(11)));return;
       }
@@ -349,6 +398,24 @@ export function createApiServer({sdk,store,access,
         send(res,200,{unsignedAction:prepare(sdk,body)});return;
       }
       const parts=path.split('/').filter(Boolean);
+      // Agent create and update (unsigned actions; a wallet signs each one).
+      if(req.method==='POST'&&path==='/v1/launches'){send(res,200,await startLaunch(await input(req)));return}
+      if(req.method==='POST'&&path==='/v1/launches/next'){send(res,200,await launchNext((await input(req)).launch));return}
+      if(req.method==='POST'&&/^\/v1\/nfas\/nfa-[1-9][0-9]*\/actions$/.test(path)){
+        const body=await input(req),tokenId=parts[2];
+        if(!V1_ACTIONS.has(body.kind))throw Error(`Unsupported action kind; use one of: ${[...V1_ACTIONS].join(', ')}`);
+        if(body.kind==='fund'&&!body.vaultAccountId)body.vaultAccountId=(await sdk.get(tokenId)).vaultAccountId;
+        send(res,200,{tokenId,kind:body.kind,unsignedAction:prepare(sdk,{...body,tokenId})});return;
+      }
+      if(req.method==='POST'&&/^\/v1\/nfas\/nfa-[1-9][0-9]*\/appearance$/.test(path)){
+        const {displayName,seed,traits={},expectedOwner}=await input(req),tokenId=parts[2],identity=await sdk.get(tokenId);
+        validateTraits(traits||{},await characterCatalog());
+        const preview=await renderer.render({seed:typeof seed==='string'&&seed?seed:seedFrom(tokenId,displayName),traits});
+        const published=await publishAppearance({sdk,renderer,manifests,artifacts,body:{tokenId,previewKey:preview.key,displayName,
+          expectedOwner:expectedOwner||identity.ownerAccountId,expectedEpoch:identity.ownerEpoch}});
+        send(res,200,{tokenId,manifestHash:published.manifestHash,manifestUri:published.manifestUri,manifest:published.manifest,previewUrl:preview.imageUrl,
+          signer:identity.ownerAccountId,unsignedAction:prepare(sdk,{kind:'manifest',tokenId,manifestHash:published.manifestHash,manifestUri:published.manifestUri})});return;
+      }
       // Public NFA directory: GET /v1/nfas lists every NFA; GET /v1/nfas/:id summarizes one.
       if(req.method==='GET'&&(path==='/v1/nfas'||/^\/v1\/nfas\/nfa-[1-9][0-9]*$/.test(path))){
         if(path==='/v1/nfas'){

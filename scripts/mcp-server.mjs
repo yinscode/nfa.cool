@@ -119,6 +119,23 @@ const tools=[
   {name:'nfa_job',description:'Status and output commitment of a paid job.',
     inputSchema:object({...tokenArg,service:{type:'string',enum:SERVICE},jobId:{type:'integer'}},['tokenId','service','jobId']),
     run:async({tokenId,service:s,jobId})=>api(`/v1/nfas/${token(tokenId)}/services/${service(s)}/jobs/${jobId}`)},
+  {name:'nfa_directory',description:'Every NFA with its name, owner, track record (jobs, earnings, hires) and services with typical fees.',inputSchema:object({}),
+    run:async()=>api('/v1/nfas')},
+  {name:'nfa_prepare_launch',description:'Start creating an NFA for an owner account. Renders its character, publishes its manifest and returns the first UNSIGNED action (mint). The owner signs each action; then call nfa_launch_next with the returned launch.',
+    inputSchema:object({owner:{type:'string',description:'NEAR account that will own the NFA and sign'},name:{type:'string'},description:{type:'string'},
+      purpose:{type:'string',enum:['scout','compare','both']},seed:{type:'string',description:'Character seed; same seed, same character'},
+      traits:{type:'object',description:'Optional character traits (see GET /studio/catalog)'},marginNear:{type:'string',description:'Owner margin per job, at least 0.01'},
+      reserveNear:{type:'string',description:'Operating reserve, 0.01 to 10'},ethereum:{type:'boolean',description:'Pin a Chain Signatures Sepolia address (default true)'}},['owner','name']),
+    run:async args=>api('/v1/launches',args)},
+  {name:'nfa_launch_next',description:'After each signed launch action finalizes: read chain state and return the next UNSIGNED action (Project, pricing, reserve, Ethereum address) or ready.',
+    inputSchema:object({launch:{type:'object',description:'The launch object from nfa_prepare_launch or the previous nfa_launch_next'}},['launch']),
+    run:async({launch})=>api('/v1/launches/next',{launch})},
+  {name:'nfa_prepare_action',description:'Prepare an UNSIGNED owner action on an NFA: service_policy, grant, revoke, fund, near_transfer, evm_transfer, derive_wallet, claim, transfer, list, unlist, transaction_policy, research_config, manifest; or buy (signed by the buyer).',
+    inputSchema:object({...tokenArg,kind:{type:'string'},params:{type:'object',description:'Fields for the kind, for example {"price":"1000000000000000000000000"} for list'}},['tokenId','kind']),
+    run:async({tokenId,kind,params={}})=>api(`/v1/nfas/${token(tokenId)}/actions`,{...params,kind})},
+  {name:'nfa_prepare_appearance',description:'Rename an NFA or change its character: renders it, publishes the new manifest and returns the UNSIGNED manifest update.',
+    inputSchema:object({...tokenArg,displayName:{type:'string'},seed:{type:'string'},traits:{type:'object'}},['tokenId','displayName']),
+    run:async({tokenId,...rest})=>api(`/v1/nfas/${token(tokenId)}/appearance`,rest)},
   {name:'nfa_sandbox_bootstrap',description:'SANDBOX ONLY. Create a new NFA as the sandbox owner, give it a vault-owned OutLayer Project and enable paid Scout.',
     inputSchema:object({}),run:bootstrap},
   {name:'nfa_sandbox_hire',description:'SANDBOX ONLY. As the sandbox customer: quote, pay, start and wait for a Scout job on an NFA. Returns the finalized job.',
@@ -134,7 +151,7 @@ const tools=[
 export async function handle(message){
   const {id,method,params}=message;
   if(method==='initialize')return {protocolVersion:params?.protocolVersion||'2025-06-18',capabilities:{tools:{}},
-    serverInfo:{name:'nfa-cool',version:'1.0.0'},instructions:'Call nfa_overview first. Against a local sandbox, nfa_sandbox_bootstrap → nfa_sandbox_hire → nfa_sandbox_sell demonstrates the whole product.'};
+    serverInfo:{name:'nfa-cool',version:'1.0.0'},instructions:'Call nfa_overview first, then nfa_directory to see live NFAs. To hire one: nfa_services → nfa_quote → nfa_prepare_start. To create one: nfa_prepare_launch, have the owner sign each action, and call nfa_launch_next until ready. Against a local sandbox, nfa_sandbox_send signs as a sandbox account, and nfa_sandbox_bootstrap → nfa_sandbox_hire → nfa_sandbox_sell demonstrates the whole product.'};
   if(method==='ping')return {};
   if(method==='tools/list')return {tools:tools.map(({run,...t})=>t)};
   if(method==='tools/call'){

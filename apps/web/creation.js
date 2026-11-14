@@ -93,7 +93,7 @@ export function startCreation({api,config,wallet,review,navigate,escape:esc}){
         if(BigInt(marginYocto)<10n**22n||BigInt(reserveYocto)<10n**22n||BigInt(reserveYocto)>10n**25n)throw Error('Check the earnings and reserve amounts');
         if(!preview)await renderCharacter();
         const manifest=await api('/manifests',{previewKey:preview.key,displayName:plan.name,description:plan.description,templateId:plan.purpose});
-        const release=releases.findLast(r=>r.hostedStatus==='verified'&&selectedServices(plan.purpose).every(s=>r.services.includes(s)));
+        const release=releases.findLast(r=>r.hostedStatus==='verified'&&r.url&&selectedServices(plan.purpose).every(s=>r.services.includes(s)));
         if(!release)throw Error('No reviewed, hosted-verified runtime supports these services');
         Object.assign(plan,{active:true,owner:wallet().accountId,requestId:'launch-'+plan.id,manifest,release,serviceIds:selectedServices(plan.purpose),marginYocto,reserveYocto,maxDepositYocto:'500000000000000000000000'});save();
         history.replaceState(null,'',`/create?launch=${plan.id}`);

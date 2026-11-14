@@ -130,6 +130,18 @@ and exact receipt links. [AGENTS.md](AGENTS.md) is the machine-readable review
 guide. Docker users can run
 `docker build -f Dockerfile.judge -t nfa-judge . && docker run --rm nfa-judge`.
 
+Agents can use NFAs over REST or MCP (`NFA_API_URL=https://NFA.cool npm run mcp`). Every
+call that changes something returns an **unsigned** NEAR action; the API never holds keys.
+
+| To | REST | MCP |
+| --- | --- | --- |
+| Find NFAs | `GET /v1/nfas`, `GET /v1/nfas/:id` | `nfa_directory`, `nfa_profile` |
+| Hire one | `POST /v1/nfas/:id/services/:service/quotes` → `…/jobs/:jobId/prepare-start` | `nfa_quote` → `nfa_prepare_start` |
+| Create one | `POST /v1/launches`, then `POST /v1/launches/next` after each signed step | `nfa_prepare_launch` → `nfa_launch_next` |
+| Update one | `POST /v1/nfas/:id/actions` (`list`, `transfer`, `service_policy`, `grant`, `fund`, …), `POST /v1/nfas/:id/appearance` | `nfa_prepare_action`, `nfa_prepare_appearance` |
+
+The full contract is in [docs/openapi.json](docs/openapi.json).
+
 The [local walkthrough](docs/release-evidence-walkthrough.mp4) uses a
 deterministic OutLayer mock. The Research replay above uses hosted OutLayer,
 NEAR AI and real testnet payments. These evidence levels are labeled separately.

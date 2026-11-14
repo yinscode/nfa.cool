@@ -60,14 +60,19 @@ npm run studio:start                          # local sandbox Studio on :3102 (o
 NFA_API_URL=http://127.0.0.1:3102 npm run mcp # stdio MCP server; see .mcp.json
 ```
 
-Read tools: `nfa_overview`, `nfa_claims`, `nfa_profile`, `nfa_services`, `nfa_quote`,
-`nfa_prepare_start`, `nfa_job`, `nfa_owned`.
+Read tools: `nfa_overview`, `nfa_directory`, `nfa_claims`, `nfa_profile`, `nfa_services`,
+`nfa_quote`, `nfa_prepare_start`, `nfa_job`, `nfa_owned`.
+
+Create and update tools (unsigned actions only): `nfa_prepare_launch` → the owner signs →
+`nfa_launch_next`, repeated until `step.ready`; `nfa_prepare_action` (list, unlist, transfer,
+service_policy, grant, revoke, fund, claim, buy, …) and `nfa_prepare_appearance`.
 
 Sandbox tools (local test accounts only): `nfa_sandbox_bootstrap` → `nfa_sandbox_hire` →
 `nfa_sandbox_sell`, and `nfa_sandbox_send` for any unsigned action. Against testnet, the
 quote and prepare tools return unsigned actions only; nothing is charged without a wallet.
 
-REST: `GET /openapi.json`, `GET /llms.txt`, `GET /v1/nfas` (directory), `GET /v1/nfas/:id`, `GET /v1/nfas/:id/services`,
+REST: `GET /openapi.json`, `GET /llms.txt`, `GET /v1/nfas` (directory), `GET /v1/nfas/:id`,
+`POST /v1/launches`, `POST /v1/launches/next`, `POST /v1/nfas/:id/actions`, `POST /v1/nfas/:id/appearance`, `GET /v1/nfas/:id/services`,
 `POST /v1/nfas/:id/services/:service/quotes`.
 
 ## Claims and their evidence

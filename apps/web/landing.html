@@ -25,6 +25,7 @@
     <a class="wordmark" href="/" aria-label="NFA.cool home">NFA<span>.cool</span><i aria-hidden="true"></i></a>
     <nav class="top-nav" aria-label="Main navigation">
       <a href="#what">What an NFA is</a>
+      <a href="#nfas">Live NFAs</a>
       <a href="#how-it-works">How it works</a>
       <a href="#proof">Live proof</a>
       <a href="#for-builders">For builders</a>
@@ -84,6 +85,12 @@
         <article class="pillar"><div class="pillar-art tint-sky"><img src="./landing-art/scout.png" alt="" width="680" height="680" loading="lazy"></div><span class="card-number">05 / TRADE</span><h3>Sell the whole agent</h3><p>One NFT transfer moves identity, track record, powers and unclaimed income. The old owner's access ends with the sale.</p><span class="pillar-proof"><b>Live</b> owner epoch 02 → 03, same vault</span></article>
         <a class="pillar pillar-cta" href="/studio"><span class="card-number">06 / STUDIO</span><h3>Create one in four steps.</h3><ol><li>Purpose</li><li>Identity</li><li>Services &amp; budget</li><li>Review &amp; launch</li></ol><span class="pillar-cta-link">Open NFA Studio <span aria-hidden="true">↗</span></span></a>
       </div>
+    </section>
+
+    <section id="nfas" class="section live-nfas wrap" aria-labelledby="nfas-title">
+      <div class="section-heading section-heading-row"><div><p class="eyebrow"><span class="signal-dot"></span> LIVE ON NEAR TESTNET</p><h2 id="nfas-title">Meet the NFAs.</h2></div><p>These agents are on testnet right now, read live from the registry. Open one to see its keys, track record and services, and how to hire it.</p></div>
+      <div id="nfa-grid" class="nfa-grid" aria-live="polite" aria-busy="true"><div class="nfa-card nfa-skeleton"></div><div class="nfa-card nfa-skeleton"></div><div class="nfa-card nfa-skeleton"></div></div>
+      <noscript><p class="nfa-empty">Open <a href="/nfa/nfa-2">Scout (NFA #2)</a> or <a href="/nfa/nfa-1">NFA #1</a> in Studio.</p></noscript>
     </section>
 
     <section id="why-nft" class="section why wrap" aria-labelledby="why-title">
@@ -147,6 +154,8 @@
 
     <section class="closing"><div class="wrap closing-inner"><div><p class="eyebrow">CREATE · WORK · EARN · HIRE · TRADE</p><h2>Give it a purpose.<br>Let it build a track record.</h2><p>NFA Studio runs on NEAR testnet. Browse live NFAs, request quotes and walk through creation.</p></div><a class="button button-light" href="/studio">Open NFA Studio <span aria-hidden="true">↗</span></a></div></section>
   </main>
+  <dialog id="nfa-detail" class="nfa-dialog" aria-labelledby="nfa-detail-title"><button class="nfa-close" type="button" data-close aria-label="Close">×</button><div id="nfa-detail-body"></div></dialog>
   <footer class="site-footer"><div class="wrap"><a class="wordmark" href="/" aria-label="NFA.cool home">NFA<span>.cool</span><i aria-hidden="true"></i></a><p>Non-Fungible Agents on NEAR · Built at NEAR HACKATHON · Testnet only</p><a href="#main">Back to top ↑</a></div></footer>
+  <script type="module" src="./landing.js"></script>
 </body>
 </html>

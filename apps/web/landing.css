@@ -60,3 +60,64 @@ html{overflow-x:hidden}
 .why-beyond .why-proof a{background:#fffefa;color:#204b38}
 @media(max-width:1050px){.why-list li{grid-template-columns:220px 1fr;row-gap:16px}.why-proof{grid-column:2;justify-content:flex-start}}
 @media(max-width:780px){.why{padding-top:20px}.why-list li{grid-template-columns:1fr;gap:12px}.why-proof{grid-column:auto}.why-list li.why-beyond{padding:24px 20px}}
+.live-nfas{padding-top:40px}
+.nfa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px}
+.nfa-card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:10px;background:#fffefa;border:1px solid #dee4d9;border-radius:24px;padding:20px;transition:transform .25s,box-shadow .25s;min-height:300px}
+.nfa-card:hover,.nfa-card:focus-visible{transform:translateY(-4px);box-shadow:0 18px 40px #204b3814}
+.nfa-card:focus-visible{outline:3px solid #81caa8;outline-offset:4px}
+.nfa-skeleton{cursor:default;background:linear-gradient(90deg,#fffefa,#f1f4ee,#fffefa);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+.nfa-portrait{height:170px;border-radius:18px;display:grid;place-items:center;overflow:hidden}
+.nfa-portrait img{width:170px;height:170px;object-fit:contain;filter:drop-shadow(0 10px 8px #2d4f3424);transition:transform .3s}
+.nfa-card:hover .nfa-portrait img{transform:translateY(-4px) rotate(-2deg)}
+.nfa-portrait span{font-family:Manrope,'Helvetica Neue',Inter,sans-serif;font-size:44px;font-weight:800;letter-spacing:-.04em;color:#204b38}
+.nfa-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.nfa-state{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a978d;background:#eef1ea;border-radius:100px;padding:5px 9px}
+.nfa-state.on{color:#204b38;background:#e8f2e6}
+.nfa-state.on:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#47bb78;margin-right:6px;vertical-align:1px}
+.nfa-name{font-family:Manrope,'Helvetica Neue',Inter,sans-serif;font-size:22px;font-weight:800;letter-spacing:-.04em;color:#1f3029}
+.nfa-services{display:flex;flex-wrap:wrap;gap:6px}
+.nfa-services span{font-size:12px;font-weight:700;color:#204b38;background:#e8f2e6;border-radius:100px;padding:5px 10px}
+.nfa-services span.off{color:#8a978d;background:transparent;border:1px dashed #cfd8cb}
+.nfa-stats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:#64756a}
+.nfa-stats b{color:#1f3029}
+.nfa-open{margin-top:auto;padding-top:12px;border-top:1px dashed #dee4d9;font-size:13px;font-weight:800;color:#2d7650}
+.nfa-empty{grid-column:1/-1;color:#64756a}
+.nfa-dialog{width:min(760px,calc(100% - 32px));max-height:calc(100vh - 48px);border:0;border-radius:28px;padding:32px;background:#fffefa;color:#1f3029;box-shadow:0 40px 90px #1f302940}
+.nfa-dialog::backdrop{background:#1f302966;backdrop-filter:blur(3px)}
+.nfa-close{position:sticky;float:right;top:0;width:40px;height:40px;border-radius:50%;border:1px solid #dee4d9;background:#fffefa;font-size:22px;line-height:1;cursor:pointer;color:#1f3029}
+.nfa-detail-head{display:flex;gap:22px;align-items:center}
+.nfa-detail-head .nfa-portrait{width:150px;height:150px;flex:none}
+.nfa-detail-head .nfa-portrait img{width:150px;height:150px}
+.nfa-detail-head h3{font-size:30px;margin:6px 0}
+.nfa-detail-head p{margin:0;color:#64756a;font-size:14px}
+.nfa-dialog h4{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#5d846f;margin:26px 0 10px;font-family:'DM Sans','Helvetica Neue',Inter,sans-serif}
+.nfa-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.nfa-dialog dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}
+.nfa-dialog dt{color:#64756a}.nfa-dialog dd{margin:0;font-weight:700}
+.nfa-dialog dd small{font-weight:500;color:#8a978d}
+.nfa-dialog a{color:#2d7650}
+.nfa-dialog code{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef3eb;border-radius:6px;padding:2px 6px}
+.nfa-service-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.nfa-service-list li{display:flex;justify-content:space-between;gap:16px;border:1px solid #dee4d9;border-radius:16px;padding:14px 16px}
+.nfa-service-list li.off{border-style:dashed;color:#8a978d}
+.nfa-service-list p{margin:3px 0 0;font-size:13px;color:#64756a;line-height:1.5}
+.nfa-service-list .nfa-reason{color:#b07a1e}
+.nfa-price{text-align:right;display:flex;flex-direction:column;gap:2px;white-space:nowrap}
+.nfa-price b{font-size:15px}.nfa-price small{font-size:11px;color:#8a978d}
+.nfa-how{margin:0;padding-left:20px;display:grid;gap:14px;font-size:14px;line-height:1.6;color:#3f5247}
+.nfa-how strong{color:#1f3029}
+.nfa-how pre{margin:8px 0 0;background:#1a3026;color:#d9ebd9;border-radius:14px;padding:14px 16px;overflow:auto;font:500 12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace}
+.nfa-how pre code{background:none;padding:0;font:inherit;color:inherit}
+.nfa-profile{display:inline-flex;gap:12px;margin-top:8px;background:#204b38;color:#fffefa!important;border-radius:100px;padding:10px 16px;font-size:13px;font-weight:800;text-decoration:none}
+.nfa-note{margin:20px 0 0;font-size:12px;color:#8a978d}
+@media(max-width:1050px){.nfa-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:780px){.live-nfas{padding-top:20px}.nfa-grid{grid-template-columns:1fr}.nfa-detail-grid{grid-template-columns:1fr}.nfa-dialog{padding:22px}.nfa-detail-head .nfa-portrait,.nfa-detail-head .nfa-portrait img{width:96px;height:96px}.nfa-detail-head h3{font-size:22px}.nfa-service-list li{flex-direction:column}.nfa-price{text-align:left}}
+.nfa-create{background:#204b38;border-color:#204b38;text-decoration:none}
+.nfa-create .nfa-portrait{background:#2f6a4e}.nfa-create .nfa-portrait span{color:#8acb87;font-size:64px}
+.nfa-create .nfa-name{color:#fffefa}.nfa-create .nfa-stats{color:#cfe2cc}.nfa-create .nfa-open{color:#8acb87;border-color:#3f7a5c}
+.nfa-how{grid-template-columns:minmax(0,1fr)}
+.nfa-how li{min-width:0}
+.nfa-how pre{max-width:100%}
+.nfa-close:focus-visible{outline:3px solid #81caa8;outline-offset:2px}
+.nfa-close:focus:not(:focus-visible){outline:none}

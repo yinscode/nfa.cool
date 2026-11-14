@@ -19,6 +19,7 @@ import {inspectTransaction} from './transaction-receipt.mjs';
 import {verifyRelease} from './wasm-release.mjs';
 import {materializeWork} from './materialize-work.mjs';
 import {publishedBytes,publishedManifest} from './published-artifacts.mjs';
+import {nfaSummary,withHiresMade} from './nfa-summary.mjs';
 import {inspectLaunchAction} from './action-receipt.mjs';
 import {studioPort,listenStudio} from './studio-listen.mjs';
 import {deploymentConfig,readiness} from './deployment.mjs';
@@ -90,6 +91,15 @@ export function createApiServer({sdk,store,access,
   evmRpcUrl=null,
   templateLoader=()=>readFile(templatePath,'utf8')}){
   const hits=new Map();
+  // Directory summaries are cached briefly: each one reads a full NFA snapshot from RPC.
+  const directory=new Map(),DIRECTORY_TTL=60_000;
+  const cached=async(key,work)=>{const hit=directory.get(key);if(hit&&Date.now()-hit.at<DIRECTORY_TTL)return hit.value;
+    const value=await work();directory.set(key,{at:Date.now(),value});return value};
+  const summary=id=>cached(id,async()=>{
+    const snapshot=await studioNfa(sdk,id,{servicePolicy});
+    const manifest=await publishedManifest({hash:snapshot.identity.manifestHash,uri:snapshot.identity.manifestUri||'',manifests}).catch(()=>null);
+    return nfaSummary(snapshot,manifest);
+  });
   if(localWallet&&!['127.0.0.1','localhost'].includes(new URL(sdk.rpcUrl).hostname))throw Error('Local wallet bridge requires a loopback sandbox');
   if(localControl&&!localWallet)throw Error('Development control requires the local sandbox');
   return createServer(async(req,res)=>{
@@ -339,6 +349,20 @@ export function createApiServer({sdk,store,access,
         send(res,200,{unsignedAction:prepare(sdk,body)});return;
       }
       const parts=path.split('/').filter(Boolean);
+      // Public NFA directory: GET /v1/nfas lists every NFA; GET /v1/nfas/:id summarizes one.
+      if(req.method==='GET'&&(path==='/v1/nfas'||/^\/v1\/nfas\/nfa-[1-9][0-9]*$/.test(path))){
+        if(path==='/v1/nfas'){
+          const items=await cached('list',async()=>{
+            const tokens=await sdk.view(sdk.registryAccountId,'nft_tokens',{from_index:'0',limit:24});
+            const ids=(tokens||[]).map(t=>t.token_id).filter(id=>/^nfa-[1-9][0-9]*$/.test(id));
+            return withHiresMade((await Promise.all(ids.map(id=>summary(id).catch(()=>null)))).filter(Boolean));
+          });
+          send(res,200,{registry:sdk.registryAccountId,items});return;
+        }
+        try{send(res,200,await summary(parts[2]))}
+        catch(error){if(error.message!=='NFA not found')throw error;send(res,404,{error:'nfa_not_found'})}
+        return;
+      }
       if(parts[0]==='v1'&&parts[1]==='checkouts'&&checkout){
         const checkoutId=parts[2];
         if(req.method==='GET'&&parts.length===3){

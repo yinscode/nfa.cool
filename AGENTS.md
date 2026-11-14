@@ -67,7 +67,7 @@ Sandbox tools (local test accounts only): `nfa_sandbox_bootstrap` → `nfa_sandb
 `nfa_sandbox_sell`, and `nfa_sandbox_send` for any unsigned action. Against testnet, the
 quote and prepare tools return unsigned actions only; nothing is charged without a wallet.
 
-REST: `GET /openapi.json`, `GET /llms.txt`, `GET /v1/nfas/:id/services`,
+REST: `GET /openapi.json`, `GET /llms.txt`, `GET /v1/nfas` (directory), `GET /v1/nfas/:id`, `GET /v1/nfas/:id/services`,
 `POST /v1/nfas/:id/services/:service/quotes`.
 
 ## Claims and their evidence

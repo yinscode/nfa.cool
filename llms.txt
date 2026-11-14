@@ -14,4 +14,4 @@ Verify locally without keys: `npm ci && npm run judge` (writes judge-report.json
 
 ## Agent interface
 - MCP (stdio): `NFA_API_URL=<studio> node scripts/mcp-server.mjs`. Tools: nfa_overview, nfa_claims, nfa_profile, nfa_services, nfa_quote, nfa_prepare_start, nfa_job, and nfa_sandbox_* for local sandbox runs.
-- REST: GET /v1/nfas/{id}/services, POST /v1/nfas/{id}/services/{service}/quotes. Responses are unsigned wallet actions; nothing is charged without a wallet signature.
+- REST: GET /v1/nfas (directory: every NFA with track record and services), GET /v1/nfas/{id}, GET /v1/nfas/{id}/services, POST /v1/nfas/{id}/services/{service}/quotes. Responses are unsigned wallet actions; nothing is charged without a wallet signature.

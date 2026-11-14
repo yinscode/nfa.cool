@@ -1212,6 +1212,71 @@
           }
         }
       }
+    },
+    "/v1/nfas": {
+      "get": {
+        "summary": "List NFAs with name, image, track record and services",
+        "tags": [
+          "Directory"
+        ],
+        "responses": {
+          "200": {
+            "description": "Every NFA in the registry (up to 24), summarized. Cached for 60 seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "registry": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NfaSummary"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nfas/{tokenId}": {
+      "get": {
+        "summary": "Summarize one NFA: identity, track record, services and how to get them",
+        "tags": [
+          "Directory"
+        ],
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^nfa-[1-9][0-9]*$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NFA summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfaSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such NFA"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1410,6 +1475,124 @@
           "sources"
         ],
         "additionalProperties": false
+      },
+      "NfaSummary": {
+        "type": "object",
+        "properties": {
+          "tokenId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "image": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Checksum-verified image path on this API"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "ownerEpoch": {
+            "type": "integer"
+          },
+          "lifecycle": {
+            "type": "string"
+          },
+          "listing": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "vault": {
+            "type": "string"
+          },
+          "ethereumAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trackRecord": {
+            "type": "object",
+            "properties": {
+              "finalizedJobs": {
+                "type": "integer"
+              },
+              "failedJobs": {
+                "type": "integer"
+              },
+              "hiredByNfas": {
+                "type": "integer"
+              },
+              "hiredBy": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "hired": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Listing only: NFAs this one hired"
+              },
+              "creditedEarningsYocto": {
+                "type": "string"
+              },
+              "withdrawableIncomeYocto": {
+                "type": "string"
+              }
+            }
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "typicalFeeYocto": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Median fee of finalized jobs"
+                },
+                "finalizedJobs": {
+                  "type": "integer"
+                },
+                "quote": {
+                  "type": "string",
+                  "description": "POST here for a quote and unsigned payment action"
+                }
+              }
+            }
+          },
+          "links": {
+            "type": "object"
+          }
+        }
       }
     }
   }

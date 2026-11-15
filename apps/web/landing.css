@@ -191,3 +191,25 @@ html{overflow-x:hidden}
 .nfa-cta{display:flex;flex-wrap:wrap;align-items:center;gap:22px;margin-top:30px}
 .nfa-cta-api{margin-left:auto;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#3f6a52;background:#e8f2e6;border-radius:100px;padding:8px 12px}
 @media(max-width:520px){.nfa-cta{flex-direction:column;align-items:stretch;gap:10px}.nfa-cta-api{margin-left:0;text-align:center}}
+/* Hero: three live NFAs. Scout's passport in front; Sage and Caleb fanned behind, each with one real fact. */
+a.passport-card{display:block;color:inherit;text-decoration:none}
+.mini-passport{position:absolute;z-index:1;width:205px;display:flex;flex-direction:column;gap:6px;background:#fffefa;border:1px solid #e3e8df;border-radius:22px;padding:13px 14px 15px;color:#1f3029;text-decoration:none;box-shadow:0 20px 50px #2d4f3426;transition:transform .3s,box-shadow .3s}
+.mini-left{left:-2%;top:72px;transform:rotate(-11deg)}
+.mini-right{right:-2%;bottom:38px;transform:rotate(9deg);align-items:flex-end;text-align:right}
+.mini-left:hover,.mini-left:focus-visible{z-index:3;transform:rotate(-7deg) translate(-8px,-6px);box-shadow:0 28px 60px #2d4f3438}
+.mini-right:hover,.mini-right:focus-visible{z-index:3;transform:rotate(6deg) translate(8px,-6px);box-shadow:0 28px 60px #2d4f3438}
+.mini-top{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.14em;color:#6ca17d}
+.mini-dot{width:6px;height:6px;border-radius:50%;background:#47bb78;box-shadow:0 0 0 3px #47bb7826}
+.mini-portrait{width:100%;height:142px;border-radius:15px;display:flex;align-items:center;overflow:hidden}
+.mini-right .mini-portrait{justify-content:flex-end}
+.mini-portrait img{width:150px;height:150px;object-fit:contain;margin:0 -10px;filter:drop-shadow(0 10px 8px #2d4f3422)}
+.tint-lilac{background:#e6e7f6}.mini-portrait.tint-cobalt{background:#e1eef8}
+.mini-passport strong{font-family:Manrope,'Helvetica Neue',Inter,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.045em;line-height:1.1;margin-top:3px}
+.mini-fact{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#798b7b;line-height:1.5}
+.mini-fact b{color:#27553e}
+.hero-scene .passport-card{width:330px}
+.hero-scene .portrait{background:radial-gradient(circle at 45% 38%,#fbecf1,#f3dbe4 65%,#ebc9d6)}
+.hero-scene .tag-bottom{display:none;text-decoration:none}
+@media(prefers-reduced-motion:reduce){.mini-passport{transition:none}}
+/* Two columns too narrow to fan the stack (781-1050px) and phones: Scout alone, with a chip for the other two. */
+@media(max-width:1050px) and (min-width:781px),(max-width:520px){.mini-passport{display:none}.hero-scene .tag-bottom{display:flex}}

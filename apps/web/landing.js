@@ -79,6 +79,8 @@ function show(i){body.innerHTML=detail(items[i]);if(!dialog.open)dialog.showModa
 dialog.addEventListener('close',()=>{if(/^#nfa-\d+$/.test(location.hash))history.replaceState(null,'',location.pathname+location.search)});
 grid.addEventListener('click',e=>{const b=e.target.closest('.nfa-card');if(b)show(Number(b.dataset.i))});
 dialog.addEventListener('click',e=>{if(e.target===dialog||e.target.closest('[data-close]'))dialog.close()});
+// The hero passports open the same details; before the directory loads they fall back to the Studio profile.
+document.querySelector('.hero-scene')?.addEventListener('click',e=>{const a=e.target.closest('[data-nfa]'),i=a?items.findIndex(item=>item.tokenId===a.dataset.nfa):-1;if(i>=0){e.preventDefault();show(i)}});
 
 fetch('/v1/nfas',{headers:{accept:'application/json'}}).then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(data=>{
   items=data.items||[];

@@ -84,6 +84,10 @@ exists; **dashed and muted** marks a trust boundary or something not yet shipped
 ## Where it lives
 
 - Site: `apps/web/landing.html` + `landing.css` (hero, six pillars, how it works, proof, builders).
+- Hero: the three live NFAs with their real token images (`landing-art/nfa-1..3.png`, copied
+  byte-for-byte from fastfs): Scout — Bob edition (#2) in front, Sage (#1) and Caleb (#3) fanned
+  behind, each with one real fact. Each card opens that NFA's details. Phones and 781–1050 px
+  show Scout alone with an "Also live: Sage · Caleb" chip.
 - Studio: `apps/web/index.html` + `style.css` use the same tokens and wordmark.
 - Brand files: `apps/web/public/favicon.svg` and `apps/web/public/og.png` (1200×630, the
   video's NFA frame), served at `/favicon.svg` and `/og.png`.

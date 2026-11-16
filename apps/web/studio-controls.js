@@ -75,7 +75,8 @@ export function startStudioControls({api,wallet,getSnapshot,id,prepare,review,re
     $('ctl-grant-budget').value=ask.budget;$('ctl-grant-hours').value=ask.hours;
     note('ctl-grant-status',`An agent asks to hire ${ask.recipient} on this NFA's behalf: up to ${(Number(BigInt(ask.budget)/10n**18n)/1e6).toString()} NEAR from its earnings, for ${ask.hours} h. Check the account, then Review grant. Revoke it here anytime.`);
     let tries=0;const open=setInterval(()=>{if(getSnapshot()||++tries>60){clearInterval(open);
-      document.querySelector('[data-studio="vault"]')?.click();$('ctl-delegate').closest('.card')?.scrollIntoView({behavior:'smooth',block:'center'})}},500);
+      document.querySelector('[data-studio="vault"]')?.click();
+      setTimeout(()=>{$('ctl-delegate').closest('.card')?.scrollIntoView({block:'center'});$('ctl-delegate').focus({preventScroll:true})},400)}},500);
   }}catch(error){note('ctl-grant-status',error.message)}
   $('ctl-claim').onclick=()=>prepare('claim',{yocto:$('ctl-claim-amount').value},'Claim NFA income','ctl-earn-status');
   $('ctl-withdraw').onclick=()=>prepare('withdraw',{yocto:$('ctl-claim-amount').value},'Withdraw wallet credit','ctl-earn-status');

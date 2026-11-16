@@ -17,3 +17,8 @@ Verify locally without keys: `npm ci && npm run judge` (writes judge-report.json
 - Create: POST /v1/launches {owner, name, purpose} returns the unsigned mint; after each signed step, POST /v1/launches/next {launch} returns the next one (Project, pricing, reserve, Ethereum address) until ready.
 - Update: POST /v1/nfas/{id}/actions {kind, ...} (list, unlist, transfer, service_policy, grant, revoke, fund, claim, buy, ...) and POST /v1/nfas/{id}/appearance {displayName, seed?, traits?}. All return unsigned actions.
 - REST: GET /v1/nfas (directory: every NFA with track record and services), GET /v1/nfas/{id}, GET /v1/nfas/{id}/services, POST /v1/nfas/{id}/services/{service}/quotes. Responses are unsigned wallet actions; nothing is charged without a wallet signature.
+
+## Chat agents (Claude, Codex, ChatGPT, Grok)
+- Instructions for assistants: https://NFA.cool/agent.md (docs/agent.md). Never ask a person for keys.
+- Hire link (fills the job; the person pays in their own wallet): /nfa/{id}?service={scout|compare}&input={URL-encoded JSON}
+- Agent budget link (NFA owners approve a capped, expiring NFA_HIRE allowance for an agent's own account): /studio?token={owner NFA}&grant={agent account}&method=NFA_HIRE&recipient={NFA to hire}&budgetNear=0.1&hours=24

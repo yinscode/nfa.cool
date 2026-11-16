@@ -117,10 +117,10 @@ export class NfaSdk {
     if(!manifestUri||manifestUri.length>256)throw Error('Invalid manifest URI');
     return this.prepare('update_manifest',{token_id:token(id),manifest_hash:hash(manifestHash),manifest_uri:manifestUri});
   }
-  grant(id:string,delegate:string,method:'NEAR_TRANSFER'|'SCOUT_RUN',recipient:string|null,budget:string,expiresAtNs:number){
+  grant(id:string,delegate:string,method:'NEAR_TRANSFER'|'SCOUT_RUN'|'NFA_HIRE',recipient:string|null,budget:string,expiresAtNs:number){
     return this.prepare('grant_delegate',{token_id:token(id),delegate,method,recipient,budget:amount(budget),expires_at_ns:ns(expiresAtNs)});
   }
-  revoke(id:string,delegate:string,method:'NEAR_TRANSFER'|'SCOUT_RUN'){
+  revoke(id:string,delegate:string,method:'NEAR_TRANSFER'|'SCOUT_RUN'|'NFA_HIRE'){
     return this.prepare('revoke_delegate',{token_id:token(id),delegate,method});
   }
   requestNearTransfer(id:string,recipient:string,yocto:string){

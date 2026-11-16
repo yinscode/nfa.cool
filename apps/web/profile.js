@@ -1,10 +1,14 @@
 import {profileLink} from './profile-link.mjs';
 import {nearDisplay,walletCanceled} from './launch-state.mjs';
 import {transactionHashes,quoteExpired} from './studio-flow.mjs';
+import {parseHireLink} from './hire-link.mjs';
 const $=id=>document.getElementById(id);
 export const serviceSamples={scout:{question:'How does the agent retain its treasury?',sources:[{title:'Vault',url:'https://example.org/vault',text:'The agent retains its treasury in the same NEAR vault after the NFT transfers to its new owner.'}]},compare:{question:'Which option has cost and speed evidence?',criteria:['cost','speed'],sources:[{title:'Option A',url:'https://example.org/a',text:'The cost of option A is five units per run. The speed of option A is two seconds per run.'},{title:'Option B',url:'https://example.org/b',text:'The cost of option B is seven units for a single run.'}]}};
 export function startProfile({api,config,wallet,review,navigate,escape:esc}){
-  let snapshot=null,quote=null,busy=false;
+  let snapshot=null,quote=null,busy=false,drafted=null,draftError=null;
+  // A chat agent can hand over a hire link (/nfa/nfa-2?service=scout&input=…). It only fills this form;
+  // the person still checks the input, gets a quote and signs the payment in their own wallet.
+  try{drafted=parseHireLink(location.search)}catch(error){draftError=error.message}
   const token=()=>$('token-id').value.trim();
   const key=()=>`nfa-public-checkout:${config.registryAccountId}:${config.workspace?.id||'testnet'}:${token()}:${wallet()?.accountId||'guest'}`;
   const saved=()=>{try{return JSON.parse(localStorage.getItem(key())||'null')}catch{return null}};
@@ -81,7 +85,21 @@ export function startProfile({api,config,wallet,review,navigate,escape:esc}){
     $('profile-work').innerHTML=jobs.map(row=>`<p><b>${esc(row.service.service_id)} #${row.id}</b><br><span class="small">${esc(row.service.job.output_hash)}<br>Runtime ${esc(row.service.job.version_key)}</span></p>`).join('')||'<p>No finalized service jobs in this page.</p>';
     const prior=saved();if(prior?.jobId&&prior.quote){$('profile-service').value=prior.service;fillInput(JSON.parse(prior.quote.inputData))}
     note('profile-status',snapshot.readOnlyReason||'Identity and service policies loaded from finalized chain state.');describe();await reconcile();
+    applyDraft();
   }catch(error){note('profile-status',error.message)}}
+  function applyDraft(){
+    if(!drafted&&!draftError)return;
+    const url=new URL(location.href);url.searchParams.delete('service');url.searchParams.delete('input');history.replaceState(null,'',url);
+    if(draftError){note('profile-job-status',draftError);draftError=null;return}
+    $('profile-service').value=drafted.service;
+    if(drafted.input){fillInput(drafted.input);
+      // Keep the exact drafted JSON if the simple fields cannot carry all of it.
+      $('profile-use-json').checked=false;$('profile-use-json').checked=JSON.stringify(typedInput())!==JSON.stringify(drafted.input);if($('profile-use-json').checked)$('profile-use-json').closest('details').open=true}
+    else fillInput(serviceSamples[drafted.service]);
+    inputChanged();describe();drafted=null;
+    note('profile-job-status','Your agent drafted this job. Check the question and sources, get a quote, then pay with your own wallet.');
+    $('profile-question').closest('.card')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }
   $('load-passport').onclick=load;
   $('profile-quote').onclick=async()=>{try{
     const current=saved();if(current?.pending||current?.jobId&&!['FINALIZED','FAILED'].includes(current.status))throw Error('Complete or inspect your existing paid job first');

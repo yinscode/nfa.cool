@@ -228,6 +228,10 @@ export function createApiServer({sdk,store,access,
         res.writeHead(200,{'content-type':'text/plain; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});
         res.end(await readFile(new URL('../../llms.txt',import.meta.url),'utf8'));return;
       }
+      if(req.method==='GET'&&path==='/agent.md'){
+        res.writeHead(200,{'content-type':'text/markdown; charset=utf-8','cache-control':'public, max-age=300','x-content-type-options':'nosniff'});
+        res.end(await readFile(new URL('../../docs/agent.md',import.meta.url),'utf8'));return;
+      }
       if(req.method==='GET'&&path==='/openapi.json'){
         send(res,200,JSON.parse(await readFile(new URL('../../docs/openapi.json',import.meta.url),'utf8')));return;
       }

@@ -66,6 +66,8 @@ function detail(item){
     <h4>How to get its service</h4>
     ${first?'':item.services.length?'<p class="nfa-reason">Its services are not open for public checkout on this site yet. You can still open its public profile and track record.</p>':'<p class="nfa-reason">This NFA is not taking jobs right now. You can still open its public profile.</p>'}
     <ol class="nfa-how">
+      ${first&&promptText?`<li><strong>From your AI chat.</strong> Paste one prompt into Claude, Codex, ChatGPT or Grok. It drafts the job with you and gives you a link to pay in your own wallet.
+        <button class="nfa-chat-copy" type="button" data-copy-nfa>Copy prompt for ${esc(item.name)}</button></li>`:''}
       <li><strong>In your browser.</strong> Open its profile, pick a service, add your question and sources, connect a NEAR testnet wallet, review the quote, then pay and start. The result is recorded on-chain.
         <a class="nfa-profile" href="${esc(item.links.profile)}">Open ${esc(item.name)} in Studio <span aria-hidden="true">↗</span></a></li>
       ${first?`<li><strong>From an agent or script.</strong> Ask for a quote over REST. You get the fee and an unsigned NEAR action; nothing is charged until a wallet signs it.
@@ -74,8 +76,19 @@ function detail(item){
     </ol>
     <p class="nfa-note">Hosted testnet preview: pay with testnet NEAR. Services run as reviewed code in OutLayer; results commit on NEAR.</p>`;
 }
+// "Copy this prompt": the text people paste into Claude, Codex, ChatGPT or Grok. A per-NFA copy adds who to hire.
+const promptText=document.getElementById('chat-prompt')?.textContent.trim()||'';
+async function copyPrompt(text,button,status){
+  let ok=true;try{await navigator.clipboard.writeText(text)}catch{ok=false}
+  if(!ok){const area=document.createElement('textarea');area.value=text;area.setAttribute('readonly','');area.style.position='fixed';area.style.opacity='0';
+    document.body.append(area);area.select();try{ok=document.execCommand('copy')}catch{ok=false}area.remove()}
+  if(status)status.textContent=ok?'Copied. Paste it into your AI chat.':'Copy failed: select the prompt and copy it by hand.';
+  if(button&&ok){button.classList.add('copied');const label=button.innerHTML;button.textContent='Copied ✓';setTimeout(()=>{button.innerHTML=label;button.classList.remove('copied')},2200)}
+}
+document.querySelector('[data-copy-prompt]')?.addEventListener('click',e=>copyPrompt(promptText,e.currentTarget,document.querySelector('.chat-status')));
+const promptFor=item=>`${promptText}\n\nI want to hire ${item.name} (${item.tokenId}). Start by reading https://NFA.cool/v1/nfas/${item.tokenId}/services.`;
 // Each NFA has a shareable link: /#nfa-2 opens its details.
-function show(i){body.innerHTML=detail(items[i]);if(!dialog.open)dialog.showModal();dialog.scrollTop=0;history.replaceState(null,'','#'+items[i].tokenId)}
+function show(i){body.innerHTML=detail(items[i]);body.querySelector('[data-copy-nfa]')?.addEventListener('click',e=>copyPrompt(promptFor(items[i]),e.currentTarget,null));if(!dialog.open)dialog.showModal();dialog.scrollTop=0;history.replaceState(null,'','#'+items[i].tokenId)}
 dialog.addEventListener('close',()=>{if(/^#nfa-\d+$/.test(location.hash))history.replaceState(null,'',location.pathname+location.search)});
 grid.addEventListener('click',e=>{const b=e.target.closest('.nfa-card');if(b)show(Number(b.dataset.i))});
 dialog.addEventListener('click',e=>{if(e.target===dialog||e.target.closest('[data-close]'))dialog.close()});

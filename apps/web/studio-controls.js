@@ -1,4 +1,5 @@
 import {quoteExpired} from './studio-flow.mjs';
+import {parseBudgetLink} from './hire-link.mjs';
 const $=id=>document.getElementById(id);
 const split=value=>value.split(/[\s,]+/).map(s=>s.trim()).filter(Boolean);
 export function startStudioControls({api,wallet,getSnapshot,id,prepare,review,reload,escape:esc,money}){
@@ -25,8 +26,8 @@ export function startStudioControls({api,wallet,getSnapshot,id,prepare,review,re
     <div class="actions"><button id="ctl-sim-transfer" data-owner class="secondary">Simulate</button><button id="ctl-sign-transfer" data-owner disabled>Review transfer</button></div>
     <pre id="ctl-transfer-output"></pre><p id="ctl-transfer-status" class="status"></p></div></div>
     <div class="grid"><div class="card"><h2>Delegate an allowance</h2><label>Delegate account<input id="ctl-delegate"></label>
-    <label>Permission<select id="ctl-grant-method"><option value="NEAR_TRANSFER">NEAR transfer to one recipient</option><option value="SCOUT_RUN">Legacy Scout job count</option></select></label>
-    <label>NEAR recipient<input id="ctl-grant-recipient"></label><label>Budget in yoctoNEAR, or job count<input id="ctl-grant-budget" value="1"></label>
+    <label>Permission<select id="ctl-grant-method"><option value="NEAR_TRANSFER">NEAR transfer to one recipient</option><option value="NFA_HIRE">Hire one NFA, paid from this NFA's earnings</option><option value="SCOUT_RUN">Legacy Scout job count</option></select></label>
+    <label>NEAR recipient, or the NFA it may hire (nfa-2)<input id="ctl-grant-recipient"></label><label>Budget in yoctoNEAR, or job count<input id="ctl-grant-budget" value="1"></label>
     <label>Expires in hours<input id="ctl-grant-hours" type="number" min="1" max="8760" value="24"></label>
     <button id="ctl-grant" data-owner>Review grant</button><div id="ctl-grants"></div><p id="ctl-grant-status" class="status"></p></div>
     <div class="card"><h2>Recovery</h2><div id="ctl-recovery"></div><p id="ctl-recovery-status" class="status"></p>
@@ -65,8 +66,17 @@ export function startStudioControls({api,wallet,getSnapshot,id,prepare,review,re
     await review(simulation.unsignedAction,'Send reviewed transfer','ctl-transfer-status');
     simulation=null;$('ctl-sign-transfer').disabled=true;}catch(error){note('ctl-transfer-status',error.message)}};
   $('ctl-grant').onclick=()=>prepare('grant',{delegate:$('ctl-delegate').value.trim(),method:$('ctl-grant-method').value,
-    recipient:$('ctl-grant-method').value==='NEAR_TRANSFER'?$('ctl-grant-recipient').value.trim():null,
+    recipient:['NEAR_TRANSFER','NFA_HIRE'].includes($('ctl-grant-method').value)?$('ctl-grant-recipient').value.trim():null,
     budget:$('ctl-grant-budget').value,expiresAtNs:Math.floor((Date.now()+Number($('ctl-grant-hours').value)*3600000)*1e6)},'Set epoch-bound delegate allowance','ctl-grant-status');
+  // Agent budget link (/studio?token=nfa-1&grant=<agent>&method=NFA_HIRE&recipient=nfa-2&budgetNear=0.1&hours=24):
+  // fills the allowance form for the owner to check and sign. The agent never sees the owner's keys.
+  try{const ask=parseBudgetLink(location.search);if(ask){
+    $('ctl-delegate').value=ask.delegate;$('ctl-grant-method').value=ask.method;$('ctl-grant-recipient').value=ask.recipient;
+    $('ctl-grant-budget').value=ask.budget;$('ctl-grant-hours').value=ask.hours;
+    note('ctl-grant-status',`An agent asks to hire ${ask.recipient} on this NFA's behalf: up to ${(Number(BigInt(ask.budget)/10n**18n)/1e6).toString()} NEAR from its earnings, for ${ask.hours} h. Check the account, then Review grant. Revoke it here anytime.`);
+    let tries=0;const open=setInterval(()=>{if(getSnapshot()||++tries>60){clearInterval(open);
+      document.querySelector('[data-studio="vault"]')?.click();$('ctl-delegate').closest('.card')?.scrollIntoView({behavior:'smooth',block:'center'})}},500);
+  }}catch(error){note('ctl-grant-status',error.message)}
   $('ctl-claim').onclick=()=>prepare('claim',{yocto:$('ctl-claim-amount').value},'Claim NFA income','ctl-earn-status');
   $('ctl-withdraw').onclick=()=>prepare('withdraw',{yocto:$('ctl-claim-amount').value},'Withdraw wallet credit','ctl-earn-status');
   $('ctl-verify-release').onclick=async()=>{try{$('ctl-release-result').textContent='Checking bytes…';

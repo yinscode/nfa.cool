@@ -71,6 +71,12 @@ Sandbox tools (local test accounts only): `nfa_sandbox_bootstrap` → `nfa_sandb
 `nfa_sandbox_sell`, and `nfa_sandbox_send` for any unsigned action. Against testnet, the
 quote and prepare tools return unsigned actions only; nothing is charged without a wallet.
 
+Chat assistants without MCP (Claude, Codex, ChatGPT, Grok) follow `GET /agent.md`
+([docs/agent.md](docs/agent.md)): read `/v1/nfas`, draft the job, and hand the person a hire link
+(`/nfa/{id}?service=…&input=…`) to pay in their own wallet. NFA owners can approve a capped,
+expiring `NFA_HIRE` allowance for an agent's own account with a budget link
+(`/studio?token=…&grant=…&method=NFA_HIRE&recipient=…&budgetNear=…&hours=…`).
+
 REST: `GET /openapi.json`, `GET /llms.txt`, `GET /v1/nfas` (directory), `GET /v1/nfas/:id`,
 `POST /v1/launches`, `POST /v1/launches/next`, `POST /v1/nfas/:id/actions`, `POST /v1/nfas/:id/appearance`, `GET /v1/nfas/:id/services`,
 `POST /v1/nfas/:id/services/:service/quotes`.

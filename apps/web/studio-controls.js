@@ -74,9 +74,15 @@ export function startStudioControls({api,wallet,getSnapshot,id,prepare,review,re
     $('ctl-delegate').value=ask.delegate;$('ctl-grant-method').value=ask.method;$('ctl-grant-recipient').value=ask.recipient;
     $('ctl-grant-budget').value=ask.budget;$('ctl-grant-hours').value=ask.hours;
     note('ctl-grant-status',`An agent asks to hire ${ask.recipient} on this NFA's behalf: up to ${(Number(BigInt(ask.budget)/10n**18n)/1e6).toString()} NEAR from its earnings, for ${ask.hours} h. Check the account, then Review grant. Revoke it here anytime.`);
-    let tries=0;const open=setInterval(()=>{if(getSnapshot()||++tries>60){clearInterval(open);
-      document.querySelector('[data-studio="vault"]')?.click();
-      setTimeout(()=>{$('ctl-delegate').closest('.card')?.scrollIntoView({block:'center'});$('ctl-delegate').focus({preventScroll:true})},400)}},500);
+    // Wait until the NFA panel is on screen (its tab bar visible), then open Vault & keys and bring the form into view.
+    let tries=0;const open=setInterval(()=>{const tab=document.querySelector('[data-studio="vault"]');
+      if(!(getSnapshot()&&tab?.offsetParent)&&++tries<=80)return;clearInterval(open);if(!tab?.offsetParent)return;
+      tab.click();$('ctl-delegate').focus({preventScroll:true});
+      // Studio keeps rendering after load (collection, panels), so keep the form in view until the page settles or the person scrolls.
+      const show=()=>$('ctl-delegate').closest('.card')?.scrollIntoView({block:'center'});
+      const watch=new ResizeObserver(show);watch.observe(document.body);show();
+      const stop=()=>{watch.disconnect();for(const e of ['wheel','touchstart','keydown','mousedown'])removeEventListener(e,stop)};
+      for(const e of ['wheel','touchstart','keydown','mousedown'])addEventListener(e,stop,{passive:true});setTimeout(stop,10000)},500);
   }}catch(error){note('ctl-grant-status',error.message)}
   $('ctl-claim').onclick=()=>prepare('claim',{yocto:$('ctl-claim-amount').value},'Claim NFA income','ctl-earn-status');
   $('ctl-withdraw').onclick=()=>prepare('withdraw',{yocto:$('ctl-claim-amount').value},'Withdraw wallet credit','ctl-earn-status');
